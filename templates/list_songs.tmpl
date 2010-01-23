@@ -1,28 +1,28 @@
-<div class="scrollingContainer">
-    <table id="songs">
-        <thead class="fixedHeader">
-            <tr>
-                <th class="track-number">#</th>
-                <th class="title">Title</th>
-                <th class="genre">Genre</th>
-                <th class="artist">Artist</th>
-                <th class="album">Album</th>
-            </tr>
-        </thead>
-        <tbody class="scrollContent">
+                    <div class="scrollingContainer">
+                        <table id="songs">
+                            <thead>
+                                <tr>
+                                    <th class="track-number">#</th>
+                                    <th class="title">Title</th>
+                                    <th class="genre">Genre</th>
+                                    <th class="artist">Artist</th>
+                                    <th class="album">Album</th>
+                                </tr>
+                            </thead>
+                            <tbody>
 #for $song in $songs
-            <tr class="song" id="$song">
+                                <tr class="song" id="$song">
     #try
-                <td class="track-number">$songs[$song]['track-number']</td>
+                                    <td class="track-number">$songs[$song]['track-number']</td>
     #except
-                <td class="track-number"></td>
+                                    <td class="track-number"></td>
     #end try
-                <td class="title">$songs[$song]['title']</td>
-                <td class="genre">$songs[$song]['genre']</td>
-                <td class="artist">$songs[$song]['artist']</td>
-                <td class="album">$songs[$song]['album']</td>
-            </tr>
+                                    <td class="title">$songs[$song]['title']</td>
+                                    <td class="genre">$songs[$song]['genre']</td>
+                                    <td class="artist">$songs[$song]['artist']</td>
+                                    <td class="album">$songs[$song]['album']</td>
+                                </tr>
 #end for
-        </tbody>
-    </table>
-</div>
+                            </tbody>
+                        </table>
+                    </div>

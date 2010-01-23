@@ -1,6 +1,6 @@
 html, html body {
-    height: 93%;
-    margin: 0 0 25px 0;
+    height: 100%;
+    margin: 0;
 }
 
 body {
@@ -12,10 +12,15 @@ body {
     font-size: 13px;
 }
 
-#player-container {
-    position: fixed;
-    top: 25px;
-    right: 25px;
+img {
+    border: none;
+}
+
+#header {
+    height: 48px;
+    margin: 0;
+    padding: 16px 0 0 0;
+    position: relative;
 }
 
 table {
@@ -24,26 +29,19 @@ table {
     border-collapse: collapse;
 }
 
-#controls {
-    margin-left: 25px;
-    padding: 0;
-    list-style-type: none;
-}
-
-#controls li {
-    width: 32px;
-    height: 32px;
-    display: inline-block;
-}
-
 h1 {
     float: left;
+    height: 32px;
+    width: 116px;
     margin: 0 25px 0 0;
     padding: 0;
+    text-indent: -9999px;
+    background: url('images/blofeld.png') no-repeat;
 }
 
 #browser {
     height: 100%;
+    margin: 0;
 }
 
 tbody {
@@ -60,7 +58,6 @@ tbody {
 
 thead {
     background: #555753;
-
 }
 
 td, th {
@@ -83,6 +80,14 @@ img.loading {
     width: 2em;
 }
 
+#albums tr, #artists tr, #songs tr {
+    height: 20px;
+}
+
+tr.tinted {
+    background: #707070;
+}
+
 tr.selected {
     background: #3465a4;
 }
@@ -103,7 +108,7 @@ tr.song:hover {
     width: 75%;
     background: #666;
     height: 100%;
-    border-left: 10px solid transparent;
+    border-left: 10px solid #2e3436;
 }
 
 #artistsContainer, #albumsContainer {
@@ -112,22 +117,227 @@ tr.song:hover {
 }
 
 #artistsContainer {
-    border-bottom: 10px solid transparent;
+    border-bottom: 10px solid #2e3436;
 }
 
-#media-skip-backward {
-    background-image: url('images/media-skip-backward.png');
+#player_container {
+    height: 32px;
+    position: relative;
+    left: 132px;
 }
 
-#media-skip-forward {
-    background-image: url('images/media-skip-forward.png');
+#controls {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
 }
 
-#media-playback-start {
-    background-image: url('images/media-playback-start.png');
+#controls li {
+    overflow: hidden;
+    text-indent: -9999px;
+	display: block;
+	position: absolute;
+	width:32px;
+	height:32px;
+	cursor: pointer;
 }
 
-#media-playback-pause {
-    background-image: url('images/media-playback-pause.png');
+#skip_back {
+    background: url('images/sprite.png') 0 0 no-repeat;
+    left:0px;
 }
 
+#pause {
+    background: url('images/sprite.png') -64px 0 no-repeat;
+    left: 32px;
+}
+
+#play {
+    background: url('images/sprite.png') -96px 0 no-repeat;
+    left: 32px;
+}
+
+#skip_forward {
+    background: url('images/sprite.png') -128px 0 no-repeat;
+    left: 64px;
+}
+
+#cover_art {
+    float: left;
+    margin-right: 5px;
+    width: 32px;
+    height: 32px;
+}
+
+
+#now_playing {
+    position: absolute;
+    color: #888a85;
+    left: 120px;
+    height: 32px;
+    width: 100%;
+}
+
+#np_title {
+    font-weight: bold;
+}
+
+#np_title, #np_artist, #np_album {
+    color: #eeeeec;
+}
+
+#find {
+    float: right;
+    position: absolute;
+    height: 32px;
+    right: 0px;
+    top: 20px;
+}
+
+#search_icon {
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    top: 3px;
+    left: 6px;
+    background: url('images/search.png');
+}
+
+#clear_search {
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    top: 3px;
+    right: 6px;
+    background: url('images/clear.png');
+}
+
+#query {
+    height: 16px;
+    background: #666;
+    border: #555753 2px solid;
+    color: #eeeeec;
+    padding-left: 22px;
+    padding-right: 22px;
+}
+
+/*#controls > li:active {*/
+/*    background-color: #3465a4;*/
+/*}*/
+
+
+
+
+
+
+
+
+/**
+ * jQuery lightBox plugin
+ * This jQuery plugin was inspired and based on Lightbox 2 by Lokesh Dhakar (http://www.huddletogether.com/projects/lightbox2/)
+ * and adapted to me for use like a plugin from jQuery.
+ * @name jquery-lightbox-0.5.css
+ * @author Leandro Vieira Pinho - http://leandrovieira.com
+ * @version 0.5
+ * @date April 11, 2008
+ * @category jQuery plugin
+ * @copyright (c) 2008 Leandro Vieira Pinho (leandrovieira.com)
+ * @license CC Attribution-No Derivative Works 2.5 Brazil - http://creativecommons.org/licenses/by-nd/2.5/br/deed.en_US
+ * @example Visit http://leandrovieira.com/projects/jquery/lightbox/ for more informations about this jQuery plugin
+ */
+#jquery-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 90;
+	width: 100%;
+	height: 500px;
+}
+#jquery-lightbox {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	z-index: 100;
+	text-align: center;
+	line-height: 0;
+}
+#jquery-lightbox a img { border: none; }
+#lightbox-container-image-box {
+	position: relative;
+	background-color: #666;
+	width: 250px;
+	height: 250px;
+	margin: 0 auto;
+}
+#lightbox-container-image { padding: 10px; }
+#lightbox-loading {
+	position: absolute;
+	top: 40%;
+	left: 0%;
+	height: 25%;
+	width: 100%;
+	text-align: center;
+	line-height: 0;
+}
+#lightbox-nav {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	z-index: 10;
+}
+#lightbox-container-image-box > #lightbox-nav { left: 0; }
+#lightbox-nav a { outline: none;}
+#lightbox-nav-btnPrev, #lightbox-nav-btnNext {
+	width: 49%;
+	height: 100%;
+	display: block;
+}
+#lightbox-nav-btnPrev { 
+	left: 0; 
+	float: left;
+}
+#lightbox-nav-btnNext { 
+	right: 0; 
+	float: right;
+}
+#lightbox-container-image-data-box {
+	font: 10px Verdana, Helvetica, sans-serif;
+	background-color: #666;
+	margin: 0 auto;
+	line-height: 1.4em;
+	overflow: hidden;
+	width: 100%;
+	padding: 0 10px 0;
+}
+#lightbox-container-image-data {
+	padding: 0 10px; 
+	color: #666; 
+}
+#lightbox-container-image-data #lightbox-image-details { 
+	width: 70%; 
+	float: left; 
+	text-align: left; 
+}	
+#lightbox-image-details-caption { font-weight: bold; }
+#lightbox-image-details-currentNumber {
+	display: block; 
+	clear: left; 
+	padding-bottom: 1.0em;	
+}			
+#lightbox-terNav-btnSave {
+	width: 22px; 
+	height: 32px;
+	float: left;
+    background: url('images/sprite.png') -160px 0 no-repeat;
+}
+#lightbox-secNav-btnClose {
+	width: 22px; 
+	height: 32px;
+	float: right;
+    background: url('images/sprite.png') -192px 0 no-repeat;
+}
+#lightbox-secNav {
+}
