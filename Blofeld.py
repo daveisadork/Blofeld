@@ -261,6 +261,7 @@ if __name__ == '__main__':
             'tools.staticdir.on': True,
             'tools.staticdir.dir': os.path.join(program_dir, 'assets')}
         }
-
+    if not os.path.isdir(os.path.join(program_dir, 'cache')):
+        os.mkdir(os.path.join(program_dir, 'cache'))
     cherrypy.quickstart(Blofeld(), '/', config=conf)
 
