@@ -175,7 +175,9 @@ tr.song:hover {
     color: #888a85;
     left: 120px;
     height: 32px;
-    width: 100%;
+    width: 50%;
+    margin-right: 100px;
+    overflow: hidden;
 }
 
 #np_title {
