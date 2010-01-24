@@ -21,8 +21,8 @@ except:
 import mimetypes 
 mimetypes.init() 
 program_dir = os.path.dirname(os.path.abspath(__file__))
-database = "/home/dhayes/.local/share/rhythmbox/rhythmdb.xml"
-#database = "/home/dhayes/Desktop/rhythmdb.xml"
+database = os.path.join(os.path.expanduser("~"), ".local/share/rhythmbox/rhythmdb.xml")
+
 
 class Blofeld:
     def __init__(self):
