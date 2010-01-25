@@ -3,10 +3,10 @@
     <head> 
         <title>Blofeld</title> 
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8"> 
-        <script type="text/javascript" src="assets/lib.js"></script>
-        <script type="text/javascript" src="assets/blofeld.js"></script>
-        <link rel="stylesheet" href="assets/blofeld.css" type="text/css">
-        <link rel="shortcut icon" type="image/x-icon" href="assets/images/favicon.ico">
+        <script type="text/javascript" src="./static/javascripts/lib.js"></script>
+        <script type="text/javascript" src="./static/javascripts/blofeld.js"></script>
+        <link rel="stylesheet" href="./static/stylesheets/blofeld.css" type="text/css">
+        <link rel="shortcut icon" type="image/x-icon" href="./static/images/favicon.ico">
     </head> 
     <body> 
         <div id="header">
@@ -18,6 +18,14 @@
                     <li id="pause">pause</li>
                     <li id="skip_forward">forward</li>
                 </ul>
+                <div id="progress">
+                    <div id="progress_bar">
+                        <div id="load_progress">
+                            <div id="play_head"></div>
+                        </div>
+                    </div>
+                    <div id="play_status"></div>
+                </div>
                 <div id="now_playing">
                     <div id="cover_art"></div>
                     <span id="np_title"></span><br>by <span id="np_artist"></span> from <span id="np_album"></span>

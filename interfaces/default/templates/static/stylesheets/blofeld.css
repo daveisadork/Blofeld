@@ -36,7 +36,7 @@ h1 {
     margin: 0 25px 0 0;
     padding: 0;
     text-indent: -9999px;
-    background: url('images/blofeld.png') no-repeat;
+    background: url('../images/blofeld.png') no-repeat;
 }
 
 #browser {
@@ -143,22 +143,22 @@ tr.song:hover {
 }
 
 #skip_back {
-    background: url('images/sprite.png') 0 0 no-repeat;
+    background: url('../images/sprite.png') 0 0 no-repeat;
     left:0px;
 }
 
 #pause {
-    background: url('images/sprite.png') -64px 0 no-repeat;
+    background: url('../images/sprite.png') -64px 0 no-repeat;
     left: 32px;
 }
 
 #play {
-    background: url('images/sprite.png') -96px 0 no-repeat;
+    background: url('../images/sprite.png') -96px 0 no-repeat;
     left: 32px;
 }
 
 #skip_forward {
-    background: url('images/sprite.png') -128px 0 no-repeat;
+    background: url('../images/sprite.png') -128px 0 no-repeat;
     left: 64px;
 }
 
@@ -169,11 +169,41 @@ tr.song:hover {
     height: 32px;
 }
 
+#progress {
+    position: absolute;
+    left: 120px;
+    height: 32px;
+    width: 100px;
+}
+
+#progress_bar {
+    background: #666;
+    border: #555753 2px solid;
+    height: 16px;
+    margin-top: 7px;
+    overflow: hidden;
+}
+
+#load_progress {
+    background: #707070;
+    height: 32px;
+    width: 50%;
+    overflow: hidden;
+}
+
+#play_head {
+    background: #3465a4;
+    height: 32px;
+    width: 50%;
+    color: #eeeeec;
+    overflow: show;
+    padding-left 3px;
+}
 
 #now_playing {
     position: absolute;
     color: #888a85;
-    left: 120px;
+    left: 245px;
     height: 32px;
     width: 50%;
     margin-right: 100px;
@@ -201,7 +231,7 @@ tr.song:hover {
     position: absolute;
     top: 3px;
     left: 6px;
-    background: url('images/search.png');
+    background: url('../images/search.png');
 }
 
 #clear_search {
@@ -210,7 +240,7 @@ tr.song:hover {
     position: absolute;
     top: 3px;
     right: 6px;
-    background: url('images/clear.png');
+    background: url('../images/clear.png');
 }
 
 #query {
@@ -332,13 +362,13 @@ tr.song:hover {
 	width: 22px; 
 	height: 32px;
 	float: left;
-    background: url('images/sprite.png') -160px 0 no-repeat;
+    background: url('../images/sprite.png') -160px 0 no-repeat;
 }
 #lightbox-secNav-btnClose {
 	width: 22px; 
 	height: 32px;
 	float: right;
-    background: url('images/sprite.png') -192px 0 no-repeat;
+    background: url('../images/sprite.png') -192px 0 no-repeat;
 }
 #lightbox-secNav {
 }
