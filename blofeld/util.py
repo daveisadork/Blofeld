@@ -19,4 +19,5 @@ import unicodedata
 def clean_text(text, encoding='utf-8'):
     if type(text) is not unicode:
         text = unicode(text, encoding)
-    return unicodedata.normalize('NFKD',text).encode('iso-8859-1', 'ignore').lower()
+    return unicodedata.normalize('NFKD',text).encode('iso-8859-1',
+                                                     'ignore').lower()

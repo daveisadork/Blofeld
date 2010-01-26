@@ -30,7 +30,10 @@ if __name__ == "__main__":
         'tools.encode.encoding': 'utf-8'
         })
 
-    static = {'tools.staticdir.on': True, 'tools.staticdir.dir': os.path.join(THEME_DIR, 'static')}
+    static = {
+        'tools.staticdir.on': True,
+        'tools.staticdir.dir': os.path.join(THEME_DIR, 'static')
+        }
 
     conf = {
         '/static': static,

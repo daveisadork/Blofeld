@@ -18,15 +18,18 @@ import os
 
 import ConfigParser
 
-PROGRAM_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+PROGRAM_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                              os.pardir))
 
 _ini = ConfigParser.ConfigParser()
 _ini.read(os.path.join(PROGRAM_DIR, 'config.ini'))
 
 USE_RHYTHMBOX = _ini.getboolean('database', 'rhythmbox')
 if USE_RHYTHMBOX:
-    RB_DATABASE = os.path.join(os.path.expanduser("~"), ".local/share/rhythmbox/rhythmdb.xml")
+    RB_DATABASE = os.path.join(os.path.expanduser("~"),
+                               ".local/share/rhythmbox/rhythmdb.xml")
 
 HOSTNAME = _ini.get('server', 'host')
 PORT = _ini.getint('server', 'port')
-THEME_DIR = os.path.join(PROGRAM_DIR, 'interfaces', _ini.get('interface', 'theme'), 'templates')
+THEME_DIR = os.path.join(PROGRAM_DIR, 'interfaces',
+                         _ini.get('interface', 'theme'), 'templates')

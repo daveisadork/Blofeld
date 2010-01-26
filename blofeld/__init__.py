@@ -47,22 +47,16 @@ class Blofeld:
                 for album in library.relationships[artist]:
                     result[album] = library.albums[album]
         if query:
+            query = util.clean_text(query)
             filter_result = {}
             if not result:
                 result = library.albums
             for song in library.songs:
-                if util.clean_text(query) in util.clean_text(library.songs[song]['artist']) and \
-                   library.songs[song]['album_hash'] in result and \
-                   library.songs[song]['album_hash'] not in filter_result:
-                    filter_result[library.songs[song]['album_hash']] = library.songs[song]['album']
-                elif util.clean_text(query) in util.clean_text(library.songs[song]['album']) \
-                   and library.songs[song]['album_hash'] in result and \
-                   library.songs[song]['album_hash'] not in filter_result:
-                    filter_result[library.songs[song]['album_hash']] = library.songs[song]['album']
-                elif util.clean_text(query) in util.clean_text(library.songs[song]['title']) and \
-                   library.songs[song]['album_hash'] in result and \
-                   library.songs[song]['album_hash'] not in filter_result:
-                    filter_result[library.songs[song]['album_hash']] = library.songs[song]['album']
+                for field in ('artist', 'album', 'title'):
+                    if query in util.clean_text(library.songs[song][field]) and \
+                       library.songs[song]['album_hash'] in result and \
+                       library.songs[song]['album_hash'] not in filter_result:
+                        filter_result[library.songs[song]['album_hash']] = library.songs[song]['album']
             result = filter_result
         if output == 'json':
             if result != None:
@@ -80,17 +74,13 @@ class Blofeld:
     def list_artists(self, query=None,  output='json'):
         result = None
         if query:
+            query = util.clean_text(query)
             result = {}
             for song in library.songs:
-                if util.clean_text(query) in util.clean_text(library.songs[song]['artist']) and \
-                   library.songs[song]['artist_hash'] not in result:
-                    result[library.songs[song]['artist_hash']] = library.songs[song]['artist']
-                elif util.clean_text(query) in util.clean_text(library.songs[song]['album']) and \
-                   library.songs[song]['artist_hash'] not in result:
-                    result[library.songs[song]['artist_hash']] = library.songs[song]['artist']
-                elif util.clean_text(query) in util.clean_text(library.songs[song]['title']) and \
-                   library.songs[song]['artist_hash'] not in result:
-                    result[library.songs[song]['artist_hash']] = library.songs[song]['artist']
+                for field in ('artist', 'album', 'title'):
+                    if query in util.clean_text(library.songs[song][field]) and \
+                       library.songs[song]['artist_hash'] not in result:
+                        result[library.songs[song]['artist_hash']] = library.songs[song]['artist']
         if output == 'json':
             if result != None:
                 return str(result)
@@ -136,19 +126,15 @@ class Blofeld:
                     except:
                         pass
         if query:
+            query = util.clean_text(query)
             filter_result = {}
             if not result:
                 result = library.songs
             for song in result:
-                if util.clean_text(query) in util.clean_text(result[song]['artist']) and \
-                   song not in filter_result:
-                    filter_result[song] = result[song]
-                elif util.clean_text(query) in util.clean_text(result[song]['album']) and \
-                   song not in filter_result:
-                    filter_result[song] = result[song]
-                elif util.clean_text(query) in util.clean_text(result[song]['title']) and \
-                   song not in filter_result:
-                    filter_result[song] = result[song]
+                for field in ('artist', 'album', 'title'):
+                    if query in util.clean_text(result[song][field]) and \
+                       song not in filter_result:
+                        filter_result[song] = result[song]
             result = filter_result
         if output =='json':
             if result == None:
