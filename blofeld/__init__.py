@@ -15,6 +15,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
+import sys
 import urllib
 import urllib2
 from urlparse import urlparse
@@ -32,12 +33,13 @@ from blofeld.coverart import resize_cover
 
 class Blofeld:
 
+    @cherrypy.expose
     def index(self):
         template = Template(file=os.path.join(THEME_DIR, 'index.tmpl'))
         template.songs = library.songs
         return template.respond()
-    index.exposed = True
 
+    @cherrypy.expose
     def list_albums(self, artists=None, query=None, output='json'):
         result = None
         if artists:
@@ -69,8 +71,8 @@ class Blofeld:
         else: 
             template.albums = library.albums
         return template.respond()
-    list_albums.exposed = True
 
+    @cherrypy.expose
     def list_artists(self, query=None,  output='json'):
         result = None
         if query:
@@ -92,8 +94,8 @@ class Blofeld:
         else:
             template.artists = library.artists
         return template.respond()
-    list_artists.exposed = True
 
+    @cherrypy.expose
     def list_songs(self, artists=None,
                    albums=None, query=None, list_all=False, output='json'):
         if list_all:
@@ -145,8 +147,8 @@ class Blofeld:
             result = {}
         template.songs = result
         return template.respond()
-    list_songs.exposed = True
 
+    @cherrypy.expose
     def get_song(self, songid=None, download=False, format=None):
         if songid not in library.songs:
             return "False"
@@ -161,9 +163,9 @@ class Blofeld:
             return serve_file(path, song.info()['Content-Type'],
                               "inline", os.path.split(path)[1])
         return False
-    get_song.exposed = True
     get_song._cp_config = {'response.stream': True}
 
+    @cherrypy.expose
     def get_cover(self, songid=None, size='original', download=False):
         uri = library.songs[songid]['location']
         path = os.path.split(urllib.url2pathname(urlparse(uri).path))[0]
@@ -178,4 +180,11 @@ class Blofeld:
                                 urllib.pathname2url(os.path.join(path, cover)))
         cherrypy.response.headers['Content-Type'] = artwork.info()['Content-Type']
         return artwork.read()
-    get_cover.exposed = True
+
+    @cherrypy.expose
+    def shutdown(self):
+        def quit():
+            yield "Blofeld is shutting down."
+            sys.exit()
+        return quit()
+    shutdown._cp_config = {'response.stream': True}
