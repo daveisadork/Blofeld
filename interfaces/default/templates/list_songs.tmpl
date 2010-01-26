@@ -2,6 +2,7 @@
                         <table id="songs">
                             <thead>
                                 <tr>
+                                    <th class="status"></th>
                                     <th class="track-number">#</th>
                                     <th class="title">Title</th>
                                     <th class="genre">Genre</th>
@@ -12,6 +13,7 @@
                             <tbody>
 #for $song in $songs
                                 <tr class="song" id="$song">
+                                    <td class="status"></td>
     #try
                                     <td class="track-number">$songs[$song]['track-number']</td>
     #except

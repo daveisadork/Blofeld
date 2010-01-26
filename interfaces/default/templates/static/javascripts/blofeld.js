@@ -1,19 +1,24 @@
 var loadingImage = "<div class='scrollingContainer'><img src='static/images/loading.gif' alt='loading...' class='loading'></div>";
 var playlist = []
 var playingCurrently = null
+var activeSong = null
 
 var playSong = function (songIndex) {
     song = playlist[songIndex];
     playingCurrently = songIndex;
     $("#player").setFile('get_song?format=mp3&songid=' + song, 'get_song?format=ogg&songid=' + song);
     $('#cover_art').html('<a href="get_cover?size='+ Math.floor(document.body.clientHeight * 0.75) + '&songid=' + song + '"><img src="get_cover?size=32&songid=' + song + '" width="32" height="32"></a>')
-    $('#cover_art > a').lightBox({imageLoading:'assets/images/loading.gif', songid:song});
+    $('#cover_art > a').lightBox({imageLoading:'static/images/loading.gif', songid:song});
     $('#np_title').html($('#' + song + ' .title').html())
     $('#np_artist').html($('#' + song + ' .artist').html())
-    $('#np_album').html($('#' + song + ' .album').html())
-    $('#player').play();
+    $('#np_album').html($('#' + song + ' .album').html());
+    $('.song').removeClass('now-playing');
+    $('#' + song).addClass('now-playing');
     $("#now_playing").show();
     $("#progress").show();
+//    $("#songsContainer .scrollingContainer").scrollTo($('#'+song), 0, {offset:-(Math.floor($("#songsContainer").height() / 2)-10)});
+    $('#player').play()
+    activeSong = song;
 }
 
 var listArtists = function (query) {
@@ -105,8 +110,8 @@ var listSongs = function (artists, albums, query, play) {
         options, 
         function () {
             $("#songs").tablesorter({
-                sortForce: [[3,0], [4,0], [0,0]],
-                sortList: [[3,0], [4,0], [0,0]]
+                sortForce: [[4,0], [5,0], [1,0]],
+                sortList: [[4,0], [5,0], [1,0]]
             }); 
             $("#songs tr:odd").addClass('tinted')
             playlist = []
@@ -114,6 +119,10 @@ var listSongs = function (artists, albums, query, play) {
             $('.song').each(function (index) {
                 playlist.push($(this).attr('id'))
             })
+            try {
+                playingCurrently = playlist.indexOf(activeSong)
+                $('#' + activeSong).addClass('now-playing')
+            } catch (err) {}
             $('.song').unbind('dblclick');
             $('.song').dblclick(function () {
                 playSong(playlist.indexOf($(this).attr('id')))
@@ -149,6 +158,7 @@ var playNextSong = function () {
 }
 
 var stopPlayback = function () {
+    activeSong = null;
     $("#player").stop();
     $("#now_playing").hide();
     $("#progress").hide();

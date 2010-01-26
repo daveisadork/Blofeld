@@ -96,6 +96,20 @@ tr.song:hover {
 
 }
 
+tr.now-playing {
+    font-weight: bold;
+}
+
+.status {
+    width: 16px;
+}
+
+tr.now-playing > td.status {
+    width: 16px;
+    height: 16px;
+    background: url('../images/cp.png') no-repeat center center;
+}
+
 .scrollingContainer {
     overflow-y: scroll;
     overflow-x: hidden;
