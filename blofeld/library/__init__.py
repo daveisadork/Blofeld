@@ -30,7 +30,7 @@ from blofeld.config import *
 
 if USE_RHYTHMBOX:
     from blofeld.library.rhythmbox import load_rhythmbox_db
-    artists, albums, songs, relationships = load_rhythmbox_db('/home/dhayes/Desktop/rhythmdb.xml')
+    artists, albums, songs, relationships = load_rhythmbox_db(RB_DATABASE)
 #    counter = 0
 #    for song in songs:
 #        counter += 1
