@@ -29,7 +29,7 @@ def resize_cover(songid, size):
     path = os.path.split(urllib.url2pathname(urlparse(uri).path))[0]
     cover = 'Cover.jpg'
     size = int(size)
-    img_path = os.path.join(PROGRAM_DIR + '/cache', str(size), songid + '.jpg')
+    img_path = os.path.join(CONFIG_DIR + '/cache', str(size), songid + '.jpg')
     if not os.path.exists(os.path.split(img_path)[0]):
         os.makedirs(os.path.split(img_path)[0])
     try:

@@ -20,16 +20,33 @@ import ConfigParser
 
 PROGRAM_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
                               os.pardir))
+CONFIG_DIR = os.path.abspath(os.path.join(os.path.expanduser("~"), '.blofeld'))
+CONFIG_FILE = os.path.join(CONFIG_DIR, 'blofeld.cfg')
 
-_ini = ConfigParser.ConfigParser()
-_ini.read(os.path.join(PROGRAM_DIR, 'config.ini'))
+if not os.path.isdir(CONFIG_DIR):
+    os.mkdir(CONFIG_DIR)
 
-USE_RHYTHMBOX = _ini.getboolean('database', 'rhythmbox')
+_cfg = ConfigParser.ConfigParser()
+
+if not os.path.exists(CONFIG_FILE):
+    _cfg.add_section('server')
+    _cfg.set('server', 'host', '0.0.0.0')
+    _cfg.set('server', 'port', '8080')
+    _cfg.add_section('database')
+    _cfg.set('database', 'rhythmbox', 'true')
+    _cfg.add_section('interface')
+    _cfg.set('interface', 'theme', 'default')
+    with open(CONFIG_FILE, 'w') as conf_file:
+        _cfg.write(conf_file)
+else:
+    _cfg.read(CONFIG_FILE)
+
+USE_RHYTHMBOX = _cfg.getboolean('database', 'rhythmbox')
 if USE_RHYTHMBOX:
     RB_DATABASE = os.path.join(os.path.expanduser("~"),
                                ".local/share/rhythmbox/rhythmdb.xml")
 
-HOSTNAME = _ini.get('server', 'host')
-PORT = _ini.getint('server', 'port')
+HOSTNAME = _cfg.get('server', 'host')
+PORT = _cfg.getint('server', 'port')
 THEME_DIR = os.path.join(PROGRAM_DIR, 'interfaces',
-                         _ini.get('interface', 'theme'), 'templates')
+                         _cfg.get('interface', 'theme'), 'templates')

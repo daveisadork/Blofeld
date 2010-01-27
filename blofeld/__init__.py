@@ -36,7 +36,7 @@ class Blofeld:
     @cherrypy.expose
     def index(self):
         template = Template(file=os.path.join(THEME_DIR, 'index.tmpl'))
-        template.songs = library.songs
+        template.songs = library.db
         return template.respond()
 
     @cherrypy.expose
@@ -53,12 +53,12 @@ class Blofeld:
             filter_result = {}
             if not result:
                 result = library.albums
-            for song in library.songs:
+            for song in library.db:
                 for field in ('artist', 'album', 'title'):
-                    if query in util.clean_text(library.songs[song][field]) and \
-                       library.songs[song]['album_hash'] in result and \
-                       library.songs[song]['album_hash'] not in filter_result:
-                        filter_result[library.songs[song]['album_hash']] = library.songs[song]['album']
+                    if query in util.clean_text(library.db[song][field]) and \
+                       library.db[song]['album_hash'] in result and \
+                       library.db[song]['album_hash'] not in filter_result:
+                        filter_result[library.db[song]['album_hash']] = library.db[song]['album']
             result = filter_result
         if output == 'json':
             if result != None:
@@ -78,11 +78,11 @@ class Blofeld:
         if query:
             query = util.clean_text(query)
             result = {}
-            for song in library.songs:
+            for song in library.db:
                 for field in ('artist', 'album', 'title'):
-                    if query in util.clean_text(library.songs[song][field]) and \
-                       library.songs[song]['artist_hash'] not in result:
-                        result[library.songs[song]['artist_hash']] = library.songs[song]['artist']
+                    if query in util.clean_text(library.db[song][field]) and \
+                       library.db[song]['artist_hash'] not in result:
+                        result[library.db[song]['artist_hash']] = library.db[song]['artist']
         if output == 'json':
             if result != None:
                 return str(result)
@@ -99,7 +99,7 @@ class Blofeld:
     def list_songs(self, artists=None,
                    albums=None, query=None, list_all=False, output='json'):
         if list_all:
-            return str(library.songs)
+            return str(library.db)
         result = None
         if albums and not artists:
             result = {}
@@ -108,14 +108,14 @@ class Blofeld:
                 for artist in library.relationships:
                     if album in library.relationships[artist]:
                         for song in library.relationships[artist][album]:
-                            result[song] = library.songs[song]
+                            result[song] = library.db[song]
         if artists and not albums:
             result = {}
             artists = artists.split(',')
             for artist in artists:
                 for album in library.relationships[artist]:
                     for song in library.relationships[artist][album]:
-                        result[song] = library.songs[song]
+                        result[song] = library.db[song]
         if (artists != None) and (albums != None):
             result = {}
             artists = artists.split(',')
@@ -124,14 +124,14 @@ class Blofeld:
                 for artist in artists:
                     try:
                         for song in library.relationships[artist][album]:
-                            result[song] = library.songs[song]
+                            result[song] = library.db[song]
                     except:
                         pass
         if query:
             query = util.clean_text(query)
             filter_result = {}
             if not result:
-                result = library.songs
+                result = library.db
             for song in result:
                 for field in ('artist', 'album', 'title'):
                     if query in util.clean_text(result[song][field]) and \
@@ -150,9 +150,9 @@ class Blofeld:
 
     @cherrypy.expose
     def get_song(self, songid=None, download=False, format=None):
-        if songid not in library.songs:
+        if songid not in library.db:
             return "False"
-        uri = library.songs[songid]['location']
+        uri = library.db[songid]['location']
         path = urllib.url2pathname(urlparse(uri).path)
         song = urllib2.urlopen(uri)
         if download and not format:
@@ -167,7 +167,7 @@ class Blofeld:
 
     @cherrypy.expose
     def get_cover(self, songid=None, size='original', download=False):
-        uri = library.songs[songid]['location']
+        uri = library.db[songid]['location']
         path = os.path.split(urllib.url2pathname(urlparse(uri).path))[0]
         cover = 'Cover.jpg'
         if download:
