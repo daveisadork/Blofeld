@@ -141,7 +141,7 @@ class Blofeld:
         if output =='json':
             if result == None:
                 result = {}
-            return result
+            return str(result)
         template = Template(file=os.path.join(THEME_DIR, 'list_songs.tmpl'))
         if result == None:
             result = {}
