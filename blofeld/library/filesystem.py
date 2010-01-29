@@ -43,7 +43,6 @@ def read_metadata(root, item):
     metadata = mutagen.File(os.path.join(root, item), None, True)
     song = Document()
     location = "file://" + os.path.join(root, item)
-    print location
     song['_id'] = hashlib.sha1(location).hexdigest()
     song['location'] = unicode(location.decode('utf-8'))
     song['type'] = 'song'
