@@ -14,55 +14,151 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from uuid import uuid4
-#import desktopcouch
+from time import time
 from couchdb.client import *
-#from desktopcouch import local_files
+import thread
 
-#from blofeld.library.util import OAuthCapableServer
 from blofeld.config import *
 
-URL = 'http://localhost:5984'
-server = Server(URL)
-if 'blofeld' not in server:
-    db = server.create('blofeld')
-else:
-    db = server['blofeld']
+class Library:
+    def __init__(self):
+        URL = 'http://localhost:5984'
+        self.server = Server(URL)
+        if 'blofeld' not in self.server:
+            self.create_db()
+        else:
+            self.db = self.server['blofeld']
+        self.querying_db = False
+        self.records = {}
+        self.update()
+#        thread.start_new_thread(self.update_db, ())
+        self.update_db()
 
-if USE_RHYTHMBOX:
-    from blofeld.library.rhythmbox import load_rhythmbox_db
-    artists, albums, songs, relationships = load_rhythmbox_db(RB_DATABASE)
-#    artists, albums, songs, relationships = load_rhythmbox_db("/home/dhayes/Desktop/rhythmdb.xml")
-#    for artist in artists:
-#        print artists[artist]
-#        db[uuid4().hex] = {
-#            'type': 'artist',
-#            'value': artists[artist]
-#        }
+    def create_db(self):
+        self.db = self.server.create('blofeld')
+        self.db['_design/songs'] = {
+            'views': {
+                'all': {
+                    'map': '''
+                        function(doc) {
+                            if (doc.type == 'song') {
+                                emit(null, {
+                                    artist: doc.artist,
+                                    album: doc.album,
+                                    tracknumber: doc.tracknumber,
+                                    genre: doc.genre,
+                                    title: doc.title,
+                                    location: doc.location,
+                                    artist_hash: doc.artist_hash,
+                                    album_hash: doc.album_hash
+                            });
+                        }
+                    }''',
+                }
+            }
+        }
 
-#    for album in albums:
-#        print albums[album]
-#        db[uuid4().hex] = {
-#            'type': 'album',
-#            'artist': 
-#            'value': albums[album]
-#        }
+    def update_db(self):
+        start_time = time()
+        if USE_RHYTHMBOX:
+            print "Importing Rhythmbox database..."
+            from blofeld.library.rhythmbox import load_rhythmbox_db
+#            songs = load_rhythmbox_db(RB_DATABASE)
+            songs = load_rhythmbox_db("/home/dhayes/Desktop/rhythmdb.xml")
+        if USE_FILESYSTEM:
+            print "Starting filesystem scan..."
+            from blofeld.library.filesystem import load_music_from_dir
+            songs = load_music_from_dir(MUSIC_PATH)
+#        insert = []
+#        for song in songs:
+#            document = Document(songs[song])
+#            document['_id'] = song
+#            insert.append(document)
+        self.db.update(songs.values())
+        keys = songs.keys()
+        print "Updated database in " + str(time() - start_time) + " seconds."
+        print "Cleaning library..."
+        start_time = time()
+        for song in self.db.view("_all_docs"):
+            if song.id not in keys and "_" not in song.id:
+                del self.db[song.id]
+        print "Cleaned library in " + str(time() - start_time) + " seconds."
+        self.db.compact()
+        thread.start_new_thread(self.update, ())
 
-#    for song in songs:
-#        print songs[song]['title']
-#        songs[song]['type'] = 'song'
-#        db[uuid4().hex] = songs[song]
+    def songs(self):
+        if time() - self.last_update > 10.0:
+            thread.start_new_thread(self.update, ())
+        return self.records
 
-#    database = {}
-#    for artist in relationships:
-#        database[artist] = {}
-#        database[artist]['name'] = artists[artist]
-#        database[artist]['albums'] = {}
-#        for album in relationships[artist]:
-#            database[artist]['albums'][album] = {}
-#            database[artist]['albums'][album]['title'] = albums[album]
-#            database[artist]['albums'][album]['songs'] = {}
-#            for song in relationships[artist][album]:
-#                database[artist]['albums'][album]['songs'][song] = songs[song]
-#    for record in database:
-#        db[record] = database[record]
+
+    def albums(self):
+        print "Generating album list..."
+        def list_albums():
+            albumlist = []
+            for record in self.records:
+                if self.records[record]['album_hash'] not in albumlist:
+                    albumlist.append(self.records[record]['album_hash'])
+                    yield self.records[record]['album_hash'], self.records[record]['album']
+        return dict(list_albums())
+
+    def artists(self):
+        print "Generating artist list..."
+        def list_artists():
+            artistlist = []
+            for record in self.records:
+                if self.records[record]['artist_hash'] not in artistlist:
+                    artistlist.append(self.records[record]['artist_hash'])
+                    yield self.records[record]['artist_hash'], self.records[record]['artist']
+        return dict(list_artists())
+
+    def relationships(self):
+        print "Calculating relationships..."
+        relalist = {}
+        songs = self.songs()
+        for record in songs:
+            artist_hash = self.records[record]['artist_hash']
+            album_hash= self.records[record]['album_hash']
+            if artist_hash not in relalist:
+                relalist[artist_hash] = {}
+            if album_hash not in relalist[artist_hash]:
+                relalist[artist_hash][album_hash] = []
+            relalist[artist_hash][album_hash].append(record)
+        return relalist
+
+    def update(self):
+        if self.querying_db == True:
+            return
+        self.last_update = time()
+        self.querying_db = True
+        print "Querying database..."
+        for song in self.db.view('songs/all'):
+            if song.id in self.records:
+                self.records[song.id].update(song.value)
+            else:
+                self.records[song.id] = song.value
+        self.querying_db = False
+        print "Query complete."
+#        thread.start_new_thread(self.clean, ())
+#        self.clean()
+
+    def clean(self):
+        if self.querying_db == True:
+            return
+        print "Cleaning songs..."
+        start_time = time()
+        remove = self.records.keys()
+        current_db = []
+        self.querying_db = True
+        for song in self.db.view("_all_docs"):
+            try:
+                remove.remove(song.id)
+            except:
+                pass
+        self.querying_db = False
+#        for song in self.records:
+#            if song not in current_db:
+#                remove.append(song)
+        for song in remove:
+            del self.records[song]
+        print "Cleaned", len(remove), "songs in", time() - start_time, "seconds."

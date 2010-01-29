@@ -21,15 +21,13 @@ import urllib2
 from urlparse import urlparse
 from PIL import Image
 
-import blofeld.library as library
 from blofeld.config import *
 
-def resize_cover(songid, size):
-    uri = library.songs[songid]['location']
+def resize_cover(songid, uri, size):
     path = os.path.split(urllib.url2pathname(urlparse(uri).path))[0]
     cover = 'Cover.jpg'
     size = int(size)
-    img_path = os.path.join(CONFIG_DIR + '/cache', str(size), songid + '.jpg')
+    img_path = os.path.join(CACHE_DIR, str(size), songid + '.jpg')
     if not os.path.exists(os.path.split(img_path)[0]):
         os.makedirs(os.path.split(img_path)[0])
     try:

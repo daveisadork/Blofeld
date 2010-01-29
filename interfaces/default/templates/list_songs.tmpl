@@ -14,13 +14,9 @@
 #for $song in $songs
                                 <tr class="song" id="$song">
                                     <td class="status"></td>
-    #try
-                                    <td class="track-number">$songs[$song]['track-number']</td>
-    #except
-                                    <td class="track-number"></td>
-    #end try
+                                    <td class="track-number">#try#$songs[$song]['tracknumber']#except# #end try#</td>
                                     <td class="title">$songs[$song]['title']</td>
-                                    <td class="genre">$songs[$song]['genre']</td>
+                                    <td class="genre">#echo ', '.join($songs[$song]['genre'])#</td>
                                     <td class="artist">$songs[$song]['artist']</td>
                                     <td class="album">$songs[$song]['album']</td>
                                 </tr>

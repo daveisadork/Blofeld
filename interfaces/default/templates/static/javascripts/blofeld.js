@@ -230,9 +230,6 @@ var find = function () {
 }
 
 $(document).ready(function() {
-    $.ajaxSetup ({
-        cache: true
-    })
     setupPlayer();
     disableSelection(document.getElementById("browser"))
     listArtists();

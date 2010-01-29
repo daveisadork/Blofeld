@@ -22,6 +22,7 @@ PROGRAM_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
                               os.pardir))
 CONFIG_DIR = os.path.abspath(os.path.join(os.path.expanduser("~"), '.blofeld'))
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'blofeld.cfg')
+CACHE_DIR = os.path.join(CONFIG_DIR, 'cache')
 
 if not os.path.isdir(CONFIG_DIR):
     os.mkdir(CONFIG_DIR)
@@ -33,7 +34,8 @@ if not os.path.exists(CONFIG_FILE):
     _cfg.set('server', 'host', '0.0.0.0')
     _cfg.set('server', 'port', '8080')
     _cfg.add_section('database')
-    _cfg.set('database', 'rhythmbox', 'true')
+    _cfg.set('database', 'source', 'filesystem')
+    _cfg.set('database', 'path', os.path.join(os.path.expanduser("~"), "Music"))
     _cfg.add_section('interface')
     _cfg.set('interface', 'theme', 'default')
     with open(CONFIG_FILE, 'w') as conf_file:
@@ -41,11 +43,16 @@ if not os.path.exists(CONFIG_FILE):
 else:
     _cfg.read(CONFIG_FILE)
 
-USE_RHYTHMBOX = _cfg.getboolean('database', 'rhythmbox')
+MUSIC_SOURCE = _cfg.get('database', 'source')
+USE_RHYTHMBOX = MUSIC_SOURCE == 'rhythmbox'
+USE_FILESYSTEM = MUSIC_SOURCE == 'filesystem'
 if USE_RHYTHMBOX:
     RB_DATABASE = os.path.join(os.path.expanduser("~"),
                                ".local/share/rhythmbox/rhythmdb.xml")
-
+if USE_FILESYSTEM:
+    MUSIC_PATH = _cfg.get('database', 'path')
+    if not os.path.isdir(MUSIC_PATH):
+        raise Exception("Music path does not exist.")
 HOSTNAME = _cfg.get('server', 'host')
 PORT = _cfg.getint('server', 'port')
 THEME_DIR = os.path.join(PROGRAM_DIR, 'interfaces',
