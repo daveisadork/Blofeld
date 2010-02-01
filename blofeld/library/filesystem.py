@@ -23,7 +23,7 @@ import locale
 from time import time
 
 import mutagen
-from couchdb.client import Document
+from couchdbkit import Document
 
 try:
     from xml.etree.cElementTree import ElementTree
@@ -51,19 +51,19 @@ def load_music_from_dir(music_path, db, records):
                         songs.append(song)
                         changed += 1
                         if changed % 100 == 0:
-                            db.update(songs)
+                            db.bulk_save(songs)
                             songs = []
                             print "Added", changed, "songs in", \
                                    time() - start_time, "seconds."
                     else:
                         unchanged += 1
-    db.update(songs)
+    db.bulk_save(songs)
     print "Added or updated", changed, "songs and skipped", unchanged, "in", \
            time() - start_time, "seconds."
 
 def read_metadata(root, item, location, id, mtime):
     metadata = mutagen.File(os.path.join(root, item), None, True)
-    song = Document()
+    song = {}
     song['_id'] = id
     song['location'] = unicode(location.decode('utf-8'))
     song['type'] = 'song'
