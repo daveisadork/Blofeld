@@ -81,7 +81,7 @@ img.loading {
 }
 
 #albums tr, #artists tr, #songs tr {
-    height: 20px;
+    height: 22px;
 }
 
 tr.tinted {

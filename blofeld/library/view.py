@@ -15,6 +15,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 songs = {
+    '_id': '_design/songs',
     'views': {
         'all': {
             'map': '''
@@ -37,4 +38,60 @@ songs = {
         }
     }
 
+artists = {
+    '_id': '_design/artists',
+    'views': {
+        'all': {
+            'map': '''
+                function(doc) {
+                    if (doc.type == 'song') {
+                        emit(doc.artist_hash, doc.artist);
+                    }
+                }'''
+            },
+        'search': {
+            'map': '''
+                function(doc) {
+                    if (doc.type == 'song') {
+                        emit(doc.artist_hash, [doc.artist, doc.album, doc.title]);
+                    }
+                }'''
+            }
+        }
+    }
 
+albums = {
+    '_id': '_design/albums',
+    'views': {
+        'all': {
+            'map': '''
+                function(doc) {
+                    if (doc.type == 'song') {
+                        emit(doc.album_hash, doc.album);
+                    }
+                }'''
+            },
+        'search': {
+            'map': '''
+                function(doc) {
+                    if (doc.type == 'song') {
+                        emit(doc.album_hash, {
+                            search_string: [doc.artist, doc.album, doc.title].join(';'),
+                            title: doc.album,
+                            artist_hash: doc.artist_hash
+                        });
+                    }
+                }'''
+            },
+        'by_artist': {
+            'map': '''
+                function(doc) {
+                    if (doc.type == 'song') {
+                        emit(doc.album_hash, 
+                            {title: doc.album, artist: doc.artist_hash}
+                            );
+                    }
+                }'''
+            }
+        }
+    }

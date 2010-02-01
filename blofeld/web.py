@@ -31,143 +31,63 @@ import blofeld.util as util
 from blofeld.library import Library
 from blofeld.coverart import resize_cover
 
-library = Library()
-
-class BlofeldWebInterface:
+class WebInterface:
     def __init__(self):
-        pass
+        self.library = Library()
 
     @cherrypy.expose
     def index(self):
         template = Template(file=os.path.join(THEME_DIR, 'index.tmpl'))
-#        template.songs = l_songs
         return template.respond()
 
     @cherrypy.expose
     def list_albums(self, artists=None, query=None, output='json'):
-        l_albums = library.albums()
-        l_songs = library.songs()
-        l_artists = library.artists()
-        l_relationships = library.relationships()
-        result = None
-        if artists:
-            result = {}
-            artists = artists.split(',')
-            for artist in artists:
-                for album in l_relationships[artist]:
-                    result[album] = l_albums[album]
-        if query:
-            query = util.clean_text(query)
-            filter_result = {}
-            if not result:
-                result = l_albums
-            for song in l_songs:
-                for field in ('artist', 'album', 'title'):
-                    if query in util.clean_text(l_songs[song][field]) and \
-                       l_songs[song]['album_hash'] in result and \
-                       l_songs[song]['album_hash'] not in filter_result:
-                        filter_result[l_songs[song]['album_hash']] = l_songs[song]['album']
-            result = filter_result
+        albums = self.library.albums(artists, query)
         if output == 'json':
-            if result != None:
-                return str(result)
-            else:
-                return str(l_albums)
-        template = Template(file=os.path.join(THEME_DIR, 'list_albums.tmpl'))
-        if result != None:
-            template.albums = result
-        else: 
-            template.albums = l_albums
-        return template.respond()
+            return str(albums)
+        elif output == 'html':
+            template = Template(file=os.path.join(THEME_DIR, 'list_albums.tmpl'))
+            template.albums = albums
+            return template.respond()
+        else:
+            return "Not implemented."
+
 
     @cherrypy.expose
-    def list_artists(self, query=None,  output='json'):
-        l_songs = library.songs()
-        l_artists = library.artists()
-        result = None
-        if query:
-            query = util.clean_text(query)
-            result = {}
-            for song in l_songs:
-                for field in ('artist', 'album', 'title'):
-                    if query in util.clean_text(l_songs[song][field]) and \
-                       l_songs[song]['artist_hash'] not in result:
-                        result[l_songs[song]['artist_hash']] = l_songs[song]['artist']
+    def list_artists(self, query=None, output='json'):
+        artists = self.library.artists(query)
         if output == 'json':
-            if result != None:
-                return str(result)
-            else:
-                return str(l_artists)
-        template = Template(file=os.path.join(THEME_DIR, 'list_artists.tmpl'))
-        if result != None:
-            template.artists = result
+            return str(artists)
+        elif output == 'html':
+            template = Template(file=os.path.join(THEME_DIR, 'list_artists.tmpl'))
+            template.artists = artists
+            return template.respond()
         else:
-            template.artists = l_artists
-        return template.respond()
+            return "Not implemented."
 
     @cherrypy.expose
     def list_songs(self, artists=None,
                    albums=None, query=None, list_all=False, output='json'):
-        l_albums = library.albums()
-        l_songs = library.songs()
-        l_artists = library.artists()
-        l_relationships = library.relationships()
-        if list_all:
-            return str(l_songs)
-        result = None
-        if albums and not artists:
-            result = {}
-            albums = albums.split(',')
-            for album in albums:
-                for artist in l_relationships:
-                    if album in l_relationships[artist]:
-                        for song in l_relationships[artist][album]:
-                            result[song] = l_songs[song]
-        if artists and not albums:
-            result = {}
-            artists = artists.split(',')
-            for artist in artists:
-                for album in l_relationships[artist]:
-                    for song in l_relationships[artist][album]:
-                        result[song] = l_songs[song]
-        if (artists != None) and (albums != None):
-            result = {}
-            artists = artists.split(',')
-            albums = albums.split(',')
-            for album in albums:
-                for artist in artists:
-                    try:
-                        for song in l_relationships[artist][album]:
-                            result[song] = l_songs[song]
-                    except:
-                        pass
-        if query:
-            query = util.clean_text(query)
-            filter_result = {}
-            if not result:
-                result = l_songs
-            for song in result:
-                for field in ('artist', 'album', 'title'):
-                    if query in util.clean_text(result[song][field]) and \
-                       song not in filter_result:
-                        filter_result[song] = result[song]
-            result = filter_result
-        if output =='json':
-            if result == None:
-                result = {}
-            return str(result)
-        template = Template(file=os.path.join(THEME_DIR, 'list_songs.tmpl'))
-        if result == None:
-            result = {}
-        template.songs = result
-        return template.respond()
+        if not list_all and not artists and not albums and not query:
+            songs = {}
+        else:
+            songs = self.library.songs(artists, albums, query)
+        if output == 'json':
+            return str(songs)
+        elif output == 'html':
+            template = Template(file=os.path.join(THEME_DIR, 'list_songs.tmpl'))
+            template.songs = songs
+            return template.respond()
+        else:
+            return "Not implemented."
 
     @cherrypy.expose
     def get_song(self, songid=None, download=False, format=None):
-        l_songs = library.songs()
-        if songid not in l_songs:
-            return "False"
-        uri = l_songs[songid]['location']
+        song = self.library.db[songid]
+        try:
+            uri = song['location']
+        except:
+            return "Not found."
         path = urllib.url2pathname(urlparse(uri).path)
         song = urllib2.urlopen(uri)
         if download and not format:
@@ -182,8 +102,11 @@ class BlofeldWebInterface:
 
     @cherrypy.expose
     def get_cover(self, songid=None, size='original', download=False):
-        song = library.db[songid]
-        uri = song['location']
+        song = self.library.db[songid]
+        try:
+            uri = song['location']
+        except:
+            return "Not found."
         path = os.path.split(urllib.url2pathname(urlparse(uri).path))[0]
         cover = 'Cover.jpg'
         if download:
@@ -223,4 +146,4 @@ def start():
         '/blofeld/static': static
         }
 
-    cherrypy.quickstart(BlofeldWebInterface(), '/', config=conf)
+    cherrypy.quickstart(WebInterface(), '/', config=conf)

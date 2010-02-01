@@ -34,23 +34,6 @@ var listArtists = function (query) {
                 sortForce: [[0,0]],
                 sortList: [[0,0]]
             }); 
-            $('.artist').unbind('click');
-            $('.artist').click(function (event) {
-                if (!event.ctrlKey) {
-                    $('.artist.selected').removeClass('selected')
-                }
-                if ($(this).hasClass('selected')) {
-                    $(this).removeClass('selected')
-                } else {
-                    $(this).addClass('selected')
-                }
-                var selectedArtists = []
-                $('.artist.selected').each(function () {
-                    selectedArtists.push($(this).attr('id'))
-                })
-                listAlbums(selectedArtists, $('#query').val())
-                listSongs(selectedArtists, null, $('#query').val())
-            })
         }
     )
 }
@@ -70,25 +53,6 @@ var listAlbums = function (artists, query) {
             $("#albums").tablesorter({
                 sortForce: [[0,0]],
                 sortList: [[0,0]]
-            })
-            $('.album').unbind('click');
-            $('.album').click(function (event) {
-                if (!event.ctrlKey) {
-                    $('.album.selected').removeClass('selected')
-                }
-                if ($(this).hasClass('selected')) {
-                    $(this).removeClass('selected')
-                } else {
-                    $(this).addClass('selected')
-                }
-                var selectedAlbums = []
-                $('.album.selected').each(function () {
-                    selectedAlbums.push($(this).attr('id'))
-                })
-                listSongs(artists, selectedAlbums, $('#query').val())
-            })
-            $('.album').dblclick(function () {
-                listSongs(artists, selectedAlbums, $('#query').val(), true)
             })
         }
     )
@@ -123,21 +87,6 @@ var listSongs = function (artists, albums, query, play) {
                 playingCurrently = playlist.indexOf(activeSong)
                 $('#' + activeSong).addClass('now-playing')
             } catch (err) {}
-            $('.song').unbind('dblclick');
-            $('.song').dblclick(function () {
-                playSong(playlist.indexOf($(this).attr('id')))
-            })
-            $('.song').unbind('click');
-            $('.song').click(function (event) {
-                if (!event.ctrlKey) {
-                    $('.song.selected').removeClass('selected')
-                }
-                if ($(this).hasClass('selected')) {
-                    $(this).removeClass('selected')
-                } else {
-                    $(this).addClass('selected')
-                }
-            })
             if (play) {
                 playSong(0)
             }
@@ -242,6 +191,54 @@ $(document).ready(function() {
     })
     $("#now_playing").hide();
     $("#progress").hide();
+    $('.song').live("dblclick", function () {
+        playSong(playlist.indexOf($(this).attr('id')))
+    })
+    $('.song').live("click", function (event) {
+        if (!event.ctrlKey) {
+            $('.song.selected').removeClass('selected')
+        }
+        if ($(this).hasClass('selected')) {
+            $(this).removeClass('selected')
+        } else {
+            $(this).addClass('selected')
+        }
+    })
+    $('.album').live("click", function (event) {
+        if (!event.ctrlKey) {
+            $('.album.selected').removeClass('selected')
+        }
+        if ($(this).hasClass('selected')) {
+            $(this).removeClass('selected')
+        } else {
+            $(this).addClass('selected')
+        }
+        var selectedAlbums = []
+        $('.album.selected').each(function () {
+            selectedAlbums.push($(this).attr('id'))
+        })
+        listSongs(null, selectedAlbums, $('#query').val())
+    })
+    $('.album').live("dblclick", function () {
+//        listSongs(artists, selectedAlbums, $('#query').val(), true)
+        playSong(0)
+    })
+    $('.artist').live("click", function (event) {
+        if (!event.ctrlKey) {
+            $('.artist.selected').removeClass('selected')
+        }
+        if ($(this).hasClass('selected')) {
+            $(this).removeClass('selected')
+        } else {
+            $(this).addClass('selected')
+        }
+        var selectedArtists = []
+        $('.artist.selected').each(function () {
+            selectedArtists.push($(this).attr('id'))
+        })
+        listAlbums(selectedArtists, $('#query').val())
+        listSongs(selectedArtists, null, $('#query').val())
+    })
 })
 
 
