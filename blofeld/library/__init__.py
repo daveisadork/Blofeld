@@ -19,6 +19,7 @@ from couchdb.client import *
 import thread
 
 from blofeld.config import *
+import view
 
 class Library:
     def __init__(self):
@@ -31,60 +32,40 @@ class Library:
         self.querying_db = False
         self.records = {}
         self.update()
-#        thread.start_new_thread(self.update_db, ())
-        self.update_db()
+        thread.start_new_thread(self.update_db, ())
+#        self.update_db()
 
     def create_db(self):
         self.db = self.server.create('blofeld')
-        self.db['_design/songs'] = {
-            'views': {
-                'all': {
-                    'map': '''
-                        function(doc) {
-                            if (doc.type == 'song') {
-                                emit(null, {
-                                    artist: doc.artist,
-                                    album: doc.album,
-                                    tracknumber: doc.tracknumber,
-                                    genre: doc.genre,
-                                    title: doc.title,
-                                    location: doc.location,
-                                    artist_hash: doc.artist_hash,
-                                    album_hash: doc.album_hash
-                            });
-                        }
-                    }''',
-                }
-            }
-        }
+        self.db['_design/songs'] = view.songs
 
     def update_db(self):
         start_time = time()
         if USE_RHYTHMBOX:
             print "Importing Rhythmbox database..."
             from blofeld.library.rhythmbox import load_rhythmbox_db
-#            songs = load_rhythmbox_db(RB_DATABASE)
-            songs = load_rhythmbox_db("/home/dhayes/Desktop/rhythmdb.xml")
+            songs = load_rhythmbox_db(RB_DATABASE)
+#            songs = load_rhythmbox_db("/home/dhayes/Desktop/rhythmdb.xml")
+            insert = []
+            for song in songs:
+                document = Document(songs[song])
+                document['_id'] = song
+                insert.append(document)
+            self.db.update(songs.values())
+            keys = songs.keys()
         if USE_FILESYSTEM:
             print "Starting filesystem scan..."
             from blofeld.library.filesystem import load_music_from_dir
-            songs = load_music_from_dir(MUSIC_PATH)
-#        insert = []
-#        for song in songs:
-#            document = Document(songs[song])
-#            document['_id'] = song
-#            insert.append(document)
-        self.db.update(songs.values())
-        keys = songs.keys()
+            load_music_from_dir(MUSIC_PATH, self.db, self.records)
         print "Updated database in " + str(time() - start_time) + " seconds."
-        print "Cleaning library..."
-        start_time = time()
-        for song in self.db.view("_all_docs"):
-            if song.id not in keys and "_" not in song.id:
-                del self.db[song.id]
-        print "Cleaned library in " + str(time() - start_time) + " seconds."
+#        print "Cleaning library..."
+#        start_time = time()
+#        for song in self.db.view("_all_docs"):
+#            if song.id not in keys and "_" not in song.id:
+#                del self.db[song.id]
+#        print "Cleaned library in " + str(time() - start_time) + " seconds."
         self.db.compact()
-        thread.start_new_thread(self.update, ())
+        self.update()
 
     def songs(self):
         if time() - self.last_update > 10.0:
@@ -139,8 +120,8 @@ class Library:
                 self.records[song.id] = song.value
         self.querying_db = False
         print "Query complete."
-#        thread.start_new_thread(self.clean, ())
-#        self.clean()
+        #thread.start_new_thread(self.clean, ())
+        self.clean()
 
     def clean(self):
         if self.querying_db == True:

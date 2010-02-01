@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Copyright 2010 Dave Hayes <dwhayes@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
@@ -15,12 +14,27 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import os
+songs = {
+    'views': {
+        'all': {
+            'map': '''
+                function(doc) {
+                    if (doc.type == 'song') {
+                        emit(null, {
+                            artist: doc.artist,
+                            album: doc.album,
+                            tracknumber: doc.tracknumber,
+                            genre: doc.genre,
+                            title: doc.title,
+                            location: doc.location,
+                            artist_hash: doc.artist_hash,
+                            album_hash: doc.album_hash,
+                            mtime: doc.mtime
+                        });
+                    }
+                }'''
+            }
+        }
+    }
 
-import cherrypy
 
-import blofeld.web
-from blofeld.config import *
-
-if __name__ == "__main__":
-    blofeld.web.start()

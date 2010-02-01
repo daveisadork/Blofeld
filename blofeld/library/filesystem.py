@@ -20,6 +20,7 @@ import locale
 import urllib
 import hashlib
 import locale
+from time import time
 
 import mutagen
 from couchdb.client import Document
@@ -29,23 +30,44 @@ try:
 except:
     from xml.etree.ElementTree import ElementTree
 
-def load_music_from_dir(music_path):
-    songs = {}
+def load_music_from_dir(music_path, db, records):
+    start_time = time()
+    songs = []
+    changed = 0
+    unchanged = 0
     for root, dirs, files in os.walk(music_path):
         for item in files:
-            for ext in ['.mp3', '.ogg', '.m4a', '.flac', '.mp2', '.wma']:
+            for ext in ['.mp3', '.ogg', '.m4a', '.flac', '.mp2']:
                 if ext in item.lower():
-                    song = read_metadata(root, item)
-                    songs[song['_id']] = song
-    return songs
+                    location = "file://" + os.path.join(root, item)
+                    id = hashlib.sha1(location).hexdigest()
+                    mtime = os.stat(os.path.join(root, item))[8]
+                    try:
+                        record_mtime = records[id]['mtime']
+                    except:
+                        record_mtime = None
+                    if mtime != record_mtime:
+                        song = read_metadata(root, item, location, id, mtime)
+                        songs.append(song)
+                        changed += 1
+                        if changed % 100 == 0:
+                            db.update(songs)
+                            songs = []
+                            print "Added", changed, "songs in", \
+                                   time() - start_time, "seconds."
+                    else:
+                        unchanged += 1
+    db.update(songs)
+    print "Added or updated", changed, "songs and skipped", unchanged, "in", \
+           time() - start_time, "seconds."
 
-def read_metadata(root, item):
+def read_metadata(root, item, location, id, mtime):
     metadata = mutagen.File(os.path.join(root, item), None, True)
     song = Document()
-    location = "file://" + os.path.join(root, item)
-    song['_id'] = hashlib.sha1(location).hexdigest()
+    song['_id'] = id
     song['location'] = unicode(location.decode('utf-8'))
     song['type'] = 'song'
+    song['mtime'] = mtime
     try:
         song['artist_hash'] = hashlib.sha1(metadata['artist'][0]).hexdigest()
     except:
@@ -70,71 +92,4 @@ def read_metadata(root, item):
     except AttributeError:
         pass
     return song
-
-#def get_metadata(filename, player):
-#    """Try to extract any tags from a file that we can"""
-#    player.liststore.clear()
-#    player.treeview.set_headers_visible(False)
-#    player.filechooserbutton.set_filename(filename)
-#    enc = locale.getpreferredencoding()
-#    try: 
-#        metadata = mutagen.File(filename, None, True)
-##        output = open("/home/dhayes/Desktop/output.txt", 'w')
-##        output.write(metadata.pprint().encode(enc, 'replace'))
-#        for tag, value in metadata.iteritems():
-#            if tag != 'coverart' and tag != 'APIC:':
-#                try:
-#                    for data in value:
-#                        player.liststore.append([str(tag), str(data)])
-#                except:
-#                    player.liststore.append([str(tag), str(value)])
-#        player.treeview.set_headers_visible(True)
-#        get_cover(metadata, player)
-#    except AttributeError:
-#        player.liststore.append(["That's not a music file!", ""])
-#    except KeyboardInterrupt: raise
-#    except TypeError:
-#        player.liststore.append(["One file at a time, junior.", ""])
-#    except IOError:
-#        player.liststore.append(["A folder? Just who do you think you are?", ""])
-#    except Exception, err: player.liststore.append([str(err), ""])
-
-#def load_rhythmbox_db(path):
-#    tree = ElementTree()
-#    tree.parse(path)
-#    _entries = tree.findall("entry")
-#    songs = {}
-#    artists = {}
-#    albums = {}
-#    relationships = {}
-#    for entry in _entries:
-#        if entry.attrib['type'] == "song":
-#            location_hash = hashlib.sha1(entry.find('location').text.encode("utf-8")).hexdigest()
-#            songs[location_hash] = {}
-#            for element in entry:
-#                tag = element.tag
-#                try:
-#                    songs[location_hash][tag] = element.text
-#                except:
-#                    songs[location_hash][tag] = ''
-#                finally:
-#                    if tag == "artist":
-#                        artist_hash = hashlib.sha1(songs[location_hash][tag].encode("utf-8")).hexdigest()
-#                        songs[location_hash]['artist_hash'] = artist_hash
-#                        if artist_hash not in artists:
-#                            artists[artist_hash] = songs[location_hash][tag]
-#                    if tag == "album":
-#                        album_hash = hashlib.sha1(songs[location_hash][tag].encode("utf-8")).hexdigest()
-#                        songs[location_hash]['album_hash'] = album_hash
-#                        if album_hash not in albums:
-#                            albums[album_hash] = songs[location_hash][tag]
-#    for song_hash in songs:
-#        artist_hash = songs[song_hash]['artist_hash']
-#        album_hash= songs[song_hash]['album_hash']
-#        if artist_hash not in relationships:
-#            relationships[artist_hash] = {}
-#        if album_hash not in relationships[artist_hash]:
-#            relationships[artist_hash][album_hash] = []
-#        relationships[artist_hash][album_hash].append(song_hash)
-#    return (artists, albums, songs, relationships)
 
