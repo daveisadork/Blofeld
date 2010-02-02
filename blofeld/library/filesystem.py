@@ -14,24 +14,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import sys
 import os
-import locale
-import urllib
 import hashlib
-import locale
 from time import time
 
 import mutagen
-from couchdbkit import Document
 
-try:
-    from xml.etree.cElementTree import ElementTree
-except:
-    from xml.etree.ElementTree import ElementTree
 
-def load_music_from_dir(music_path, db, records):
+def load_music_from_dir(music_path, couchdb):
+    records = remove_missing_files(music_path, couchdb, couchdb.view('songs/all'))
     start_time = time()
+    print "Scanning for new files..."
+    remove = []
     songs = []
     changed = 0
     unchanged = 0
@@ -41,7 +35,7 @@ def load_music_from_dir(music_path, db, records):
                 if ext in item.lower():
                     location = "file://" + os.path.join(root, item)
                     id = hashlib.sha1(location).hexdigest()
-                    mtime = os.stat(os.path.join(root, item))[8]
+                    mtime = str(os.stat(os.path.join(root, item))[8])
                     try:
                         record_mtime = records[id]['mtime']
                     except:
@@ -49,17 +43,49 @@ def load_music_from_dir(music_path, db, records):
                     if mtime != record_mtime:
                         song = read_metadata(root, item, location, id, mtime)
                         songs.append(song)
+                        try:
+                            remove.append(couchdb[id])
+                        except:
+                            pass
                         changed += 1
-                        if changed % 100 == 0:
-                            db.bulk_save(songs)
+                        if changed % 100 == 0 and changed > 0:
+                            couchdb.bulk_delete(remove)
+                            couchdb.bulk_save(songs)
+                            remove = []
                             songs = []
                             print "Added", changed, "songs in", \
                                    time() - start_time, "seconds."
                     else:
                         unchanged += 1
-    db.bulk_save(songs)
+    couchdb.bulk_delete(remove)
+    couchdb.bulk_save(songs)
     print "Added or updated", changed, "songs and skipped", unchanged, "in", \
            time() - start_time, "seconds."
+
+
+def remove_missing_files(music_path, couchdb, records):
+    start_time = time()
+    print "Removing missing files..."
+    remove = []
+    songs = {}
+    removed = 0
+    for song in records:
+        if not os.path.isfile(song['value']['location'][7:]):
+            print song['value']['location'][7:]
+            remove.append(couchdb[song['id']])
+            removed += 1
+            if removed % 100 == 0:
+                couchdb.bulk_delete(remove)
+                remove = []
+                print "Removed", removed, "songs in", time() - start_time, \
+                      "seconds."
+        else:
+            songs[song['id']] = {'mtime': song['value']['mtime']}
+    couchdb.bulk_delete(remove)
+    print "Finished removing", removed, "songs in", time() - start_time, \
+          "seconds."
+    return songs
+
 
 def read_metadata(root, item, location, id, mtime):
     metadata = mutagen.File(os.path.join(root, item), None, True)

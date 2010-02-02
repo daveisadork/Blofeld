@@ -15,26 +15,22 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import hashlib
+import urllib
 
-from couchdb.client import Document
 try:
     from xml.etree.cElementTree import ElementTree
 except:
     from xml.etree.ElementTree import ElementTree
 
-def load_rhythmbox_db(path):
+def load_rhythmbox_db(rhythmdb, couchdb):
     "Importing Rhythmbox database"
     tree = ElementTree()
-    tree.parse(path)
+    tree.parse(rhythmdb)
     _entries = tree.findall("entry")
     songs = {}
-#    artists = {}
-#    albums = {}
-#    relationships = {}
     for entry in _entries:
         if entry.attrib['type'] == "song":
-            song = Document()
-            song['_id'] = hashlib.sha1(entry.find('location').text.encode("utf-8")).hexdigest()
+            song = {}
             song['type'] = 'song'
             for element in entry:
                 tag = element.tag
@@ -49,6 +45,8 @@ def load_rhythmbox_db(path):
                         song['genre'].append(element.text)
                     except:
                         pass
+                elif tag == 'location':
+                    song['location'] = urllib.url2pathname(entry.find('location').text).decode('utf-8')
                 else:
                     try:
                         song[tag] = element.text
@@ -58,22 +56,23 @@ def load_rhythmbox_db(path):
                         if tag == "artist":
                             artist_hash = hashlib.sha1(song[tag].encode("utf-8")).hexdigest()
                             song['artist_hash'] = artist_hash
-#                            if artist_hash not in artists:
-#                                artists[artist_hash] = song[tag]
                         if tag == "album":
                             album_hash = hashlib.sha1(song[tag].encode("utf-8")).hexdigest()
                             song['album_hash'] = album_hash
-#                            if album_hash not in albums:
-#                                albums[album_hash] = song[tag]
+            song['_id'] = hashlib.sha1(song['location'].encode('utf-8')).hexdigest()
             songs[song['_id']] = song
-#    for song_hash in songs:
-#        artist_hash = songs[song_hash]['artist_hash']
-#        album_hash= songs[song_hash]['album_hash']
-#        if artist_hash not in relationships:
-#            relationships[artist_hash] = {}
-#        if album_hash not in relationships[artist_hash]:
-#            relationships[artist_hash][album_hash] = []
-#        relationships[artist_hash][album_hash].append(song_hash)
-#    return (artists, albums, songs, relationships)
-    return songs
+    remove = find_removed_songs(couchdb, songs, couchdb.view('songs/all'))
+    couchdb.bulk_delete(remove)
+    couchdb.bulk_save(songs.values())
 
+
+def find_removed_songs(couchdb, rhythmdb, records):
+    remove = []
+    for record in records:
+        if record['id'] not in rhythmdb:
+            remove.append(couchdb[record['id']])
+        elif record['value']['mtime'] != rhythmdb[record['id']]['mtime']:
+            remove.append(couchdb[record['id']])
+        else:
+            del rhythmdb[record['id']]
+    return remove

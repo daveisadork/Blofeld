@@ -22,24 +22,18 @@ from couchdbkit.loaders import FileSystemDocsLoader
 
 from blofeld.config import *
 import blofeld.util as util
-#import view
+
 
 class Library:
     def __init__(self):
         URL = 'http://localhost:5984'
         self._server = Server(URL)
         self._instantiate_db()
-        self.records = {}
-        self.update()
-        thread.start_new_thread(self._load_songs, ())
-#        self.update_db()
+#        thread.start_new_thread(self._load_songs, ())
+        self._load_songs()
 
     def _instantiate_db(self):
         self.db = self._server.get_or_create_db("blofeld")
-#        views = [view.songs,
-#            view.artists,
-#            view.albums]
-#        self.db.bulk_save(views)
         loader = FileSystemDocsLoader(os.path.join(PROGRAM_DIR, 'views/_design'))
         loader.sync(self.db, verbose=True)
 
@@ -48,22 +42,14 @@ class Library:
         if USE_RHYTHMBOX:
             print "Importing Rhythmbox database..."
             from blofeld.library.rhythmbox import load_rhythmbox_db
-            songs = load_rhythmbox_db(RB_DATABASE)
-#            songs = load_rhythmbox_db("/home/dhayes/Desktop/rhythmdb.xml")
-            insert = []
-            for song in songs:
-                document = Document(songs[song])
-                document['_id'] = song
-                insert.append(document)
-            self.db.bulk_save(songs.values())
-            keys = songs.keys()
+            #load_rhythmbox_db(RB_DATABASE, self.db)
+            load_rhythmbox_db("/home/dhayes/Desktop/rhythmdb.xml", self.db)
         if USE_FILESYSTEM:
             print "Starting filesystem scan..."
             from blofeld.library.filesystem import load_music_from_dir
-            load_music_from_dir(MUSIC_PATH, self.db, self.records)
+            load_music_from_dir(MUSIC_PATH, self.db)
         print "Updated database in " + str(time() - start_time) + " seconds."
         self.db.compact()
-        self._clean()
 
     def songs(self, artists=None, albums=None, query=None, songid=None):
         result = {}
@@ -145,40 +131,3 @@ class Library:
                 result[artist['key']] = artist['value']
         return result
 
-    def relationships(self):
-        print "Calculating relationships..."
-        relalist = {}
-        songs = self.songs()
-        for record in songs:
-            artist_hash = self.records[record]['artist_hash']
-            album_hash= self.records[record]['album_hash']
-            if artist_hash not in relalist:
-                relalist[artist_hash] = {}
-            if album_hash not in relalist[artist_hash]:
-                relalist[artist_hash][album_hash] = []
-            relalist[artist_hash][album_hash].append(record)
-        return relalist
-
-    def update(self):
-        self.last_update = time()
-        print "Querying database..."
-        for song in self.db.view('songs/all'):
-            if song['id'] in self.records:
-                self.records[song['id']].update(song['value'])
-            else:
-                self.records[song['id']] = song['value']
-        print "Query complete."
-
-    def _clean(self):
-        print "Cleaning songs..."
-        start_time = time()
-        remove = self.records.keys()
-        current_db = []
-        for song in self.db.view("_all_docs"):
-            try:
-                remove.remove(song['id'])
-            except:
-                pass
-        for song in remove:
-            del self.records[song]
-        print "Cleaned", len(remove), "songs in", time() - start_time, "seconds."
