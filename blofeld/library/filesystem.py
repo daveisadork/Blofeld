@@ -94,11 +94,11 @@ def read_metadata(root, item, location, id, mtime):
     song['type'] = 'song'
     song['mtime'] = mtime
     try:
-        song['artist_hash'] = hashlib.sha1(metadata['artist'][0]).hexdigest()
+        song['artist_hash'] = hashlib.sha1(metadata['artist'][0].encode('utf-8')).hexdigest()
     except:
         song['artist_hash'] = hashlib.sha1("Unknown Artist").hexdigest()
     try:
-        song['album_hash'] = hashlib.sha1(metadata['album'][0]).hexdigest()
+        song['album_hash'] = hashlib.sha1(metadata['album'][0].encode('utf-8')).hexdigest()
     except:
         song['album_hash'] = hashlib.sha1("Unknown Album").hexdigest()
     try:
