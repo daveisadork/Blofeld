@@ -7,8 +7,8 @@
                             </thead>
                             <tbody>
 #for $album in $albums
-                                <tr class="album" id="$album">
-                                    <td>$albums[$album]</td>
+                                <tr class="album" id="$album['id']">
+                                    <td>$album['title']</td>
                                 </tr>
 #end for
                             </tbody>

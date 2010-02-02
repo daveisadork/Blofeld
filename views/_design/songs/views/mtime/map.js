@@ -1,5 +1,5 @@
 function (doc) {
     if (doc.type == 'song') {
-        emit(doc.album, doc.album_hash);
+        emit(doc.location, doc.mtime);
     }
 }

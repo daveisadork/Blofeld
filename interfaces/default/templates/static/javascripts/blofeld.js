@@ -30,10 +30,10 @@ var listArtists = function (query) {
         'list_artists',
         options, 
         function () {
-            $("#artists").tablesorter({
-                sortForce: [[0,0]],
-                sortList: [[0,0]]
-            }); 
+//            $("#artists").tablesorter({
+//                sortForce: [[0,0]],
+//                sortList: [[0,0]]
+//            }); 
         }
     )
 }
@@ -50,10 +50,10 @@ var listAlbums = function (artists, query) {
         'list_albums', 
         options,
         function () {
-            $("#albums").tablesorter({
-                sortForce: [[0,0]],
-                sortList: [[0,0]]
-            })
+//            $("#albums").tablesorter({
+//                sortForce: [[0,0]],
+//                sortList: [[0,0]]
+//            })
         }
     )
 }
@@ -73,10 +73,10 @@ var listSongs = function (artists, albums, query, play) {
         'list_songs',
         options, 
         function () {
-            $("#songs").tablesorter({
-                sortForce: [[4,0], [5,0], [1,0]],
-                sortList: [[4,0], [5,0], [1,0]]
-            }); 
+//            $("#songs").tablesorter({
+//                sortForce: [[4,0], [5,0], [1,0]],
+//                sortList: [[4,0], [5,0], [1,0]]
+//            }); 
             $("#songs tr:odd").addClass('tinted')
             playlist = []
             playingCurrently = null

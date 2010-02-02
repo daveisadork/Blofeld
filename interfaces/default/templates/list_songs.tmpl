@@ -12,13 +12,13 @@
                             </thead>
                             <tbody>
 #for $song in $songs
-                                <tr class="song" id="$song">
+                                <tr class="song" id="$song['id']">
                                     <td class="status"></td>
-                                    <td class="track-number">#try#$songs[$song]['tracknumber']#except# #end try#</td>
-                                    <td class="title">#try#$songs[$song]['title']#except#Unknown Title#end try#</td>
-                                    <td class="genre">#try##echo ', '.join($songs[$song]['genre'])##except# #end try#</td>
-                                    <td class="artist">#try#$songs[$song]['artist']#except#Unknown Artist#end try#</td>
-                                    <td class="album">#try#$songs[$song]['album']#except#Unknown Album#end try#</td>
+                                    <td class="track-number">#try#$song['tracknumber']#except# #end try#</td>
+                                    <td class="title">#try#$song['title']#except#Unknown Title#end try#</td>
+                                    <td class="genre">#try##echo ', '.join($song['genre'])##except# #end try#</td>
+                                    <td class="artist">#try#$song['artist']#except#Unknown Artist#end try#</td>
+                                    <td class="album">#try#$song['album']#except#Unknown Album#end try#</td>
                                 </tr>
 #end for
                             </tbody>

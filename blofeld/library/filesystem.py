@@ -22,7 +22,7 @@ import mutagen
 
 
 def load_music_from_dir(music_path, couchdb):
-    records = remove_missing_files(music_path, couchdb, couchdb.view('songs/all'))
+    records = remove_missing_files(music_path, couchdb, couchdb.view('songs/mtime'))
     start_time = time()
     print "Scanning for new files..."
     remove = []
@@ -37,7 +37,7 @@ def load_music_from_dir(music_path, couchdb):
                     id = hashlib.sha1(location).hexdigest()
                     mtime = str(os.stat(os.path.join(root, item))[8])
                     try:
-                        record_mtime = records[id]['mtime']
+                        record_mtime = records[id]
                     except:
                         record_mtime = None
                     if mtime != record_mtime:
@@ -70,8 +70,7 @@ def remove_missing_files(music_path, couchdb, records):
     songs = {}
     removed = 0
     for song in records:
-        if not os.path.isfile(song['value']['location'][7:]):
-            print song['value']['location'][7:]
+        if not os.path.isfile(song['key'][7:]):
             remove.append(couchdb[song['id']])
             removed += 1
             if removed % 100 == 0:
@@ -80,7 +79,7 @@ def remove_missing_files(music_path, couchdb, records):
                 print "Removed", removed, "songs in", time() - start_time, \
                       "seconds."
         else:
-            songs[song['id']] = {'mtime': song['value']['mtime']}
+            songs[song['id']] = song['value']
     couchdb.bulk_delete(remove)
     print "Finished removing", removed, "songs in", time() - start_time, \
           "seconds."

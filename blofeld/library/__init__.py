@@ -29,8 +29,8 @@ class Library:
         URL = 'http://localhost:5984'
         self._server = Server(URL)
         self._instantiate_db()
-#        thread.start_new_thread(self._load_songs, ())
-        self._load_songs()
+        thread.start_new_thread(self._load_songs, ())
+#        self._load_songs()
 
     def _instantiate_db(self):
         self.db = self._server.get_or_create_db("blofeld")
@@ -52,82 +52,93 @@ class Library:
         self.db.compact()
 
     def songs(self, artists=None, albums=None, query=None, songid=None):
-        result = {}
+        result = []
         if not query and not artists and not albums:
             for song in self.db.view('songs/all'):
-                result[song['id']] = song['value']
+                result.append(song['value'])
         if query:
             query = util.clean_text(query)
             for song in self.db.view('songs/all'):
-                for field in ['artist', 'album', 'title']:
-                    if query in util.clean_text(song['value'][field]):
-                        result[song['id']] = song['value']
+                if query in util.clean_text(";".join([song['key'][0],
+                                            song['key'][1], song['key'][3]])):
+                    result.append(song['value'])
         if artists:
             artists = artists.split(',')
             if result:
-                temp_result = {}
+                temp_result = []
                 for song in result:
-                    if result[song]['artist_hash'] in artists:
-                        temp_result[song] = result[song]
+                    if song['artist_hash'] in artists:
+                        temp_result.append(song)
                 result = temp_result
             else:
                 for song in self.db.view('songs/all'):
                     if song['value']['artist_hash'] in artists:
-                        result[song['id']] = song['value']
+                        result.append(song['value'])
         if albums:
             albums = albums.split(',')
             if result:
-                temp_result = {}
+                temp_result = []
                 for song in result:
-                    if result[song]['album_hash'] in albums:
-                        temp_result[song] = result[song]
+                    if song['album_hash'] in albums:
+                        temp_result.append(song)
                 result = temp_result
             else:
                 for song in self.db.view('songs/all'):
                     if song['value']['album_hash'] in albums:
-                        result[song['id']] = song['value']
+                        result.append(song['value'])
         return result
 
     def albums(self, artists=None, query=None):
         print "Generating album list..."
-        result = {}
+        result = []
         if not artists and not query:
-            for album in self.db.view('albums/all'):
-                result[album['key']] = album['value']
+            for album in self.db.view('albums/all', group="true"):
+                result.append({'id': album['value'], 'title': album['key']})
         if query:
             query = util.clean_text(query)
             if artists:
                 for album in self.db.view('albums/search'):
+                    entry = {'id': album['value']['album_hash'],
+                             'artist': album['value']['artist_hash'],
+                             'title': album['key']}
                     if query in util.clean_text(album['value']['search_string']):
-                        result[album['key']] = album['value']
+                        if entry not in result:
+                            result.append(entry)
             else:
                 for album in self.db.view('albums/search'):
+                    entry = {'id': album['value']['album_hash'], 'title': album['key']}
                     if query in util.clean_text(album['value']['search_string']):
-                        result[album['key']] = album['value']['title']
+                        if entry not in result:
+                            result.append(entry)
         if artists:
             artists = artists.split(',')
             if result:
-                temp_result = {}
+                temp_result = []
                 for album in result:
-                    if result[album]['artist_hash'] in artists:
-                       temp_result[album] = result[album]['title']
+                    if album['artist'] in artists:
+                       temp_result.append(album)
                 result = temp_result
             else:
                 for album in self.db.view('albums/by_artist'):
+                    entry = {'id': album['value']['album_hash'],
+                                         'title': album['key']}
                     if album['value']['artist'] in artists:
-                        result[album['key']] = album['value']['title']
+                        if entry not in result:
+                            result.append(entry)
         return result
 
     def artists(self, query=None):
         print "Generating artist list..."
-        result = {}
+        result = []
         if query:
             query = util.clean_text(query)
             for artist in self.db.view('artists/search'):
-                if query in util.clean_text(';'.join(artist['value'])):
-                    result[artist['key']] = artist['value'][0]
+                entry = {'id': artist['value'], 'name': artist['key'][0]}
+                if query in util.clean_text(';'.join(artist['key'])):
+                    if entry not in result:
+                        result.append(entry)
         else:
-            for artist in self.db.view('artists/all'):
-                result[artist['key']] = artist['value']
+            for artist in self.db.view('artists/all', group="true"):
+                result.append({'id': artist['value'], 'name': artist['key']})
         return result
 

@@ -1,15 +1,14 @@
 function (doc) {
     if (doc.type == 'song') {
-        emit(null, {
+        emit([doc.artist, doc.album, doc.tracknumber, doc.title], {
+            id: doc._id,
             artist: doc.artist,
             album: doc.album,
             tracknumber: doc.tracknumber,
-            genre: doc.genre,
             title: doc.title,
-            location: doc.location,
+            genre: doc.genre,
             artist_hash: doc.artist_hash,
-            album_hash: doc.album_hash,
-            mtime: doc.mtime
+            album_hash: doc.album_hash
         });
     }
 }

@@ -1,5 +1,5 @@
 function (doc) {
     if (doc.type == 'song') {
-        emit(doc.artist_hash, [doc.artist, doc.album, doc.title]);
+        emit([doc.artist, doc.album, doc.title], doc.artist_hash);
     }
 }
