@@ -26,9 +26,8 @@ from blofeld.config import *
 
 
 def resize_cover(songid, path, uri, size):
-    size = int(size)
     img_path = os.path.join(CACHE_DIR, str(size), songid + '.jpg')
-    img_uri = 'file://' + urllib.pathname2url(img_path.encode('utf-8'))
+    img_uri = 'file://' + urllib.pathname2url(img_path.encode(ENCODING))
     if not os.path.exists(os.path.split(img_path)[0]):
         os.makedirs(os.path.split(img_path)[0])
     try:

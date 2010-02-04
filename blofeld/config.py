@@ -16,6 +16,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
+import sys
 
 import ConfigParser
 
@@ -61,3 +62,4 @@ PORT = _cfg.getint('server', 'port')
 THEME_DIR = os.path.join(PROGRAM_DIR, 'interfaces',
                          _cfg.get('interface', 'theme'), 'templates')
 FFMPEG = _cfg.get('misc', 'ffmpeg')
+ENCODING = sys.getfilesystemencoding()

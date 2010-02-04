@@ -89,7 +89,7 @@ class WebInterface:
             path = song['location']
         except:
             return "Not found."
-        uri = "file://" + urllib.pathname2url(path.encode('utf-8'))
+        uri = "file://" + urllib.pathname2url(path.encode(ENCODING))
         song = urllib2.urlopen(uri)
         if download and not format:
             return serve_download(path, os.path.split(path)[1])
@@ -105,12 +105,16 @@ class WebInterface:
     def get_cover(self, songid=None, size='original', download=False):
         song = self.library.db[songid]
         try:
+            size = int(size)
+        except:
+            size = 'original'
+        try:
             path = os.path.split(song['location'])[0]
         except:
             return "Not found."
         filename = 'Cover.jpg'
         uri = "file://" + urllib.pathname2url(
-               os.path.join(path, filename).encode('utf-8'))
+               os.path.join(path, filename).encode(ENCODING))
         if download:
             return serve_file(os.path.join(path, filename),
                            artwork.info()['Content-Type'], "attachment", filename)
