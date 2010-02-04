@@ -31,7 +31,7 @@ def transcode(path, song, format):
                               os.path.split(path)[1])
         cherrypy.response.headers['Content-Type'] = 'audio/mpeg'
         ffmpeg = subprocess.Popen(
-            ['/usr/bin/ffmpeg',  '-i', path, '-f', 'mp3', '-ab', '160k', '-'],
+            [FFMPEG, '-i', path, '-f', 'mp3', '-ab', '160k', '-'],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             bufsize=-1
