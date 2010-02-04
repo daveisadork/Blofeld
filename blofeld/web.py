@@ -114,13 +114,13 @@ class WebInterface:
             return "Not found."
         filename = 'Cover.jpg'
         uri = "file://" + urllib.pathname2url(os.path.join(path, filename))
-        if download:
-            return serve_file(os.path.join(path, filename),
-                           artwork.info()['Content-Type'], "attachment", filename)
         if size != 'original':
             artwork = resize_cover(songid, path, uri, size)
         else:
             artwork = urllib2.urlopen(uri)
+        if download:
+            return serve_file(os.path.join(path, filename),
+                           artwork.info()['Content-Type'], "attachment", filename)
         cherrypy.response.headers['Content-Type'] = artwork.info()['Content-Type']
         return artwork.read()
 
