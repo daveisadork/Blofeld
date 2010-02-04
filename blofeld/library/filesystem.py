@@ -16,12 +16,13 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
-import sys
 import hashlib
 from time import time
 import urllib
 
 import mutagen
+
+from blofeld.config import *
 
 
 def load_music_from_dir(music_path, couchdb):
@@ -36,7 +37,7 @@ def load_music_from_dir(music_path, couchdb):
         for item in files:
             for ext in ['.mp3', '.ogg', '.m4a', '.flac', '.mp2']:
                 if ext in item.lower():
-                    location =os.path.join(root, item).decode(sys.getfilesystemencoding())
+                    location =os.path.join(root, item).decode(ENCODING)
                     id = hashlib.sha1(location.encode('utf-8')).hexdigest()
                     mtime = str(os.stat(os.path.join(root, item))[8])
                     try:
