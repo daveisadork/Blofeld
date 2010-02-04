@@ -1,3 +1,4 @@
+# Blofeld - All-in-one music server
 # Copyright 2010 Dave Hayes <dwhayes@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
@@ -12,12 +13,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
 import sys
+import urllib
 import urllib2
-from urlparse import urlparse
+
 
 import cherrypy
 from cherrypy.lib.static import serve_file
@@ -84,10 +86,10 @@ class WebInterface:
     def get_song(self, songid=None, download=False, format=None):
         song = self.library.db[songid]
         try:
-            uri = song['location']
+            path = song['location']
         except:
             return "Not found."
-        path = urlparse(uri).path
+        uri = "file://" + urllib.pathname2url(path)
         song = urllib2.urlopen(uri)
         if download and not format:
             return serve_download(path, os.path.split(path)[1])
@@ -103,16 +105,16 @@ class WebInterface:
     def get_cover(self, songid=None, size='original', download=False):
         song = self.library.db[songid]
         try:
-            uri = song['location']
+            path = os.path.split(song['location'])[0]
         except:
             return "Not found."
-        path = os.path.split(urlparse(uri).path)[0]
+        uri = "file://" + urllib.pathname2url(path)
         cover = 'Cover.jpg'
         if download:
             return serve_file(os.path.join(path, cover),
                            artwork.info()['Content-Type'], "attachment", cover)
         if size != 'original':
-            artwork = resize_cover(songid, uri, size)
+            artwork = resize_cover(songid, path, size)
         else:
             artwork = urllib2.urlopen('file://' + os.path.join(path, cover))
         cherrypy.response.headers['Content-Type'] = artwork.info()['Content-Type']

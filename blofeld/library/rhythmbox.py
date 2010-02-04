@@ -1,3 +1,4 @@
+# Blofeld - All-in-one music server
 # Copyright 2010 Dave Hayes <dwhayes@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
@@ -12,15 +13,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import sys
 import hashlib
 import urllib
+from urlparse import urlparse
 
 try:
     from xml.etree.cElementTree import ElementTree
 except:
     from xml.etree.ElementTree import ElementTree
+
 
 def load_rhythmbox_db(rhythmdb, couchdb):
     "Importing Rhythmbox database"
@@ -46,7 +50,7 @@ def load_rhythmbox_db(rhythmdb, couchdb):
                     except:
                         pass
                 elif tag == 'location':
-                    song['location'] = urllib.url2pathname(entry.find('location').text).decode('utf-8')
+                    song['location'] = urlparse(urllib.url2pathname(entry.find('location').text).decode(sys.getfilesystemencoding())).path
                 else:
                     try:
                         song[tag] = element.text

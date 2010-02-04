@@ -1,3 +1,4 @@
+# Blofeld - All-in-one music server
 # Copyright 2010 Dave Hayes <dwhayes@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
@@ -12,7 +13,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
+
+
+"""This is the Blofeld library module. It handles loading songs from the
+various backends (such as Rhythmbox or the filesystem), storing their 
+metadata in the database and making it available through a number of 
+methods.
+"""
+
 
 from time import time
 import thread
@@ -51,7 +60,8 @@ class Library:
         print "Updated database in " + str(time() - start_time) + " seconds."
         self.db.compact()
 
-    def songs(self, artists=None, albums=None, query=None, songid=None):
+    def songs(self, artists=None, albums=None, query=None):
+        '''Returns a list of songs as dictionary objects.'''
         result = []
         if not query and not artists and not albums:
             for song in self.db.view('songs/all'):
@@ -89,6 +99,7 @@ class Library:
         return result
 
     def albums(self, artists=None, query=None):
+        '''Returns a list of albums as dictionary objects.'''
         print "Generating album list..."
         result = []
         if not artists and not query:
@@ -128,6 +139,7 @@ class Library:
         return result
 
     def artists(self, query=None):
+        '''Returns a list of artists as dictionary objects.'''
         print "Generating artist list..."
         result = []
         if query:

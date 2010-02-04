@@ -1,3 +1,4 @@
+# Blofeld - All-in-one music server
 # Copyright 2010 Dave Hayes <dwhayes@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
@@ -12,9 +13,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
+import urllib
 import urllib2
 
 from urlparse import urlparse
@@ -23,25 +25,25 @@ from PIL import Image
 from blofeld.config import *
 
 
-def resize_cover(songid, uri, size):
-    path = os.path.split(urlparse(uri).path)[0]
+def resize_cover(songid, path, size):
     cover = 'Cover.jpg'
+    uri = "file://" + urllib.pathname2url(os.path.join(path, cover))
     size = int(size)
     img_path = os.path.join(CACHE_DIR, str(size), songid + '.jpg')
     if not os.path.exists(os.path.split(img_path)[0]):
         os.makedirs(os.path.split(img_path)[0])
     try:
-        artwork = urllib2.urlopen('file://' + img_path)
+        artwork = urllib2.urlopen('file://' + urllib.pathname2url(img_path))
     except:
         image = Image.open(os.path.join(path, cover))
         if image.size[0] > size or image.size[1] > size:
             wpercent = (size/float(image.size[0]))
             hsize = int((float(image.size[1])*float(wpercent)))
             image = image.resize((size,hsize), Image.ANTIALIAS)
-            image.save(os.path.join(img_path))
-            artwork = urllib2.urlopen('file://' + img_path)
+            image.save(img_path)
+            artwork = urllib2.urlopen('file://' + urllib.pathname2url(img_path))
         else:
-            artwork = urllib2.urlopen('file://' + os.path.join(path, cover))
+            artwork = urllib2.urlopen(uri)
     return artwork
 
 

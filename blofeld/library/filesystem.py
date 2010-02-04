@@ -1,3 +1,4 @@
+# Blofeld - All-in-one music server
 # Copyright 2010 Dave Hayes <dwhayes@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
@@ -12,11 +13,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
+import sys
 import hashlib
 from time import time
+import urllib
 
 import mutagen
 
@@ -33,7 +36,7 @@ def load_music_from_dir(music_path, couchdb):
         for item in files:
             for ext in ['.mp3', '.ogg', '.m4a', '.flac', '.mp2']:
                 if ext in item.lower():
-                    location = "file://" + os.path.join(root, item)
+                    location = os.path.join(root, item)
                     id = hashlib.sha1(location).hexdigest()
                     mtime = str(os.stat(os.path.join(root, item))[8])
                     try:
@@ -70,7 +73,7 @@ def remove_missing_files(music_path, couchdb, records):
     songs = {}
     removed = 0
     for song in records:
-        if not os.path.isfile(song['key'][7:]):
+        if not os.path.isfile(song['key']):
             remove.append(couchdb[song['id']])
             removed += 1
             if removed % 100 == 0:
@@ -90,7 +93,7 @@ def read_metadata(root, item, location, id, mtime):
     metadata = mutagen.File(os.path.join(root, item), None, True)
     song = {}
     song['_id'] = id
-    song['location'] = unicode(location.decode('utf-8'))
+    song['location'] = unicode(location.decode(sys.getfilesystemencoding()))
     song['type'] = 'song'
     song['mtime'] = mtime
     try:
