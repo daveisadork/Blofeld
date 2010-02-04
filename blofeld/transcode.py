@@ -38,11 +38,8 @@ def transcode(path, song, format):
             )
         def stream():
             try:
-                print "\nreading initial data"
                 yield ffmpeg.stdout.read(327680)
-                print "\nreading remaining data"
                 yield ffmpeg.stdout.read()
-                return 
             except: 
                 print "\nTranscoding stopped or finished"
                 return

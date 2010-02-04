@@ -36,8 +36,8 @@ def load_music_from_dir(music_path, couchdb):
         for item in files:
             for ext in ['.mp3', '.ogg', '.m4a', '.flac', '.mp2']:
                 if ext in item.lower():
-                    location = os.path.join(root, item)
-                    id = hashlib.sha1(location).hexdigest()
+                    location =os.path.join(root, item).decode(sys.getfilesystemencoding())
+                    id = hashlib.sha1(location.encode('utf-8')).hexdigest()
                     mtime = str(os.stat(os.path.join(root, item))[8])
                     try:
                         record_mtime = records[id]
@@ -93,7 +93,7 @@ def read_metadata(root, item, location, id, mtime):
     metadata = mutagen.File(os.path.join(root, item), None, True)
     song = {}
     song['_id'] = id
-    song['location'] = unicode(location.decode(sys.getfilesystemencoding()))
+    song['location'] = unicode(location)
     song['type'] = 'song'
     song['mtime'] = mtime
     try:
