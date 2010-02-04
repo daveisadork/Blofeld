@@ -31,6 +31,8 @@ if not os.path.isdir(CONFIG_DIR):
 _cfg = ConfigParser.ConfigParser()
 
 if not os.path.exists(CONFIG_FILE):
+    _cfg.add_section('misc')
+    _cfg.set('misc', 'ffmpeg', '/usr/bin/ffmpeg')
     _cfg.add_section('server')
     _cfg.set('server', 'host', '0.0.0.0')
     _cfg.set('server', 'port', '8080')
@@ -58,3 +60,4 @@ HOSTNAME = _cfg.get('server', 'host')
 PORT = _cfg.getint('server', 'port')
 THEME_DIR = os.path.join(PROGRAM_DIR, 'interfaces',
                          _cfg.get('interface', 'theme'), 'templates')
+FFMPEG = _cfg.get('misc', 'ffmpeg')

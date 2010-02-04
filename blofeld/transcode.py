@@ -21,6 +21,9 @@ import subprocess
 import cherrypy
 from cherrypy.lib.static import serve_file
 
+from blofeld.config import *
+
+
 def transcode(path, song, format):
     if format == 'mp3':
         if song.info()['Content-Type'] == 'audio/mpeg':
@@ -50,7 +53,7 @@ def transcode(path, song, format):
             return serve_file(path, 'audio/ogg', "inline",
                               os.path.split(path)[1])
         ffmpeg = subprocess.Popen(
-            ['/usr/bin/ffmpeg', '-i', path, '-f', 'ogg', '-acodec', 'vorbis', '-aq', '40', '-'],
+            [FFMPEG, '-i', path, '-f', 'ogg', '-acodec', 'vorbis', '-aq', '40', '-'],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             bufsize=-1
