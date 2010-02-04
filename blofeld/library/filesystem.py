@@ -93,7 +93,7 @@ def read_metadata(root, item, location, id, mtime):
     metadata = mutagen.File(os.path.join(root, item), None, True)
     song = {}
     song['_id'] = id
-    song['location'] = unicode(location)
+    song['location'] = location
     song['type'] = 'song'
     song['mtime'] = mtime
     try:
@@ -104,8 +104,8 @@ def read_metadata(root, item, location, id, mtime):
         song['album_hash'] = hashlib.sha1(metadata['album'][0].encode('utf-8')).hexdigest()
     except:
         song['album_hash'] = hashlib.sha1("Unknown Album").hexdigest()
-    try:
-        for tag, value in metadata.iteritems():
+    for tag, value in metadata.iteritems():
+        try:
             if tag == 'genre':
                 song[tag] = value
             elif tag == 'tracknumber':
@@ -115,9 +115,9 @@ def read_metadata(root, item, location, id, mtime):
                     song[tag] = ''
             elif tag != 'coverart' and tag != 'APIC:':
                 song[tag] = value[0]
-    except TypeError:
-        pass
-    except AttributeError:
-        pass
+        except TypeError:
+            pass
+        except AttributeError:
+            pass
     return song
 

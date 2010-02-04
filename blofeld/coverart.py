@@ -25,23 +25,22 @@ from PIL import Image
 from blofeld.config import *
 
 
-def resize_cover(songid, path, size):
-    cover = 'Cover.jpg'
-    uri = "file://" + urllib.pathname2url(os.path.join(path, cover))
+def resize_cover(songid, path, uri, size):
     size = int(size)
     img_path = os.path.join(CACHE_DIR, str(size), songid + '.jpg')
+    img_uri = 'file://' + urllib.pathname2url(img_path.encode('utf-8'))
     if not os.path.exists(os.path.split(img_path)[0]):
         os.makedirs(os.path.split(img_path)[0])
     try:
-        artwork = urllib2.urlopen('file://' + urllib.pathname2url(img_path))
+        artwork = urllib2.urlopen(img_uri)
     except:
-        image = Image.open(os.path.join(path, cover))
+        image = Image.open(os.path.join(path, 'Cover.jpg'))
         if image.size[0] > size or image.size[1] > size:
             wpercent = (size/float(image.size[0]))
             hsize = int((float(image.size[1])*float(wpercent)))
             image = image.resize((size,hsize), Image.ANTIALIAS)
             image.save(img_path)
-            artwork = urllib2.urlopen('file://' + urllib.pathname2url(img_path))
+            artwork = urllib2.urlopen(img_uri)
         else:
             artwork = urllib2.urlopen(uri)
     return artwork

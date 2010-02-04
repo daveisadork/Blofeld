@@ -89,7 +89,7 @@ class WebInterface:
             path = song['location']
         except:
             return "Not found."
-        uri = "file://" + urllib.pathname2url(path)
+        uri = "file://" + urllib.pathname2url(path.encode('utf-8'))
         song = urllib2.urlopen(uri)
         if download and not format:
             return serve_download(path, os.path.split(path)[1])
@@ -108,15 +108,16 @@ class WebInterface:
             path = os.path.split(song['location'])[0]
         except:
             return "Not found."
-        uri = "file://" + urllib.pathname2url(path)
-        cover = 'Cover.jpg'
+        filename = 'Cover.jpg'
+        uri = "file://" + urllib.pathname2url(
+               os.path.join(path, filename).encode('utf-8'))
         if download:
-            return serve_file(os.path.join(path, cover),
-                           artwork.info()['Content-Type'], "attachment", cover)
+            return serve_file(os.path.join(path, filename),
+                           artwork.info()['Content-Type'], "attachment", filename)
         if size != 'original':
-            artwork = resize_cover(songid, path, size)
+            artwork = resize_cover(songid, path, uri, size)
         else:
-            artwork = urllib2.urlopen('file://' + os.path.join(path, cover))
+            artwork = urllib2.urlopen(uri)
         cherrypy.response.headers['Content-Type'] = artwork.info()['Content-Type']
         return artwork.read()
 
