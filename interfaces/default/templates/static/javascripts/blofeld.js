@@ -191,10 +191,10 @@ $(document).ready(function() {
     })
     $("#now_playing").hide();
     $("#progress").hide();
-    $('.song').live("dblclick", function () {
+    $('#songs .song').live("dblclick", function () {
         playSong(playlist.indexOf($(this).attr('id')))
     })
-    $('.song').live("click", function (event) {
+    $('#songs .song').live("click", function (event) {
         if (!event.ctrlKey) {
             $('.song.selected').removeClass('selected')
         }
@@ -204,7 +204,7 @@ $(document).ready(function() {
             $(this).addClass('selected')
         }
     })
-    $('.album').live("click", function (event) {
+    $('#albums .album').live("click", function (event) {
         if (!event.ctrlKey) {
             $('.album.selected').removeClass('selected')
         }
@@ -219,11 +219,11 @@ $(document).ready(function() {
         })
         listSongs(null, selectedAlbums, $('#query').val())
     })
-    $('.album').live("dblclick", function () {
+    $('#albums .album').live("dblclick", function () {
 //        listSongs(artists, selectedAlbums, $('#query').val(), true)
         playSong(0)
     })
-    $('.artist').live("click", function (event) {
+    $('#artists .artist').live("click", function (event) {
         if (!event.ctrlKey) {
             $('.artist.selected').removeClass('selected')
         }
