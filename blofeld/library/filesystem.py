@@ -111,7 +111,7 @@ def read_metadata(root, item, location, id, mtime):
                 song[tag] = value
             elif tag == 'tracknumber':
                 try:
-                    song[tag] = value[0].split('/')[0]
+                    song[tag] = int(value[0].split('/')[0])
                 except:
                     song[tag] = ''
             elif tag != 'coverart' and tag != 'APIC:':
