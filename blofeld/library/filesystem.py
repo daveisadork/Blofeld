@@ -47,10 +47,11 @@ def load_music_from_dir(music_path, couchdb):
                     if mtime != record_mtime:
                         song = read_metadata(root, item, location, id, mtime)
                         songs.append(song)
-                        try:
-                            remove.append(couchdb[id])
-                        except:
-                            pass
+                        if id in records:
+                            try:
+                                remove.append(couchdb[id])
+                            except:
+                                pass
                         changed += 1
                         if changed % 100 == 0 and changed > 0:
                             couchdb.bulk_delete(remove)
