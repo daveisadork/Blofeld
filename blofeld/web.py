@@ -19,7 +19,7 @@ import os
 import sys
 import urllib
 import urllib2
-
+import cjson as json
 
 import cherrypy
 from cherrypy.lib.static import serve_file
@@ -45,7 +45,7 @@ class WebInterface:
     def list_albums(self, artists=None, query=None, output='json'):
         albums = self.library.albums(artists, query)
         if output == 'json':
-            return str(albums)
+            return json.encode(albums)
         elif output == 'html':
             template = Template(file=os.path.join(THEME_DIR, 'list_albums.tmpl'))
             template.albums = albums
@@ -58,7 +58,7 @@ class WebInterface:
     def list_artists(self, query=None, output='json'):
         artists = self.library.artists(query)
         if output == 'json':
-            return str(artists)
+            return json.encode(artists)
         elif output == 'html':
             template = Template(file=os.path.join(THEME_DIR, 'list_artists.tmpl'))
             template.artists = artists
@@ -74,7 +74,7 @@ class WebInterface:
         else:
             songs = self.library.songs(artists, albums, query)
         if output == 'json':
-            return str(songs)
+            return json.encode(songs)
         elif output == 'html':
             template = Template(file=os.path.join(THEME_DIR, 'list_songs.tmpl'))
             template.songs = songs
