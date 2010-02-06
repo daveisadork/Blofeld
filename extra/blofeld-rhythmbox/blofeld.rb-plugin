@@ -1,0 +1,9 @@
+[RB Plugin]
+Loader=python
+Module=blofeld-rhythmbox
+IAge=1
+Name=Blofeld
+Description=Adds a Blofeld server as a library source
+Authors=Dave Hayes <dwhayes@gmail.com>
+Copyright=Copyright © 2010 Dave Hayes
+Website=http://github.com/daveisadork/Blofeld
