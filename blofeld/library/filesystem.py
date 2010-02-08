@@ -37,7 +37,7 @@ def load_music_from_dir(music_path, couchdb):
         for item in files:
             for ext in ['.mp3', '.ogg', '.m4a', '.flac', '.mp2']:
                 if ext in item.lower():
-                    location =os.path.join(root, item).decode(ENCODING)
+                    location = os.path.join(root, item).decode(ENCODING)
                     id = hashlib.sha1(location.encode('utf-8')).hexdigest()
                     mtime = str(os.stat(os.path.join(root, item))[8])
                     try:
@@ -98,6 +98,8 @@ def read_metadata(root, item, location, id, mtime):
     song['location'] = location
     song['type'] = 'song'
     song['mtime'] = mtime
+    song['length'] = metadata.info.length
+    song['bitrate'] = metadata.info.bitrate
     try:
         song['artist_hash'] = hashlib.sha1(metadata['artist'][0].encode('utf-8')).hexdigest()
     except:
@@ -114,7 +116,7 @@ def read_metadata(root, item, location, id, mtime):
                 try:
                     song[tag] = int(value[0].split('/')[0])
                 except:
-                    song[tag] = ''
+                    song[tag] = 0
             elif tag != 'coverart' and tag != 'APIC:':
                 song[tag] = value[0]
         except TypeError:

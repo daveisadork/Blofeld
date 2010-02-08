@@ -67,8 +67,8 @@ class WebInterface:
             return "Not implemented."
 
     @cherrypy.expose
-    def list_songs(self, artists=None,
-                   albums=None, query=None, list_all=False, output='json'):
+    def list_songs(self, artists=None ,albums=None,
+                   query=None, list_all=False, output='json'):
         if not list_all and not artists and not albums and not query:
             songs = {}
         else:

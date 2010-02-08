@@ -2,7 +2,7 @@ import rhythmdb, rb
 import gobject, gtk
 import urllib2
 import cjson as json
-
+import datetime
 
 class Blofeld(rb.Plugin):
 
@@ -19,14 +19,21 @@ class Blofeld(rb.Plugin):
             group = rb.rb_source_group_register ("library",
                 _("Library"),
                 rb.SOURCE_GROUP_CATEGORY_FIXED)
+        theme = gtk.icon_theme_get_default()
+        rb.append_plugin_source_path(theme, "/icons")
+
+        width, height = gtk.icon_size_lookup(gtk.ICON_SIZE_LARGE_TOOLBAR)
+        icon = rb.try_load_icon(theme, "network-server", width, 0)
         self.source = gobject.new (BlofeldSource,
                         shell=shell,
                         entry_type=self.entry_type,
                         source_group=group,
-#                        icon=icon,
+                        icon=icon,
                         plugin=self)
         shell.register_entry_type_for_source(self.source, self.entry_type)
         shell.append_source(self.source, None) # Add the source to the lis
+        self.pec_id = shell.get_player().connect('playing-song-changed', self.playing_entry_changed)
+        manager.ensure_update()
 
     def deactivate(self, shell):
         print "deactivating sample python plugin"
@@ -64,12 +71,24 @@ class BlofeldSource(rb.BrowserSource):
             self.__db.set(entry, rhythmdb.PROP_ALBUM, song['album'])
             self.__db.set(entry, rhythmdb.PROP_TITLE, song['title'])
             self.__db.set(entry, rhythmdb.PROP_TRACK_NUMBER, song['tracknumber'])
-#            self.__db.set(entry, rhythmdb.PROP_DATE, date)
+            try:
+                self.__db.set(entry, rhythmdb.PROP_BITRATE, song['bitrate'] / 1000)
+            except:
+                pass
+            try:
+                year = int(song['date'][0:4])
+                date = datetime.date(year, 1, 1).toordinal()
+                self.__db.set(entry, rhythmdb.PROP_DATE, date)
+            except:
+                pass
             try:
                 self.__db.set(entry, rhythmdb.PROP_GENRE, ", ".join(song['genre']))
             except:
                 self.__db.set(entry, rhythmdb.PROP_GENRE, "Unknown")
-#            self.__db.set(entry, rhythmdb.PROP_DURATION, duration)
+            try:
+                self.__db.set(entry, rhythmdb.PROP_DURATION, int(round(song['length'])))
+            except:
+                pass
             self.__db.commit()
 
     def playing_entry_changed (self, entry):
