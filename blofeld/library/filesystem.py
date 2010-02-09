@@ -98,8 +98,14 @@ def read_metadata(root, item, location, id, mtime):
     song['location'] = location
     song['type'] = 'song'
     song['mtime'] = mtime
-    song['length'] = metadata.info.length
-    song['bitrate'] = metadata.info.bitrate
+    try:
+        song['length'] = metadata.info.length
+    except:
+        song['length'] = 0
+    try:
+        song['bitrate'] = metadata.info.bitrate
+    except:
+        song['bitrate'] = 0
     try:
         song['artist_hash'] = hashlib.sha1(metadata['artist'][0].encode('utf-8')).hexdigest()
     except:

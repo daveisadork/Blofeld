@@ -31,6 +31,7 @@ from blofeld.transcode import transcode
 import blofeld.util as util
 from blofeld.library import Library
 from blofeld.coverart import resize_cover
+from blofeld.playlist import json_to_playlist
 
 class WebInterface:
     def __init__(self):
@@ -45,42 +46,63 @@ class WebInterface:
     def list_albums(self, artists=None, query=None, output='json'):
         albums = self.library.albums(artists, query)
         if output == 'json':
+            cherrypy.response.headers['Content-Type'] = 'application/json'
             return json.encode(albums)
         elif output == 'html':
             template = Template(file=os.path.join(THEME_DIR, 'list_albums.tmpl'))
             template.albums = albums
             return template.respond()
         else:
-            return "Not implemented."
-
+            raise cherrypy.HTTPError(501,'Not Implemented') 
 
     @cherrypy.expose
     def list_artists(self, query=None, output='json'):
         artists = self.library.artists(query)
         if output == 'json':
+            cherrypy.response.headers['Content-Type'] = 'application/json'
             return json.encode(artists)
         elif output == 'html':
             template = Template(file=os.path.join(THEME_DIR, 'list_artists.tmpl'))
             template.artists = artists
             return template.respond()
         else:
-            return "Not implemented."
+            raise cherrypy.HTTPError(501,'Not Implemented') 
 
     @cherrypy.expose
-    def list_songs(self, artists=None ,albums=None,
-                   query=None, list_all=False, output='json'):
-        if not list_all and not artists and not albums and not query:
-            songs = {}
+    def list_songs(self, artists=None ,albums=None, start=None, length=None,
+                   query=None, list_all=False, archive=False, output='json'):
+        if not list_all and not artists and not albums and not query and not archive:
+            songs = []
         else:
             songs = self.library.songs(artists, albums, query)
+        if start and length:
+            start = int(start)
+            end = int(length) + start
+            if len(songs) - 1 < end:
+                end = -1
+            songs = songs[start:end]
         if output == 'json':
+            cherrypy.response.headers['Content-Type'] = 'application/json'
             return json.encode(songs)
         elif output == 'html':
             template = Template(file=os.path.join(THEME_DIR, 'list_songs.tmpl'))
             template.songs = songs
             return template.respond()
         else:
-            return "Not implemented."
+            raise cherrypy.HTTPError(501,'Not Implemented') 
+
+    @cherrypy.expose
+    def get_playlist(self, artists=None ,albums=None, query=None, format=None,
+                     list_all=False, output='xspf'):
+        if not list_all and not artists and not albums and not query:
+            songs = []
+        else:
+            songs = self.library.songs(artists, albums, query)
+        playlist, ct = json_to_playlist(cherrypy.request.base, songs, output, format)
+        cherrypy.response.headers['Content-Type'] = ct
+        return playlist
+#        else:
+#            return "Not implemented."
 
     @cherrypy.expose
     def get_song(self, songid=None, download=False, format=None):
@@ -137,7 +159,8 @@ def start():
         'server.socket_host': HOSTNAME,
         'server.socket_port': PORT,
         'tools.encode.on': True, 
-        'tools.encode.encoding': 'utf-8'
+        'tools.encode.encoding': 'utf-8',
+        'tools.gzip.on': True
         })
 
     static = {
