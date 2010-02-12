@@ -33,7 +33,6 @@ class Blofeld(rb.Plugin):
         shell.register_entry_type_for_source(self.source, self.entry_type)
         shell.append_source(self.source, None) # Add the source to the lis
         self.pec_id = shell.get_player().connect('playing-song-changed', self.playing_entry_changed)
-        manager.ensure_update()
 
     def deactivate(self, shell):
         print "deactivating sample python plugin"
