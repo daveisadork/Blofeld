@@ -12,13 +12,13 @@ first, save yourself a lot of pain and heartache and only attempt this on
 Ubuntu 9.10 or newer (I have successfully made it run on Windows, but it wasn't
 what you'd call "easy"). Here's what you're going to need:
 
- * CherryPy 3 (http://www.cherrypy.org/)
- * Cheetah (http://www.cheetahtemplate.org/)
- * Python Imaging Library (http://www.pythonware.com/products/pil/)
- * Mutagen (http://code.google.com/p/mutagen/)
- * Couchdbkit (http://couchdbkit.org/)
- * FFmpeg (http://ffmpeg.org/)
- * CouchDB (http://couchdb.apache.org/)
+ * CherryPy 3 ( http://www.cherrypy.org/ )
+ * Cheetah ( http://www.cheetahtemplate.org/ )
+ * Python Imaging Library ( http://www.pythonware.com/products/pil/ )
+ * Mutagen ( http://code.google.com/p/mutagen/ )
+ * Couchdbkit ( http://couchdbkit.org/ )
+ * FFmpeg ( http://ffmpeg.org/ )
+ * CouchDB ( http://couchdb.apache.org/ )
 
 On Ubuntu, you'd want to do something like like this:
 
