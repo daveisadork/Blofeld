@@ -26,6 +26,7 @@ from blofeld.config import *
 
 def to_mp3(path):
     cherrypy.response.headers['Content-Type'] = 'audio/mpeg'
+    cherrypy.response.headers['Accept-Range'] = 'none'
     def stream():
         ffmpeg = subprocess.Popen(
             [FFMPEG, '-i', path, '-f', 'mp3', '-ab', '160k', '-'],
@@ -42,8 +43,9 @@ def to_mp3(path):
     return stream();
 
 
-def to_ogg(path):
+def to_vorbis(path):
     cherrypy.response.headers['Content-Type'] = 'audio/ogg'
+    cherrypy.response.headers['Accept-Range'] = 'none'
     ffmpeg = subprocess.Popen(
         [FFMPEG, '-i', path, '-f', 'ogg', '-acodec', 'vorbis', '-aq', '40', '-'],
         stdin=subprocess.PIPE,

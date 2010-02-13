@@ -44,6 +44,8 @@ class WebInterface:
 
     @cherrypy.expose
     def list_albums(self, artists=None, query=None, output='json'):
+        if artists:
+            artists = artists.split(',')
         albums = self.library.albums(artists, query)
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
@@ -74,6 +76,10 @@ class WebInterface:
         if not list_all and not artists and not albums and not query and not archive:
             songs = []
         else:
+            if artists:
+                artists = artists.split(',')
+            if albums:
+                albums = albums.split(',')
             songs = self.library.songs(artists, albums, query)
         if start and length:
             start = int(start)
@@ -106,32 +112,50 @@ class WebInterface:
 
     @cherrypy.expose
     def get_song(self, songid=None, download=False, format=None):
-        song = self.library.db[songid]
-        try: path = song['location'].encode(ENCODING)
-        except: raise cherrypy.HTTPError(404,'Not Found') 
-        try: song_format = song['mimetype'].split('/')[1]
-        except: song_format = os.path.splitext(path)[1].lower()[1:]
+        if format:
+            format = format.split(',')
+        try:
+            song = self.library.db[songid]
+            path = song['location'].encode(ENCODING)
+        except:
+            raise cherrypy.HTTPError(404,'Not Found') 
+        try:
+            song_format = [song['mimetype'].split('/')[1],
+                           os.path.splitext(path)[1].lower()[1:]]
+        except:
+            song_format = [os.path.splitext(path)[1].lower()[1:]]
         uri = "file://" + urllib.pathname2url(path)
         song_file = urllib2.urlopen(uri)
-        if format == 'mp3': return transcode.to_mp3(path)
-        elif format == 'ogg': return transcode.to_ogg(path)
-        elif not format:
+        print "Client wants", format, "and the file is", song_format
+        if (True in [True for x in format if x in song_format]) or not format:
+            print "WE DON'T HAVE TO TRANSCODE!"
             return serve_file(path, song_file.info()['Content-Type'],
                               "inline", os.path.split(path)[1])
-        else: raise cherrypy.HTTPError(501,'Not Implemented') 
+        elif format[0] in ['mp3']:
+            return transcode.to_mp3(path)
+        elif format[0] in ['ogg', 'vorbis', 'oga']:
+            return transcode.to_vorbis(path)
+        else:
+            raise cherrypy.HTTPError(501,'Not Implemented') 
     get_song._cp_config = {'response.stream': True}
 
     @cherrypy.expose
     def get_cover(self, songid=None, size='original', download=False):
         song = self.library.db[songid]
-        try: size = int(size)
-        except: size = 'original'
-        try: path = os.path.split(song['location'])[0].encode(ENCODING)
-        except: raise cherrypy.HTTPError(404,'Not Found') 
+        try:
+            size = int(size)
+        except:
+            size = 'original'
+        try:
+            path = os.path.split(song['location'])[0].encode(ENCODING)
+        except:
+            raise cherrypy.HTTPError(404,'Not Found') 
         filename = 'Cover.jpg'
         uri = "file://" + urllib.pathname2url(os.path.join(path, filename))
-        if size != 'original': artwork = resize_cover(songid, path, uri, size)
-        else: artwork = urllib2.urlopen(uri)
+        if size != 'original':
+            artwork = resize_cover(songid, path, uri, size)
+        else:
+            artwork = urllib2.urlopen(uri)
         if download:
             return serve_file(os.path.join(path, filename),
                            artwork.info()['Content-Type'], "attachment", filename)

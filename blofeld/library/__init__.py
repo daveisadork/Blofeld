@@ -73,7 +73,6 @@ class Library:
                                             song['key'][1], song['key'][3]])):
                     result.append(song['value'])
         if artists:
-            artists = artists.split(',')
             if result:
                 temp_result = []
                 for song in result:
@@ -85,7 +84,6 @@ class Library:
                     if song['value']['artist_hash'] in artists:
                         result.append(song['value'])
         if albums:
-            albums = albums.split(',')
             if result:
                 temp_result = []
                 for song in result:
@@ -122,7 +120,6 @@ class Library:
                         if entry not in result:
                             result.append(entry)
         if artists:
-            artists = artists.split(',')
             if result:
                 temp_result = []
                 for album in result:
