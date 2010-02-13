@@ -24,35 +24,30 @@ from cherrypy.lib.static import serve_file
 from blofeld.config import *
 
 
-def transcode(path, song, format):
-    if format == 'mp3':
-        if song.info()['Content-Type'] == 'audio/mpeg':
-            return serve_file(path, 'audio/mpeg', "inline",
-                              os.path.split(path)[1])
-        cherrypy.response.headers['Content-Type'] = 'audio/mpeg'
+def to_mp3(path):
+    cherrypy.response.headers['Content-Type'] = 'audio/mpeg'
+    def stream():
         ffmpeg = subprocess.Popen(
             [FFMPEG, '-i', path, '-f', 'mp3', '-ab', '160k', '-'],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             bufsize=-1
             )
-        def stream():
-            try:
-                yield ffmpeg.stdout.read(327680)
-                yield ffmpeg.stdout.read()
-            except: 
-                print "\nTranscoding stopped or finished"
-                return
-        return stream();
-    if format == 'ogg':
-        cherrypy.response.headers['Content-Type'] = 'audio/ogg'
-        if song.info()['Content-Type'] == 'audio/ogg':
-            return serve_file(path, 'audio/ogg', "inline",
-                              os.path.split(path)[1])
-        ffmpeg = subprocess.Popen(
-            [FFMPEG, '-i', path, '-f', 'ogg', '-acodec', 'vorbis', '-aq', '40', '-'],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            bufsize=-1
-            )
-        return ffmpeg.communicate()[0]
+        try:
+            yield ffmpeg.stdout.read(327680)
+            yield ffmpeg.stdout.read()
+        except: 
+            print "\nTranscoding stopped or finished"
+            yield None
+    return stream();
+
+
+def to_ogg(path):
+    cherrypy.response.headers['Content-Type'] = 'audio/ogg'
+    ffmpeg = subprocess.Popen(
+        [FFMPEG, '-i', path, '-f', 'ogg', '-acodec', 'vorbis', '-aq', '40', '-'],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        bufsize=-1
+        )
+    return ffmpeg.communicate()[0]

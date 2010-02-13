@@ -27,7 +27,7 @@ from cherrypy.lib.static import serve_file
 from Cheetah.Template import Template
 
 from blofeld.config import *
-from blofeld.transcode import transcode
+import blofeld.transcode as transcode
 import blofeld.util as util
 from blofeld.library import Library
 from blofeld.coverart import resize_cover
@@ -107,39 +107,31 @@ class WebInterface:
     @cherrypy.expose
     def get_song(self, songid=None, download=False, format=None):
         song = self.library.db[songid]
-        try:
-            path = song['location'].encode(ENCODING)
-        except:
-            return "Not found."
+        try: path = song['location'].encode(ENCODING)
+        except: raise cherrypy.HTTPError(404,'Not Found') 
+        try: song_format = song['mimetype'].split('/')[1]
+        except: song_format = os.path.splitext(path)[1].lower()[1:]
         uri = "file://" + urllib.pathname2url(path)
-        song = urllib2.urlopen(uri)
-        if download and not format:
-            return serve_download(path, os.path.split(path)[1])
-        if format != None:
-            return transcode(path, song, format)
-        else:
-            return serve_file(path, song.info()['Content-Type'],
+        song_file = urllib2.urlopen(uri)
+        if format == 'mp3': return transcode.to_mp3(path)
+        elif format == 'ogg': return transcode.to_ogg(path)
+        elif not format:
+            return serve_file(path, song_file.info()['Content-Type'],
                               "inline", os.path.split(path)[1])
-        return False
+        else: raise cherrypy.HTTPError(501,'Not Implemented') 
     get_song._cp_config = {'response.stream': True}
 
     @cherrypy.expose
     def get_cover(self, songid=None, size='original', download=False):
         song = self.library.db[songid]
-        try:
-            size = int(size)
-        except:
-            size = 'original'
-        try:
-            path = os.path.split(song['location'])[0].encode(ENCODING)
-        except:
-            return "Not found."
+        try: size = int(size)
+        except: size = 'original'
+        try: path = os.path.split(song['location'])[0].encode(ENCODING)
+        except: raise cherrypy.HTTPError(404,'Not Found') 
         filename = 'Cover.jpg'
         uri = "file://" + urllib.pathname2url(os.path.join(path, filename))
-        if size != 'original':
-            artwork = resize_cover(songid, path, uri, size)
-        else:
-            artwork = urllib2.urlopen(uri)
+        if size != 'original': artwork = resize_cover(songid, path, uri, size)
+        else: artwork = urllib2.urlopen(uri)
         if download:
             return serve_file(os.path.join(path, filename),
                            artwork.info()['Content-Type'], "attachment", filename)

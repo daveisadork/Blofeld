@@ -35,33 +35,33 @@ def load_music_from_dir(music_path, couchdb):
     unchanged = 0
     for root, dirs, files in os.walk(music_path):
         for item in files:
-            for ext in ['.mp3', '.ogg', '.m4a', '.flac', '.mp2']:
-                if ext in item.lower():
-                    location = os.path.join(root, item).decode(ENCODING)
-                    id = hashlib.sha1(location.encode('utf-8')).hexdigest()
-                    mtime = str(os.stat(os.path.join(root, item))[8])
-                    try:
-                        record_mtime = records[id]
-                    except:
-                        record_mtime = None
-                    if mtime != record_mtime:
-                        song = read_metadata(root, item, location, id, mtime)
-                        songs.append(song)
-                        if id in records:
-                            try:
-                                remove.append(couchdb[id])
-                            except:
-                                pass
-                        changed += 1
-                        if changed % 100 == 0 and changed > 0:
-                            couchdb.bulk_delete(remove)
-                            couchdb.bulk_save(songs)
-                            remove = []
-                            songs = []
-                            print "Added", changed, "songs in", \
-                                   time() - start_time, "seconds."
-                    else:
-                        unchanged += 1
+            extension = os.path.splitext(item)[1].lower()[1:]
+            if extension in ACCEPTED_EXTENSIONS:
+                location = os.path.join(root, item).decode(ENCODING)
+                id = hashlib.sha1(location.encode('utf-8')).hexdigest()
+                mtime = str(os.stat(os.path.join(root, item))[8])
+                try:
+                    record_mtime = records[id]
+                except:
+                    record_mtime = None
+                if mtime != record_mtime:
+                    song = read_metadata(root, item, location, id, mtime)
+                    songs.append(song)
+                    if id in records:
+                        try:
+                            remove.append(couchdb[id])
+                        except:
+                            pass
+                    changed += 1
+                    if changed % 100 == 0 and changed > 0:
+                        couchdb.bulk_delete(remove)
+                        couchdb.bulk_save(songs)
+                        remove = []
+                        songs = []
+                        print "Added", changed, "songs in", \
+                               time() - start_time, "seconds."
+                else:
+                    unchanged += 1
     couchdb.bulk_delete(remove)
     couchdb.bulk_save(songs)
     print "Added or updated", changed, "songs and skipped", unchanged, "in", \
@@ -98,14 +98,12 @@ def read_metadata(root, item, location, id, mtime):
     song['location'] = location
     song['type'] = 'song'
     song['mtime'] = mtime
-    try:
-        song['length'] = metadata.info.length
-    except:
-        song['length'] = 0
-    try:
-        song['bitrate'] = metadata.info.bitrate
-    except:
-        song['bitrate'] = 0
+    try: song['length'] = metadata.info.length
+    except: song['length'] = 0
+    try: song['bitrate'] = metadata.info.bitrate
+    except: song['bitrate'] = 0
+    try: song['mimetype'] = metadata.mime[0]
+    except: pass
     try:
         song['artist_hash'] = hashlib.sha1(metadata['artist'][0].encode('utf-8')).hexdigest()
     except:
