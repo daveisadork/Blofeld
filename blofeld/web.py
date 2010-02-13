@@ -131,9 +131,9 @@ class WebInterface:
             print "WE DON'T HAVE TO TRANSCODE!"
             return serve_file(path, song_file.info()['Content-Type'],
                               "inline", os.path.split(path)[1])
-        elif format[0] in ['mp3']:
+        elif True in [True for x in format if x in ['mp3']]:
             return transcode.to_mp3(path)
-        elif format[0] in ['ogg', 'vorbis', 'oga']:
+        elif True in [True for x in format if x in ['ogg', 'vorbis', 'oga']]:
             return transcode.to_vorbis(path)
         else:
             raise cherrypy.HTTPError(501,'Not Implemented') 
