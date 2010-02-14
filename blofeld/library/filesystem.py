@@ -170,7 +170,6 @@ def read_wma(root, item, location, id, mtime):
                 for genre in value:
                     song[asf_map[tag]].append(unicode(genre))
             elif tag == 'WM/TrackNumber':
-                print value
                 try:
                     song[asf_map[tag]] = int(str(value[0]).split('/')[0])
                 except:
