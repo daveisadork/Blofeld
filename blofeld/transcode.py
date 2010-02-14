@@ -35,11 +35,17 @@ def to_mp3(path):
             bufsize=-1
             )
         try:
-            yield ffmpeg.stdout.read(327680)
-            yield ffmpeg.stdout.read()
+            chunk = ffmpeg.stdout.read(327680)
+            while chunk != '':
+                yield chunk
+                chunk = ffmpeg.stdout.read(327680)
+            print "\nTranscoding seems to be finished"
+            ffmpeg.wait()
+            return
         except: 
-            print "\nTranscoding stopped or finished"
-            yield None
+            print "\nTranscoding stopped for some reason"
+            ffmpeg.wait()
+            return
     return stream();
 
 

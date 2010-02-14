@@ -71,6 +71,6 @@ ACCEPTED_EXTENSIONS = [
     'mp4',     # MPEG-4
     'm4a',     # MPEG-4
     'flac',    # FLAC
-#    'wma',    # Windows Media Audio (disabled, needs special metadata support)
+    'wma',    # Windows Media Audio (disabled, needs special metadata support)
     'mp2'      # MPEG-2
     ]

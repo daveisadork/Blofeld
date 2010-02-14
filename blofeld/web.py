@@ -128,7 +128,6 @@ class WebInterface:
         song_file = urllib2.urlopen(uri)
         print "Client wants", format, "and the file is", song_format
         if (True in [True for x in format if x in song_format]) or not format:
-            print "WE DON'T HAVE TO TRANSCODE!"
             return serve_file(path, song_file.info()['Content-Type'],
                               "inline", os.path.split(path)[1])
         elif True in [True for x in format if x in ['mp3']]:
