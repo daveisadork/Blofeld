@@ -20,19 +20,24 @@ what you'd call "easy"). Here's what you're going to need:
  * FFmpeg ( http://ffmpeg.org/ )
  * CouchDB ( http://couchdb.apache.org/ )
 
-On Ubuntu, you'd want to do something like like this:
+On Ubuntu, we first need to add the quodlibet-unstable PPA to get a newer
+version of mutagen:
 
-  sudo aptitude install  python-cherrypy3 python-cheetah python-pil \
+  sudo add-apt-repository ppa:/lazka/dumpingplace
+  sudo aptitude update
+
+Then we need to install all of the dependencies we can with aptitude (or
+whatever you want to use):
+
+  sudo aptitude install python-cherrypy3 python-cheetah python-pil \
     python-cjson python-celementtree python-setuptools ffmpeg
 
 Followed by:
 
-  sudo easy_install couchdbkit mutagen
+  sudo easy_install couchdbkit
 
-Please note, mutagen is packaged in Ubuntu, but we need a newer version than
-the package provides. If you have python-mutagen installed, uninstall it before
-running easy_install. Also, the couchdbkit package in Lucid is broken somehow,
-so don't bother trying to use that one either.
+There is a couchdbkit package for Lucid, but it appears to be broken somehow
+and won't actually work, hence having to install it with easy_install.
 
 Then you just need to run Blofeld.py. It will create a configuration file at
 ~/.blofeld/blofeld.cfg. The options there that you might want to change should
