@@ -30,7 +30,7 @@ from blofeld.config import *
 import blofeld.transcode as transcode
 import blofeld.util as util
 from blofeld.library import Library
-from blofeld.coverart import resize_cover
+from blofeld.coverart import find_cover, resize_cover
 from blofeld.playlist import json_to_playlist
 
 class WebInterface:
@@ -140,19 +140,20 @@ class WebInterface:
 
     @cherrypy.expose
     def get_cover(self, songid=None, size='original', download=False):
-        song = self.library.db[songid]
+        try:
+            song = self.library.db[songid]
+        except:
+            raise cherrypy.HTTPError(404,'Not Found') 
         try:
             size = int(size)
         except:
             size = 'original'
-        try:
-            path = os.path.split(song['location'])[0].encode(ENCODING)
-        except:
+        cover = find_cover(song['location'].encode(ENCODING), songid)
+        if cover is None:
             raise cherrypy.HTTPError(404,'Not Found') 
-        filename = 'Cover.jpg'
-        uri = "file://" + urllib.pathname2url(os.path.join(path, filename))
+        uri = 'file://' + urllib.pathname2url(cover)
         if size != 'original':
-            artwork = resize_cover(songid, path, uri, size)
+            artwork = resize_cover(songid, cover, uri, size)
         else:
             artwork = urllib2.urlopen(uri)
         if download:
