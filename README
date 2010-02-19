@@ -23,7 +23,7 @@ what you'd call "easy"). Here's what you're going to need:
 On Ubuntu, we first need to add the quodlibet-unstable PPA to get a newer
 version of mutagen:
 
-  sudo add-apt-repository ppa:/lazka/dumpingplace
+  sudo add-apt-repository ppa:lazka/dumpingplace
   sudo aptitude update
 
 Then we need to install all of the dependencies we can with aptitude (or
