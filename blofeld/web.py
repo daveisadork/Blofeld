@@ -34,7 +34,9 @@ from blofeld.coverart import find_cover, resize_cover
 from blofeld.playlist import json_to_playlist
 
 class WebInterface:
+    """Handles any web requests, including API calls."""
     def __init__(self):
+        # Create a library object to run queries against
         self.library = Library()
 
     @cherrypy.expose
@@ -107,29 +109,29 @@ class WebInterface:
         playlist, ct = json_to_playlist(cherrypy.request.base, songs, output, format)
         cherrypy.response.headers['Content-Type'] = ct
         return playlist
-#        else:
-#            return "Not implemented."
 
     @cherrypy.expose
     def get_song(self, songid=None, download=False, format=None):
-        if format:
-            format = format.split(',')
         try:
             song = self.library.db[songid]
             path = song['location'].encode(ENCODING)
         except:
-            raise cherrypy.HTTPError(404,'Not Found') 
-        try:
-            song_format = [song['mimetype'].split('/')[1],
-                           os.path.splitext(path)[1].lower()[1:]]
-        except:
-            song_format = [os.path.splitext(path)[1].lower()[1:]]
+            raise cherrypy.HTTPError(404,'Not Found')
         uri = "file://" + urllib.pathname2url(path)
         song_file = urllib2.urlopen(uri)
-        print "Client wants", format, "and the file is", song_format
-        if (True in [True for x in format if x in song_format]) or not format:
+        if not format:
             return serve_file(path, song_file.info()['Content-Type'],
-                              "inline", os.path.split(path)[1])
+                                "inline", os.path.split(path)[1])
+        format = format.split(',')
+        try:
+            song_format = [song['mimetype'].split('/')[1],
+                            os.path.splitext(path)[1].lower()[1:]]
+        except:
+            song_format = [os.path.splitext(path)[1].lower()[1:]]
+        print "Client wants", format, "and the file is", song_format
+        if True in [True for x in format if x in song_format]:
+            return serve_file(path, song_file.info()['Content-Type'],
+                                "inline", os.path.split(path)[1])
         elif True in [True for x in format if x in ['mp3']]:
             return transcode.to_mp3(path)
         elif True in [True for x in format if x in ['ogg', 'vorbis', 'oga']]:
@@ -170,7 +172,9 @@ class WebInterface:
         return quit()
     shutdown._cp_config = {'response.stream': True}
 
+
 def start():
+    """Starts the CherryPy web server."""
     cherrypy.config.update({
         'server.socket_host': HOSTNAME,
         'server.socket_port': PORT,

@@ -27,6 +27,11 @@ from blofeld.config import *
 
 
 def find_cover(location, songid=None):
+    """Attempts to locate a cover image that would be associated with a given
+    file.
+    """
+    # This block of code was for getting cover art embedded in the tags in the
+    # file itself. So far, I haven't been able to make it work.
 #    img_path = os.path.join(CACHE_DIR, songid + '.jpg')
 #    if not os.path.exists(os.path.split(img_path)[0]):
 #        os.makedirs(os.path.split(img_path)[0])
@@ -44,11 +49,16 @@ def find_cover(location, songid=None):
 #        return None
 #    except:
 #        return None
+    # This list will hold the results of our search.
     images = []
+    # Try to get the path to the folder containing the song for which we need
+    # a cover.
     try:
         path = os.path.split(location)[0]
     except:
         return None
+    # Look for any files in the path that are images and give them a score
+    # based on their filename and append them to our results list.
     for item in os.listdir(path):
         name, extension = os.path.splitext(item)
         if extension.lower()[1:] in COVER_EXTENSIONS:
@@ -56,6 +66,8 @@ def find_cover(location, songid=None):
             if name.lower() in COVER_NAMES:
                 score += 1
             images.append([score, os.path.join(path, item)])
+    # Sort our images by score and return the highest one. Seems like a pretty
+    # ham fisted approach, will need to refine this later.
     try:
         images.sort(reverse=True)
         for image in images:
@@ -65,19 +77,32 @@ def find_cover(location, songid=None):
         return None
 
 def resize_cover(songid, cover, uri, size):
+    """Resizes the cover image for a specific song to a given size and caches
+    the resized image for any subsequent requests."""
+    # This is the path to the resized image in the cache
     img_path = os.path.join(CACHE_DIR, str(size), songid + '.jpg')
+    # This is a URI of the above path
     img_uri = 'file://' + urllib.pathname2url(img_path.encode(ENCODING))
+    # Make sure our cache directory exists
     if not os.path.exists(os.path.split(img_path)[0]):
         os.makedirs(os.path.split(img_path)[0])
     try:
+        # Try to create a file object pointing to the image in the cache
         artwork = urllib2.urlopen(img_uri)
     except:
+        # Load the source image file with PIL
         image = Image.open(os.path.join(cover))
+        # Check if the image is larger than what the client asked for. If it
+        # is, we'll resize it. Otherwise we'll just send the original.
         if image.size[0] > size or image.size[1] > size:
+            # Figure out the aspect ratio so we can maintain it
             wpercent = (size/float(image.size[0]))
             hsize = int((float(image.size[1])*float(wpercent)))
+            # Resize the image
             image = image.resize((size,hsize), Image.ANTIALIAS)
+            # Save it to the cache so we won't have to do this again.
             image.save(img_path)
+            # Create a file object pointing to the image in the cache
             artwork = urllib2.urlopen(img_uri)
         else:
             artwork = urllib2.urlopen(uri)

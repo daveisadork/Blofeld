@@ -31,6 +31,7 @@ if not os.path.isdir(CONFIG_DIR):
 
 _cfg = ConfigParser.ConfigParser()
 
+# Load the configuration file, or create one with the defaults.
 if not os.path.exists(CONFIG_FILE):
     _cfg.add_section('misc')
     _cfg.set('misc', 'ffmpeg', '/usr/bin/ffmpeg')
@@ -39,7 +40,8 @@ if not os.path.exists(CONFIG_FILE):
     _cfg.set('server', 'port', '8080')
     _cfg.add_section('database')
     _cfg.set('database', 'source', 'filesystem')
-    _cfg.set('database', 'path', os.path.join(os.path.expanduser("~"), "Music"))
+    _cfg.set('database', 'path',
+             os.path.join(os.path.expanduser("~"), "Music"))
     _cfg.add_section('interface')
     _cfg.set('interface', 'theme', 'default')
     with open(CONFIG_FILE, 'w') as conf_file:
@@ -68,9 +70,9 @@ ACCEPTED_EXTENSIONS = [
     'ogg',     # Ogg Vorbis
     'oga',     # Ogg Vorbis
     'aac',     # Advanced Audio Coding
-    'mp4',     # MPEG-4
-    'm4a',     # MPEG-4
+    'mp4',     # MPEG-4 (usually contains AAC)
+    'm4a',     # MPEG-4 (usually contains AAC)
     'flac',    # FLAC
-    'wma',    # Windows Media Audio (disabled, needs special metadata support)
+    'wma',     # Windows Media Audio
     'mp2'      # MPEG-2
     ]
