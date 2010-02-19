@@ -113,10 +113,14 @@ class WebInterface:
     @cherrypy.expose
     def get_song(self, songid=None, download=False, format=None):
         try:
+            range_request = cherrypy.request.headers['Range']
+        except:
+            range_request = "bytes=0-"
+        try:
             song = self.library.db[songid]
             path = song['location'].encode(ENCODING)
         except:
-            raise cherrypy.HTTPError(404,'Not Found')
+            raise cherrypy.HTTPError(404)
         uri = "file://" + urllib.pathname2url(path)
         song_file = urllib2.urlopen(uri)
         if not format:
@@ -132,12 +136,25 @@ class WebInterface:
         if True in [True for x in format if x in song_format]:
             return serve_file(path, song_file.info()['Content-Type'],
                                 "inline", os.path.split(path)[1])
+        # If we're transcoding audio and the client is trying to make range
+        # requests, we have to throw an error 416. This sucks because it breaks
+        # <audio> in all the WebKit browsers I've tried, but at least it stops
+        # them from spawning a zillion transcoder threads (I'm looking at you,
+        # Chromium).
         elif True in [True for x in format if x in ['mp3']]:
+            cherrypy.response.headers['Content-Type'] = 'audio/mpeg'
+            cherrypy.response.headers['Content-Length'] = '-1'
+            if range_request != 'bytes=0-':
+                raise cherrypy.HTTPError(416)
             return transcode.to_mp3(path)
         elif True in [True for x in format if x in ['ogg', 'vorbis', 'oga']]:
+            cherrypy.response.headers['Content-Type'] = 'audio/ogg'
+            cherrypy.response.headers['Content-Length'] = '-1'
+            if range_request != 'bytes=0-':
+                raise cherrypy.HTTPError(416)
             return transcode.to_vorbis(path)
         else:
-            raise cherrypy.HTTPError(501,'Not Implemented') 
+            raise cherrypy.HTTPError(501) 
     get_song._cp_config = {'response.stream': True}
 
     @cherrypy.expose
@@ -145,7 +162,7 @@ class WebInterface:
         try:
             song = self.library.db[songid]
         except:
-            raise cherrypy.HTTPError(404,'Not Found') 
+            raise cherrypy.HTTPError(404) 
         try:
             size = int(size)
         except:
