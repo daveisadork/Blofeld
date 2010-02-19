@@ -31,7 +31,8 @@ def load_music_from_dir(music_path, couchdb):
     """
     # Clean the database of files that no longer exist and get a list of the
     # remaining songs in the database.
-    records = remove_missing_files(music_path, couchdb, couchdb.view('songs/mtime'))
+    records = remove_missing_files(music_path, couchdb,
+                                   couchdb.view('songs/mtime'))
     start_time = time()
     print "Scanning for new files..."
     # Create lists to contain songs we need to remove and save

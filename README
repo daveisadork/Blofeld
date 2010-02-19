@@ -52,10 +52,9 @@ and hopefully you'll see the web interface and be able to start browsing and
 listening to music. Hopefully.
 
 If you want to see cover art, you're going to have to have an image named 
-'Cover.jpg' in the folder with whatever song you're trying to listen to. I
-know, I know... you have 'folder.jpg' or 'cover.jpg' or all your artwork is
-embedded. I'll get to all that eventually (or hey, maybe you could send a 
-patch...)
+'cover', 'front', 'folder' or 'coverart' in the folder with the song. I've only
+tested with .jpg files, but .png and .bmp files will be picked up. Whether or
+not they'll work is another matter. Embedded art support is planned.
 
 There's also a very basic plugin for Rhythmbox which can add a Blofeld server
 as a source. The plugin is in the extra directory, and you need to drop the
