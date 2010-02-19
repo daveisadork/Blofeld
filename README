@@ -30,7 +30,7 @@ Then we need to install all of the dependencies we can with aptitude (or
 whatever you want to use):
 
   sudo aptitude install python-cherrypy3 python-cheetah python-pil \
-    python-cjson python-celementtree python-setuptools ffmpeg
+    python-cjson python-celementtree python-setuptools python-mutagen ffmpeg
 
 Followed by:
 
