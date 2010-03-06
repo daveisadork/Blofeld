@@ -112,6 +112,7 @@ class WebInterface:
 
     @cherrypy.expose
     def get_song(self, songid=None, download=False, format=None):
+        print "\n\n\n", cherrypy.request.headers, "\n\n\n"
         try:
             range_request = cherrypy.request.headers['Range']
         except:

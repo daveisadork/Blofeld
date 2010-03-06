@@ -169,7 +169,7 @@ def read_metadata(location, id, mtime):
     except:
         song['artist_hash'] = hashlib.sha1("Unknown Artist").hexdigest()
     try:
-        metadata['album'][0]
+        album = metadata['album'][0]
         song['album_hash'] = hashlib.sha1(album.encode('utf-8')).hexdigest()
     except:
         song['album_hash'] = hashlib.sha1("Unknown Album").hexdigest()

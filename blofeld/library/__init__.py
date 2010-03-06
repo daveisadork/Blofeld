@@ -28,8 +28,9 @@ import blofeld.util as util
 
 class Library:
     """This is the Blofeld library module. It handles loading songs from the
-    various backends (such as the filesystem or Rhythmbox) and inserting their 
-    metadata into the database. It also handles making calls to the database.
+    various backends (such as the filesystem or Rhythmbox) and inserting 
+    their metadata into the database. It also handles making calls to the
+    database.
     """
     def __init__(self):
         """Sets up the database connection and starts loading songs."""
