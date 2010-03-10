@@ -144,13 +144,13 @@ class WebInterface:
         # Chromium).
         elif True in [True for x in format if x in ['mp3']]:
             cherrypy.response.headers['Content-Type'] = 'audio/mpeg'
-            cherrypy.response.headers['Content-Length'] = '-1'
+#            cherrypy.response.headers['Content-Length'] = '-1'
             if range_request != 'bytes=0-':
                 raise cherrypy.HTTPError(416)
             return transcode.to_mp3(path)
         elif True in [True for x in format if x in ['ogg', 'vorbis', 'oga']]:
             cherrypy.response.headers['Content-Type'] = 'audio/ogg'
-            cherrypy.response.headers['Content-Length'] = '-1'
+#            cherrypy.response.headers['Content-Length'] = '-1'
             if range_request != 'bytes=0-':
                 raise cherrypy.HTTPError(416)
             return transcode.to_vorbis(path)
@@ -191,8 +191,11 @@ class WebInterface:
     shutdown._cp_config = {'response.stream': True}
 
 
-def start():
-    """Starts the CherryPy web server."""
+def setup():
+    """Starts the CherryPy web server, or configures it to run behind Apache
+    or some other web server.
+    """
+
     cherrypy.config.update({
         'server.socket_host': HOSTNAME,
         'server.socket_port': PORT,
@@ -211,4 +214,15 @@ def start():
         '/blofeld/static': static
         }
 
-    cherrypy.quickstart(WebInterface(), '/', config=conf)
+    if USE_INTERNAL:
+        cherrypy.config.update({'log.screen': True})
+    else:
+        cherrypy.engine.SIGHUP = None
+        cherrypy.engine.SIGTERM = None
+        cherrypy.server.unsubscribe()
+
+    cherrypy.tree.mount(WebInterface(), "/", config=conf)
+
+def start():
+    setup()
+    cherrypy.engine.start()

@@ -42,7 +42,10 @@ class Library:
         # Load our database views from the filesystem
         loader = FileSystemDocsLoader(os.path.join(PROGRAM_DIR,
                                       'views/_design'))
-        loader.sync(self.db, verbose=True)
+        try:
+            loader.sync(self.db, verbose=True)
+        except:
+            pass
         # Spawn a new thread to start the backend
         thread.start_new_thread(self._load_songs, ())
 #        self._load_songs()

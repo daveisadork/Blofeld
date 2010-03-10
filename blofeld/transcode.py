@@ -95,3 +95,6 @@ def to_vorbis(path):
     # Start our generator and return its output
     return stream()
 
+
+def transcode_gstreamer(path):
+    pass

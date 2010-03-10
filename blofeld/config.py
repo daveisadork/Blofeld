@@ -36,6 +36,7 @@ if not os.path.exists(CONFIG_FILE):
     _cfg.add_section('misc')
     _cfg.set('misc', 'ffmpeg', '/usr/bin/ffmpeg')
     _cfg.add_section('server')
+    _cfg.set('server', 'use_internal', 1)
     _cfg.set('server', 'host', '0.0.0.0')
     _cfg.set('server', 'port', '8080')
     _cfg.add_section('database')
@@ -50,6 +51,7 @@ else:
     _cfg.read(CONFIG_FILE)
 
 MUSIC_SOURCE = _cfg.get('database', 'source')
+USE_INTERNAL = _cfg.getboolean('server', 'use_internal')
 USE_RHYTHMBOX = MUSIC_SOURCE == 'rhythmbox'
 USE_FILESYSTEM = MUSIC_SOURCE == 'filesystem'
 if USE_RHYTHMBOX:

@@ -104,7 +104,7 @@ def load_music_from_dir(music_path, couchdb):
 
 
 def remove_missing_files(music_path, couchdb, records):
-    """Search music_path to find if any of the songs in records have been 
+    """Search music_path to find if any of the songs in records have been
     removed, and then remove them from couchdb.
     """
     start_time = time()
@@ -182,7 +182,7 @@ def read_metadata(location, id, mtime):
             # genre tags.
             if tag == 'genre':
                 song[tag] = value
-            # Mutagen returns the tracknumber in a format like '2/12'. We're 
+            # Mutagen returns the tracknumber in a format like '2/12'. We're
             # only interested in the track number, not the total number of
             # tracks.
             elif tag == 'tracknumber':
@@ -251,7 +251,7 @@ def read_wma(location, id, mtime):
                 song[asf_map[tag]] = []
                 for genre in value:
                     song[asf_map[tag]].append(unicode(genre))
-            # Mutagen returns the tracknumber in a format like '2/12'. We're 
+            # Mutagen returns the tracknumber in a format like '2/12'. We're
             # only interested in the track number, not the total number of
             # tracks.
             elif tag == 'WM/TrackNumber':
