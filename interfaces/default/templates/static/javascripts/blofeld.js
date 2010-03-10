@@ -2,6 +2,7 @@ var loadingImage = "<div class='scrollingContainer'><img src='static/images/load
 var playlist = []
 var playingCurrently = null
 var activeSong = null
+var ajaxQueue = {'artists': null, 'albums': null, 'songs': null}
 
 var playSong = function (songIndex) {
     song = playlist[songIndex];
@@ -22,23 +23,32 @@ var playSong = function (songIndex) {
 }
 
 var listArtists = function (query) {
+    if (ajaxQueue['artists']) {
+        ajaxQueue['artists'].abort()
+    }
     options = {'output': 'html'}
     if (query) {
         options['query'] = query
     }
-    $("#artistsContainer").html(loadingImage).load(
-        'list_artists',
-        options, 
-        function () {
+    $("#artistsContainer").html(loadingImage)
+    ajaxQueue['artists'] = $.ajax({
+        url: 'list_artists',
+        data: options, 
+        success: function (response) {
+            $("#artistsContainer").html(response)
+            ajaxQueue['artists'] = null
 //            $("#artists").tablesorter({
 //                sortForce: [[0,0]],
 //                sortList: [[0,0]]
 //            }); 
         }
-    )
+    })
 }
 
 var listAlbums = function (artists, query) {
+    if (ajaxQueue['albums']) {
+        ajaxQueue['albums'].abort()
+    }
     options = {'output': 'html'}
     if (query) {
         options['query'] = query
@@ -46,19 +56,25 @@ var listAlbums = function (artists, query) {
     if (artists) {
         options['artists'] = artists.join(',')
     }
-    $("#albumsContainer").html(loadingImage).load(
-        'list_albums', 
-        options,
-        function () {
+    $("#albumsContainer").html(loadingImage)
+    ajaxQueue['albums'] = $.ajax({
+        url: 'list_albums', 
+        data: options,
+        success: function (response) {
+            $("#albumsContainer").html(response)
+            ajaxQueue['albums'] = null
 //            $("#albums").tablesorter({
 //                sortForce: [[0,0]],
 //                sortList: [[0,0]]
 //            })
         }
-    )
+    })
 }
 
 var listSongs = function (artists, albums, query, play) {
+    if (ajaxQueue['songs']) {
+        ajaxQueue['songs'].abort()
+    }
     options = {'output': 'html'}
     if (query) {
         options['query'] = query
@@ -69,10 +85,13 @@ var listSongs = function (artists, albums, query, play) {
     if (albums) {
         options['albums'] = albums.join(',')
     }
-    $("#songsContainer").html(loadingImage).load(
-        'list_songs',
-        options, 
-        function () {
+    $("#songsContainer").html(loadingImage)
+    ajaxQueue['songs'] = $.ajax({
+        url: 'list_songs',
+        data: options, 
+        success: function (response) {
+            $("#songsContainer").html(response)
+            ajaxQueue['songs'] = null
 //            $("#songs").tablesorter({
 //                sortForce: [[4,0], [5,0], [1,0]],
 //                sortList: [[4,0], [5,0], [1,0]]
@@ -91,7 +110,7 @@ var listSongs = function (artists, albums, query, play) {
                 playSong(0)
             }
         }
-    )
+    })
 }
 
 var playNextSong = function () {
@@ -183,6 +202,7 @@ $(document).ready(function() {
     disableSelection(document.getElementById("browser"))
     listArtists();
     listAlbums();
+    listSongs();
     resizeInterface();
     window.onresize = resizeInterface();
     $('#clear_search').click(function () {
