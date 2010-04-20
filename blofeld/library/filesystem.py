@@ -17,8 +17,9 @@
 
 import os
 import hashlib
-from time import time
+from time import time, sleep
 import urllib
+from multiprocessing import Process, Pool, Queue, Event, Lock
 
 import mutagen
 
@@ -35,9 +36,9 @@ def load_music_from_dir(music_path, couchdb):
                                    couchdb.view('songs/mtime'))
     start_time = time()
     print "Scanning for new files..."
-    # Create lists to contain songs we need to remove and save
-    remove = []
-    songs = []
+    # Create queues for songs that need to be read and saved to the DB
+    read_queue = Queue()
+    db_queue = Queue()
     changed = 0
     unchanged = 0
     # Iterate through all the folders and files in music_path
@@ -63,44 +64,69 @@ def load_music_from_dir(music_path, couchdb):
                 except:
                     record_mtime = None
                 if mtime != record_mtime:
-                    # WMA files get special treatment. See read_wma() for more
-                    # information on why.
-                    if extension == 'wma':
-                        song = read_wma(location, id, mtime)
-                    else:
-                        song = read_metadata(location, id, mtime)
-                    if song:
-                        # Add the song to the list
-                        songs.append(song)
-                        # If the song is already in the database, add it to the
-                        # removal list.
-                        if id in records:
-                            try:
-                                remove.append(couchdb[id])
-                            except:
-                                pass
-                        changed += 1
-                        # If we have 100 songs ready to add to the database,
-                        # remove the ones that are already existing (since I
-                        # don't know how to update them in place) and then add
-                        # the 100 songs in the list. Doing this in 100 song
-                        # chunks like this is much quicker than doing them one
-                        # at a time.
-                        if changed % 100 == 0 and changed > 0:
-                            couchdb.bulk_delete(remove)
-                            couchdb.bulk_save(songs)
-                            remove = []
-                            songs = []
-                            print "Added", changed, "songs in", \
-                                   time() - start_time, "seconds."
+                    # Add the song to the queue to be read
+                    read_queue.put((location, id, mtime, extension, records))
                 else:
                     unchanged += 1
-    # We ran out of files to scan without hitting that magic number 100 to do
-    # the database update, so let's go ahead and get whatever's left.
-    couchdb.bulk_delete(remove)
-    couchdb.bulk_save(songs)
-    print "Added or updated", changed, "songs and skipped", unchanged, "in", \
-           time() - start_time, "seconds."
+    print "Queued %d songs for reading." % read_queue.qsize()
+    scanning = Event()
+    db_lock = Lock()
+    scanning_process = Process(target=process_read_queue, args=(read_queue, db_queue, scanning, start_time, records))
+    scanning_process.start()
+    db_process = Process(target=add_items_to_db, args=(couchdb, scanning, db_queue, db_lock))
+    db_process.start()
+    sleep(5)
+    db_lock.acquire()
+    scanning_process.join()
+    db_process.join()
+    finish_time = time() - start_time
+    print "Finished updating library in %d seconds." % finish_time
+
+
+def add_items_to_db(couchdb, scanning, db_queue, db_lock):
+    db_lock.acquire()
+    while (scanning.is_set() or db_queue.qsize() > 0):
+        if db_queue.qsize() == 0:
+            sleep(5)
+        else:
+            songs = db_queue.get()
+            remove = []
+            add = []
+            for song in songs:
+                if song[0] is None:
+                    del song
+                else:
+                    add.append(song[0])
+                    if song[1] is True:
+                        remove.append(couchdb[song[0]['_id']])
+            couchdb.bulk_delete(remove)
+            couchdb.bulk_save(add)
+            print "added", len(add), "songs to couchdb,", len(remove), "of which already existed."
+    db_lock.release()
+
+
+def process_read_queue(read_queue, db_queue, event, start_time, records):
+    event.set()
+    pool = Pool()
+    queue_size = read_queue.qsize()
+    while read_queue.qsize() > 0:
+        args_list = []
+        for x in range(100):
+            try:
+                args_list.append(read_queue.get(timeout=1))
+            except:
+                break
+        db_queue.put(pool.map(read_song, args_list))
+        print "Processed", queue_size - read_queue.qsize(), "items in", time() - start_time, "seconds"
+    event.clear()
+
+
+def read_song(args):
+    if args[3] == 'wma':
+        song = read_wma(args[0], args[1], args[2])
+    else:
+        song = read_metadata(args[0], args[1], args[2])
+    return (song, args[1] in args[4])
 
 
 def remove_missing_files(music_path, couchdb, records):

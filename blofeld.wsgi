@@ -4,7 +4,6 @@ sys.stdout = sys.stderr
 sys.path.insert(0, os.path.dirname(__file__))
 
 import atexit
-import threading
 import cherrypy
 from blofeld.config import *
 from blofeld.web import WebInterface

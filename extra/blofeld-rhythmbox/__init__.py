@@ -59,9 +59,9 @@ class BlofeldSource(rb.BrowserSource):
             self.__entry_type = self.get_property('entry-type')
             self.__activated = True
         rb.BrowserSource.do_impl_activate (self)
-        song_list = urllib2.urlopen('http://127.0.0.1:8080/list_songs?list_all=true')
+        song_list = urllib2.urlopen('http://192.168.111.65/blofeld/list_songs?list_all=true')
         songs = json.decode(song_list.read())
-        trackurl = 'http://127.0.0.1:8080/get_song?songid='
+        trackurl = 'http://192.168.111.65/blofeld/get_song?songid='
         for song in songs:
             entry = self.__db.entry_lookup_by_location (trackurl + song['id'])
             if entry == None:

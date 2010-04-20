@@ -32,6 +32,7 @@ import blofeld.util as util
 from blofeld.library import Library
 from blofeld.coverart import find_cover, resize_cover
 from blofeld.playlist import json_to_playlist
+from blofeld.log import log
 
 class WebInterface:
     """Handles any web requests, including API calls."""
@@ -124,6 +125,14 @@ class WebInterface:
             raise cherrypy.HTTPError(404)
         uri = "file://" + urllib.pathname2url(path)
         song_file = urllib2.urlopen(uri)
+        log("%(ip)s played %(title)s by %(artist)s from %(album)s." % \
+            {
+                'ip': cherrypy.request.headers['Remote-Addr'],
+                'artist': song['artist'],
+                'album': song['album'],
+                'title': song['title']
+            }
+        )
         if not format:
             return serve_file(path, song_file.info()['Content-Type'],
                                 "inline", os.path.split(path)[1])
