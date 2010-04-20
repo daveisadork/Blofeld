@@ -16,6 +16,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
+from operator import itemgetter, attrgetter
 from time import time
 import thread
 
@@ -75,41 +76,12 @@ class Library:
         if not query and not artists and not albums:
             for song in self.db.view('songs/all'):
                 result.append(song['value'])
-        if query:
-            # Clean up the search string
-            query = util.clean_text(query)
-            # Get all the songs from the database.
-            for song in self.db.view('songs/all'):
-                # Create a searchable string by joining together the artist,
-                # album and title fields and cleaning them up.
-                search_field = util.clean_text(";".join([song['key'][0],
-                                            song['key'][1], song['key'][3]]))
-                # Find out if our search term is in there anywhere, and if so,
-                # append the song to our results list.
-                if query in search_field:
-                    result.append(song['value'])
         if artists:
-            # Check if we've already found some songs
-            if result:
-                # Create a list to hold the subset of songs we'll get by
-                # refining our existing results.
-                temp_result = []
-                # Search through the current results for any songs by the
-                # specified artist(s) and add them to our temporary list.
-                for song in result:
-                    if song['artist_hash'] in artists:
-                        temp_result.append(song)
-                # Replace the existing results with our refined ones
-                result = temp_result
-            # Since our results are empty, make sure that's not because the
-            # search just didn't have any results, in which case we want to 
-            # return an empty list.
-            elif not query:
-                # Get all the songs from the database and find the ones by
-                # the specified artist, then append them to our results list.
-                for artist in artists:
-                    for song in self.db.view('songs/by_artist_id', key=artist):
-                        result.append(song['value'])
+            # Get all the songs from the database and find the ones by
+            # the specified artist, then append them to our results list.
+            for artist in artists:
+                for song in self.db.view('songs/by_artist_id', key=artist):
+                    result.append(song['value'])
         if albums:
             # Check whether we already have a list of songs we need to refine.
             if result:
@@ -125,13 +97,34 @@ class Library:
             # Since our results are empty, make sure that's not because the
             # search just didn't have any results, in which case we want to 
             # return an empty list.
-            elif not query:
+            elif not artists:
                 # Get all the songs from the database and find the ones from
                 # the specified album(s), then append them to our results list.
                 for album in albums:
                     for song in self.db.view('songs/by_album_id', key=album):
                         result.append(song['value'])
-        return result
+        if query:
+            # Clean up the search string
+            query = util.clean_text(query)
+            if not (albums or artists):
+                # Get all the songs from the database.
+                for song in self.db.view('songs/all'):
+                    # Create a searchable string by joining together the artist,
+                    # album and title fields and cleaning them up.
+                    search_field = util.clean_text(";".join([song['key'][0],
+                                                song['key'][1], song['key'][3]]))
+                    # Find out if our search term is in there anywhere, and if so,
+                    # append the song to our results list.
+                    if query in search_field:
+                        result.append(song['value'])
+            elif result:
+                temp_result = []
+                for song in result:
+                    search_field = util.clean_text(";".join([song['artist'], song['album'], song['title']]))
+                    if query in search_field:
+                        temp_result.append(song)
+                result = temp_result
+        return sorted(result, key=itemgetter('artist', 'album', 'tracknumber'))
 
     def albums(self, artists=None, query=None):
         '''Returns a list of albums as dictionary objects.'''
@@ -147,23 +140,23 @@ class Library:
         if query and artists:
             # Clean up the search term 
             query = util.clean_text(query)
-            # Get all the albums from the database using the search view
-            for album in self.db.view('albums/search'):
-                # Create an object that we can append to the results list
-                entry = {
-                        'id': album['value']['album_hash'],
-                        'title': album['key']
-                        }
-                # Clean up the search field and see if our search term is
-                # in it.
-                if query in util.clean_text(album['value']['search_string']):
-                    # Make sure this album is not already in the results
-                    # list so we don't end up with duplicates and make sure
-                    # the album is by an artist the client specified. Then
-                    # append it to the results list.
-                    if entry not in result and \
-                        album['value']['artist_hash'] in artists:
-                        result.append(entry)
+            for artist in artists:
+                # Get all the albums from the database using the search view
+                for album in self.db.view('albums/search', key=artist):
+                    # Create an object that we can append to the results list
+                    entry = {
+                            'id': album['value']['album_hash'],
+                            'title': album['value']['album']
+                            }
+                    # Clean up the search field and see if our search term is
+                    # in it.
+                    if query in util.clean_text(album['value']['search_string']):
+                        # Make sure this album is not already in the results
+                        # list so we don't end up with duplicates and make sure
+                        # the album is by an artist the client specified. Then
+                        # append it to the results list.
+                        if entry not in result:
+                            result.append(entry)
         if query and not artists:
             # Clean up the search term 
             query = util.clean_text(query)
@@ -172,7 +165,7 @@ class Library:
                 # Create an object that we can append to the results list
                 entry = {
                     'id': album['value']['album_hash'],
-                    'title': album['key']
+                    'title': album['value']['album']
                     }
                 # Clean up the search field and see if our search term is
                 # in it. If it is, make sure it's not a duplicate result
@@ -196,7 +189,7 @@ class Library:
                     if artist in artists and entry not in result:
                         result.append(entry)
         print "Generated album list in", time() - start_time, "seconds."
-        return result
+        return sorted(result, key=itemgetter('title'))
 
     def artists(self, query=None):
         '''Returns a list of artists as dictionary objects.'''
