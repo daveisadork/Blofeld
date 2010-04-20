@@ -107,8 +107,8 @@ class Library:
             elif not query:
                 # Get all the songs from the database and find the ones by
                 # the specified artist, then append them to our results list.
-                for song in self.db.view('songs/all'):
-                    if song['value']['artist_hash'] in artists:
+                for artist in artists:
+                    for song in self.db.view('songs/by_artist_id', key=artist):
                         result.append(song['value'])
         if albums:
             # Check whether we already have a list of songs we need to refine.
@@ -128,13 +128,14 @@ class Library:
             elif not query:
                 # Get all the songs from the database and find the ones from
                 # the specified album(s), then append them to our results list.
-                for song in self.db.view('songs/all'):
-                    if song['value']['album_hash'] in albums:
+                for album in albums:
+                    for song in self.db.view('songs/by_album_id', key=album):
                         result.append(song['value'])
         return result
 
     def albums(self, artists=None, query=None):
         '''Returns a list of albums as dictionary objects.'''
+        start_time = time()
         print "Generating album list..."
         # Make a list to hold the results of our search
         result = []
@@ -181,18 +182,20 @@ class Library:
                         result.append(entry)
         if artists and not query:
             # Get all the albums from the library
-            for album in self.db.view('albums/by_artist'):
-                # Create an object to append to our results list
-                entry = {
-                    'id': album['value']['album_hash'],
-                    'title': album['key']
-                    }
-                # Get the artist ID
-                artist = album['value']['artist']
-                # Make sure the album is by an artist the client requested and
-                # that it's not a duplicate result, then append it to the list.
-                if artist in artists and entry not in result:
-                    result.append(entry)
+            for artist_hash in artists:
+                for album in self.db.view('albums/by_artist_id', key=artist_hash):
+                    # Create an object to append to our results list
+                    entry = {
+                        'id': album['value']['album_hash'],
+                        'title': album['value']['album']
+                        }
+                    # Get the artist ID
+                    artist = album['key']
+                    # Make sure the album is by an artist the client requested and
+                    # that it's not a duplicate result, then append it to the list.
+                    if artist in artists and entry not in result:
+                        result.append(entry)
+        print "Generated album list in", time() - start_time, "seconds."
         return result
 
     def artists(self, query=None):
