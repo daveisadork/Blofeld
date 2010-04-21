@@ -21,8 +21,6 @@ import urllib
 import urllib2
 import cjson as json
 
-import gobject, glib
-
 import cherrypy
 from cherrypy.lib.static import serve_file
 
@@ -247,6 +245,3 @@ def setup():
 def start():
     setup()
     cherrypy.engine.start()
-#    gobject.threads_init()
-#    loop = glib.MainLoop()
-#    loop.run()
