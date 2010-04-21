@@ -29,7 +29,7 @@ from cherrypy.lib.static import serve_file
 from Cheetah.Template import Template
 
 from blofeld.config import *
-import blofeld.transcode as transcode
+from blofeld.transcode import transcode
 import blofeld.util as util
 from blofeld.library import Library
 from blofeld.coverart import find_cover, resize_cover
@@ -114,7 +114,7 @@ class WebInterface:
         return playlist
 
     @cherrypy.expose
-    def get_song(self, songid=None, download=False, format=None):
+    def get_song(self, songid=None, download=False, format=None, bitrate=False):
         print "\n\n\n", cherrypy.request.headers, "\n\n\n"
         try:
             range_request = cherrypy.request.headers['Range']
@@ -125,6 +125,14 @@ class WebInterface:
             path = song['location'].encode(ENCODING)
         except:
             raise cherrypy.HTTPError(404)
+        try:
+            force_transcode = False
+            if format and bitrate and \
+               (int(bitrate) in [8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320]) and \
+               (song['bitrate'] / 1024 > int(bitrate)):
+                force_transcode = True
+        except:
+            pass
         uri = "file://" + urllib.pathname2url(path)
         song_file = urllib2.urlopen(uri)
         log("%(ip)s played %(title)s by %(artist)s from %(album)s." % \
@@ -145,7 +153,7 @@ class WebInterface:
         except:
             song_format = [os.path.splitext(path)[1].lower()[1:]]
         print "Client wants", format, "and the file is", song_format
-        if True in [True for x in format if x in song_format]:
+        if True in [True for x in format if x in song_format] and not force_transcode:
             return serve_file(path, song_file.info()['Content-Type'],
                                 "inline", os.path.split(path)[1])
         # If we're transcoding audio and the client is trying to make range
@@ -154,18 +162,19 @@ class WebInterface:
         # them from spawning a zillion transcoder threads (I'm looking at you,
         # Chromium).
         elif True in [True for x in format if x in ['mp3']]:
-            cherrypy.response.headers['Content-Type'] = 'audio/mpeg'
 #            cherrypy.response.headers['Content-Length'] = '-1'
             if range_request != 'bytes=0-':
                 raise cherrypy.HTTPError(416)
-            transcoder = transcode.TranscodeGstreamer(path)
-            return transcoder.start()
+            else:
+                cherrypy.response.headers['Content-Type'] = 'audio/mpeg'
+                return transcode(path, 'mp3', bitrate)
         elif True in [True for x in format if x in ['ogg', 'vorbis', 'oga']]:
-            cherrypy.response.headers['Content-Type'] = 'audio/ogg'
 #            cherrypy.response.headers['Content-Length'] = '-1'
             if range_request != 'bytes=0-':
                 raise cherrypy.HTTPError(416)
-            return transcode.to_vorbis(path)
+            else:
+                cherrypy.response.headers['Content-Type'] = 'audio/ogg'
+                return transcode(path, 'ogg', bitrate)
         else:
             raise cherrypy.HTTPError(501) 
     get_song._cp_config = {'response.stream': True}
