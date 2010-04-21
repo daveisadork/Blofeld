@@ -21,6 +21,8 @@ import urllib
 import urllib2
 import cjson as json
 
+import gobject, glib
+
 import cherrypy
 from cherrypy.lib.static import serve_file
 
@@ -156,7 +158,8 @@ class WebInterface:
 #            cherrypy.response.headers['Content-Length'] = '-1'
             if range_request != 'bytes=0-':
                 raise cherrypy.HTTPError(416)
-            return transcode.to_mp3(path)
+            transcoder = transcode.TranscodeGstreamer(path)
+            return transcoder.start()
         elif True in [True for x in format if x in ['ogg', 'vorbis', 'oga']]:
             cherrypy.response.headers['Content-Type'] = 'audio/ogg'
 #            cherrypy.response.headers['Content-Length'] = '-1'
@@ -235,3 +238,6 @@ def setup():
 def start():
     setup()
     cherrypy.engine.start()
+#    gobject.threads_init()
+#    loop = glib.MainLoop()
+#    loop.run()
