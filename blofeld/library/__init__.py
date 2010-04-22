@@ -63,9 +63,6 @@ class Library:
             from blofeld.library.filesystem import load_music_from_dir
             load_music_from_dir(MUSIC_PATH, self.db)
         print "Updated database in " + str(time() - start_time) + " seconds."
-        # Compact the database so it doesn't get too huge. Really only needed
-        # if we've added a bunch of files, maybe we should check for that.
-        self.db.compact()
 
     def songs(self, artists=None, albums=None, query=None):
         '''Returns a list of songs as dictionary objects.'''

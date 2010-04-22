@@ -65,7 +65,7 @@ def load_music_from_dir(music_path, couchdb):
                     record_mtime = None
                 if mtime != record_mtime:
                     # Add the song to the queue to be read
-                    read_queue.put((location, id, mtime, extension, records))
+                    read_queue.put((location, id, mtime, extension, id in records))
                 else:
                     unchanged += 1
     print "Queued %d songs for reading." % read_queue.qsize()
@@ -89,7 +89,9 @@ def add_items_to_db(couchdb, scanning, db_queue, db_lock):
         if db_queue.qsize() == 0:
             sleep(5)
         else:
-            songs = db_queue.get()
+            songs = []
+            while db_queue.qsize() > 0:
+                songs.extend(db_queue.get())
             remove = []
             add = []
             for song in songs:
@@ -102,6 +104,9 @@ def add_items_to_db(couchdb, scanning, db_queue, db_lock):
             couchdb.bulk_delete(remove)
             couchdb.bulk_save(add)
             print "added", len(add), "songs to couchdb,", len(remove), "of which already existed."
+    # Compact the database so it doesn't get too huge. Really only needed
+    # if we've added a bunch of files, maybe we should check for that.
+    couchdb.compact()
     db_lock.release()
 
 
@@ -126,7 +131,7 @@ def read_song(args):
         song = read_wma(args[0], args[1], args[2])
     else:
         song = read_metadata(args[0], args[1], args[2])
-    return (song, args[1] in args[4])
+    return (song, args[4])
 
 
 def remove_missing_files(music_path, couchdb, records):
