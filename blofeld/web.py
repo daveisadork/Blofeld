@@ -101,13 +101,19 @@ class WebInterface:
             raise cherrypy.HTTPError(501,'Not Implemented') 
 
     @cherrypy.expose
-    def get_playlist(self, artists=None ,albums=None, query=None, format=None,
-                     list_all=False, output='xspf'):
-        if not list_all and not artists and not albums and not query:
+    def get_playlist(self, artists=None, albums=None, query=None, format=None,
+                     list_all=False, bitrate=None, output='xspf'):
+        if not (list_all or artists or albums or query):
+            print "this isn't right'"
             songs = []
         else:
+            if artists:
+                artists = artists.split(',')
+            if albums:
+                albums = albums.split(',')
             songs = self.library.songs(artists, albums, query)
-        playlist, ct = json_to_playlist(cherrypy.request.base, songs, output, format)
+        print songs
+        playlist, ct = json_to_playlist(cherrypy.request.base, songs, output, format, bitrate)
         cherrypy.response.headers['Content-Type'] = ct
         return playlist
 
@@ -133,14 +139,17 @@ class WebInterface:
             pass
         uri = "file://" + urllib.pathname2url(path)
         song_file = urllib2.urlopen(uri)
-        log("%(ip)s played %(title)s by %(artist)s from %(album)s." % \
-            {
-                'ip': cherrypy.request.headers['Remote-Addr'],
-                'artist': song['artist'],
-                'album': song['album'],
-                'title': song['title']
-            }
-        )
+        try:
+            log("%(ip)s played %(title)s by %(artist)s from %(album)s." % \
+                {
+                    'ip': cherrypy.request.headers['X-Real-Ip'],
+                    'artist': song['artist'],
+                    'album': song['album'],
+                    'title': song['title']
+                }
+            )
+        except:
+            pass
         if not format:
             return serve_file(path, song_file.info()['Content-Type'],
                                 "inline", os.path.split(path)[1])

@@ -24,7 +24,7 @@ except:
     import xml.etree.ElementTree as ElementTree
 
 
-def json_to_playlist(base_url, songs, output='xspf', format=None):
+def json_to_playlist(base_url, songs, output='xspf', format=None, bitrate=None):
     """Converts a JSON object or Dictionary into a playlist file of some kind.
     The possible target formats are PLS, M3U and the default which is XSPF.
     """
@@ -36,6 +36,10 @@ def json_to_playlist(base_url, songs, output='xspf', format=None):
         format = ''
     else:
         format = '&format=' + format
+    if not bitrate:
+        bitrate = ''
+    else:
+        bitrate = '&bitrate=' + format
     if output == 'm3u':
         # Set the content type
         ct = 'audio/x-mpegurl'
@@ -49,8 +53,8 @@ def json_to_playlist(base_url, songs, output='xspf', format=None):
             # an int. Then we add it into the info string.
             length = int(round(song['length']))
             info =  str(length) + "," + song['artist'] + " - " + song['title']
-            uri = base_url + '/get_song?songid=' + song['id'] + format
-            playlist.write('\n#EXTINF:' + info + '\n')
+            uri = base_url + '/get_song?songid=' + song['id'] + format + bitrate
+            playlist.write('\n#EXTINF:' + info.encode('utf-8') + '\n')
             playlist.write(uri + "\n")
     elif output == 'pls':
         # Set the content type
@@ -65,10 +69,10 @@ def json_to_playlist(base_url, songs, output='xspf', format=None):
         playlist.write('[playlist]\n')
         playlist.write('\nNumberOfEntries=' + str(len(songs)) + '\n')
         for song in songs:
-            uri = base_url + '/get_song?songid=' + song['id'] + format
+            uri = base_url + '/get_song?songid=' + song['id'] + format + bitrate
             playlist.write('\nFile' + str(counter) + '=' + uri)
-            playlist.write('\nTitle' + str(counter) + '=' + song['artist'] + \
-                           " - " + song['title'])
+            playlist.write('\nTitle' + str(counter) + '=' + song['artist'].encode('utf-8') + \
+                           " - " + song['title'].encode('utf-8'))
             # 'Length' needs to be a nonzero positive integer or -1 for unknown
             if int(round(song['length'])) == 0:
                 length = '-1'
@@ -88,7 +92,7 @@ def json_to_playlist(base_url, songs, output='xspf', format=None):
         for song in songs:
             # Since XSPF supports cover art, generate a URI for the cover image
             # as well as the song.
-            song_uri = base_url + '/get_song?songid=' + song['id'] + format
+            song_uri = base_url + '/get_song?songid=' + song['id'] + format + bitrate
             cover_uri = base_url + '/get_cover?size=500&songid=' + song['id']
             # Create the <track> element and add all the relevent tags as 
             # children.
