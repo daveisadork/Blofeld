@@ -19,7 +19,7 @@ from datetime import datetime
 from blofeld.config import *
 
 
-logfile = open(os.path.join('/tmp', 'blofeld.log'), 'a')
+logfile = open(os.path.join('', 'blofeld.log'), 'a')
 
 
 def log(message):

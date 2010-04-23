@@ -43,8 +43,11 @@ def transcode(path, format='mp3', bitrate=False):
     output = transcoder.get_by_name('output')
     output.set_property("sync", False)
     transcoder.set_state(gst.STATE_PLAYING)
-    while not output.get_property("eos"):
-        yield str(output.emit('pull-buffer'))
+    try:
+        while not output.get_property("eos"):
+            yield str(output.emit('pull-buffer'))
+    except:
+        print "User didn't want the rest of the song."
     transcoder.set_state(gst.STATE_NULL)
     print "Guess we're finished.", time.time() - start_time, "seconds."
 

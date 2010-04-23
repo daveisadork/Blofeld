@@ -104,7 +104,6 @@ class WebInterface:
     def get_playlist(self, artists=None, albums=None, query=None, format=None,
                      list_all=False, bitrate=None, output='xspf'):
         if not (list_all or artists or albums or query):
-            print "this isn't right'"
             songs = []
         else:
             if artists:
@@ -112,7 +111,7 @@ class WebInterface:
             if albums:
                 albums = albums.split(',')
             songs = self.library.songs(artists, albums, query)
-        print songs
+        print cherrypy.request.base
         playlist, ct = json_to_playlist(cherrypy.request.base, songs, output, format, bitrate)
         cherrypy.response.headers['Content-Type'] = ct
         return playlist
