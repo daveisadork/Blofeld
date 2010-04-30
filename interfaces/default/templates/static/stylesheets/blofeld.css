@@ -36,7 +36,7 @@ h1 {
     margin: 0 25px 0 0;
     padding: 0;
     text-indent: -9999px;
-    background: url('../images/blofeld.png') no-repeat;
+    background: url('../images/sprite.png') 0 -32px no-repeat;
 }
 
 #browser {
@@ -107,7 +107,7 @@ tr.now-playing {
 tr.now-playing > td.status {
     width: 16px;
     height: 16px;
-    background: url('../images/cp.png') no-repeat center center;
+    background: url('../images/cp.png') center center no-repeat;
 }
 
 .scrollingContainer {
@@ -181,7 +181,7 @@ tr.now-playing > td.status {
     margin-right: 5px;
     width: 32px;
     height: 32px;
-    background: url('../images/audio-x-generic.png');
+    background: url('../images/sprite.png') -224px 0 no-repeat;
 }
 
 #progress {
@@ -246,7 +246,7 @@ tr.now-playing > td.status {
     position: absolute;
     top: 3px;
     left: 6px;
-    background: url('../images/search.png');
+    background: url('../images/sprite.png') -256px 0 no-repeat;
 }
 
 #clear_search {
@@ -255,7 +255,7 @@ tr.now-playing > td.status {
     position: absolute;
     top: 3px;
     right: 6px;
-    background: url('../images/clear.png');
+    background: url('../images/sprite.png') -272px 0 no-repeat;
 }
 
 #query {
