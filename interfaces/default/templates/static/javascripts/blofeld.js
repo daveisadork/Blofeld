@@ -7,8 +7,9 @@ var ajaxQueue = {'artists': null, 'albums': null, 'songs': null}
 var playSong = function (songIndex) {
     song = playlist[songIndex];
     playingCurrently = songIndex;
-    $("#player").setFile('get_song?format=mp3&songid=' + song, 'get_song?format=ogg&songid=' + song);
-    $('#cover_art').html('<a href="get_cover?size='+ Math.floor(document.body.clientHeight * 0.75) + '&songid=' + song + '"><img src="get_cover?size=32&songid=' + song + '" width="32" height="32"></a>')
+    $("#player").jPlayer('setFile', 'get_song?format=mp3&songid=' + song, 'get_song?format=ogg&songid=' + song).jPlayer("play");
+    $('#cover_art').html('<a href="get_cover?size='+ Math.floor(document.body.clientHeight * 0.75) + '&songid=' + song + '" id="cover_link"><img src="get_cover?size=32&songid=' + song + '" width="32" height="32" onload="$(\'#cover_link\').show()"></a>')
+    $('#cover_link').hide()
     $('#cover_art > a').lightBox({imageLoading:'static/images/loading.gif', songid:song});
     $('#np_title').html($('#' + song + ' .title').html())
     $('#np_artist').html($('#' + song + ' .artist').html())
@@ -18,7 +19,6 @@ var playSong = function (songIndex) {
     $("#now_playing").show();
     $("#progress").show();
 //    $("#songsContainer .scrollingContainer").scrollTo($('#'+song), 0, {offset:-(Math.floor($("#songsContainer").height() / 2)-10)});
-    $('#player').play()
     activeSong = song;
 }
 
@@ -127,7 +127,7 @@ var playNextSong = function () {
 
 var stopPlayback = function () {
     activeSong = null;
-    $("#player").stop();
+    $("#player").jPlayer("stop");
     $("#now_playing").hide();
     $("#progress").hide();
 }
@@ -141,9 +141,9 @@ var setupPlayer = function () {
         swfPath: "static/images",
         //oggSupport: true
     })
-    .jPlayerId("play", "play")
-    .jPlayerId("pause", "pause")
-    .onProgressChange( function(loadPercent, playedPercentRelative, playedPercentAbsolute, playedTime, totalTime) {
+    .jPlayer("cssId", "play", "play")
+    .jPlayer("cssId", "pause", "pause")
+    .jPlayer("onProgressChange", function(loadPercent, playedPercentRelative, playedPercentAbsolute, playedTime, totalTime) {
         $('#load_progress').width(loadPercent)
         $('#play_head').width(playedPercentRelative)
 //        var myPlayedTime = new Date(playedTime);
@@ -154,7 +154,7 @@ var setupPlayer = function () {
 //        var ttSec = (myTotalTime.getUTCSeconds() < 10) ? "0" + myTotalTime.getUTCSeconds() : myTotalTime.getUTCSeconds();
 //        $('#play_head').text(ptMin+":"+ptSec+" of "+ttMin+":"+ttSec);
     })
-    .onSoundComplete( function() {
+    .jPlayer("onSoundComplete", function() {
         playNextSong();
     })
     $("#skip_forward").click(function () {

@@ -24,13 +24,18 @@ import gst
 
 def transcode(path, format='mp3', bitrate=False):
     start_time = time.time()
+    # If we were passed a bitrate argument, make sure it's actually a number
     try:
         bitrate = int(bitrate)
     except:
         bitrate = False
     print "Transcoding", path
+    # Create our transcoding pipeline using one of the strings at the end of
+    # this module.
     transcoder = gst.parse_launch(pipeline[format])
-    if bitrate in [8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320]:
+    # Set the bitrate we were asked for
+    if bitrate in [8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192,
+                                                                224, 256, 320]:
         print "Setting bitrate to", bitrate, "kbps"
         encoder = transcoder.get_by_name('encoder')
         if format is 'mp3':
@@ -38,21 +43,31 @@ def transcode(path, format='mp3', bitrate=False):
             encoder.set_property("bitrate", bitrate)
         elif format is 'ogg':
             encoder.set_property("max-bitrate", bitrate * 1024)
+    # Load our file into the transcoder
     source = transcoder.get_by_name('source')
     source.set_property("location", path)
+    # Set the output to be asynchronous so the transcoding happens as quickly
+    # as possible rather than real time.
     output = transcoder.get_by_name('output')
     output.set_property("sync", False)
+    # Start the pipeline running so we can start grabbing data out of it
     transcoder.set_state(gst.STATE_PLAYING)
+    transcoder.get_state()
     try:
+        # Grab a bit of encoded data and yield it to the client
         while not output.get_property("eos"):
-            yield str(output.emit('pull-buffer'))
+            yield output.emit('pull-buffer').data
     except:
         print "User didn't want the rest of the song."
+    # I think this is supposed to free the memory used by the transcoder
     transcoder.set_state(gst.STATE_NULL)
     print "Guess we're finished.", time.time() - start_time, "seconds."
 
-
+# These are the transcoding pipelines we can use. I should probably add more
 pipeline = {
-    'mp3': "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! id3v2mux ! appsink name=output",
+    # id3v2mux would be preferable because it transfers embedded cover art, but
+    # stupid jPlayer chokes on its output so we have to use id3mux instead.
+    #'mp3': "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! id3v2mux ! appsink name=output",
+    'mp3': "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! id3mux ! appsink name=output",
     'ogg': "filesrc name=source ! decodebin ! audioconvert ! vorbisenc name=encoder ! oggmux ! appsink name=output"
 }

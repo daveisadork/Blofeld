@@ -71,7 +71,8 @@ def json_to_playlist(base_url, songs, output='xspf', format=None, bitrate=None):
         for song in songs:
             uri = base_url + '/get_song?songid=' + song['id'] + format + bitrate
             playlist.write('\nFile' + str(counter) + '=' + uri)
-            playlist.write('\nTitle' + str(counter) + '=' + song['artist'].encode('utf-8') + \
+            playlist.write('\nTitle' + str(counter) + '=' + \
+                           song['artist'].encode('utf-8') + \
                            " - " + song['title'].encode('utf-8'))
             # 'Length' needs to be a nonzero positive integer or -1 for unknown
             if int(round(song['length'])) == 0:

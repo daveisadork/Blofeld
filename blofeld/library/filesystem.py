@@ -65,18 +65,30 @@ def load_music_from_dir(music_path, couchdb):
                     record_mtime = None
                 if mtime != record_mtime:
                     # Add the song to the queue to be read
-                    read_queue.put((location, id, mtime, extension, id in records))
+                    read_queue.put((location, id, mtime, extension,
+                                    id in records))
                 else:
                     unchanged += 1
     print "Queued %d songs for reading." % read_queue.qsize()
+    # This lets us check whether the process that is dealing with the read 
+    # read is still working or not.
     scanning = Event()
+    # Ditto for the database process
     db_lock = Lock()
-    scanning_process = Process(target=process_read_queue, args=(read_queue, db_queue, scanning, start_time, records))
+    # Spawn a new process to handle the queue of files that need read.
+    scanning_process = Process(target=process_read_queue, args=(read_queue,
+                                      db_queue, scanning, start_time, records))
     scanning_process.start()
-    db_process = Process(target=add_items_to_db, args=(couchdb, scanning, db_queue, db_lock))
+    # Spawn a new process to handle the queue of items that need added to the
+    # database.
+    db_process = Process(target=add_items_to_db,
+                         args=(couchdb, scanning, db_queue, db_lock))
     db_process.start()
+    # Wait a few seconds for everything to get started running
     sleep(5)
+    # Block while we wait for everything to finish
     db_lock.acquire()
+    # Join our processes back
     scanning_process.join()
     db_process.join()
     finish_time = time() - start_time
@@ -84,53 +96,76 @@ def load_music_from_dir(music_path, couchdb):
 
 
 def add_items_to_db(couchdb, scanning, db_queue, db_lock):
+    # Acquire the database lock so we don't overwhelm the database
     db_lock.acquire()
+    # While the read queue is still being processed or we have stuff waiting
+    # to be added to the database...
     while (scanning.is_set() or db_queue.qsize() > 0):
         if db_queue.qsize() == 0:
+            # Files are still being read, but we don't have anything to add to 
+            # the database so we'll wait a few seconds and try again.
             sleep(5)
         else:
             songs = []
             while db_queue.qsize() > 0:
+                # Grab all the items out of the database queue
                 songs.extend(db_queue.get())
             remove = []
             add = []
             for song in songs:
                 if song[0] is None:
+                    # There must've been a problem reading this file so we'll
+                    # remove it from the list
                     del song
                 else:
+                    # Get the metadata ready to send to the database
                     add.append(song[0])
                     if song[1] is True:
+                        # This song already exists in the database so we need
+                        # to remove it before we add the updated data.
                         remove.append(couchdb[song[0]['_id']])
+            # Make our changes to the database
             couchdb.bulk_delete(remove)
             couchdb.bulk_save(add)
             print "added", len(add), "songs to couchdb,", len(remove), "of which already existed."
     # Compact the database so it doesn't get too huge. Really only needed
     # if we've added a bunch of files, maybe we should check for that.
     couchdb.compact()
+    # Release the lock on the database so the main process knows we're finished
     db_lock.release()
 
 
-def process_read_queue(read_queue, db_queue, event, start_time, records):
-    event.set()
+def process_read_queue(read_queue, db_queue, working, start_time, records):
+    # This lets the other processes know that we're working on reading files
+    working.set()
+    # Create a pool of processes to handle the actual reading of tags
     pool = Pool()
     queue_size = read_queue.qsize()
     while read_queue.qsize() > 0:
         args_list = []
+        # Get 100 songs from the queue
         for x in range(100):
             try:
                 args_list.append(read_queue.get(timeout=1))
             except:
                 break
+        # Read the tags from the 100 songs and then stick the results in the
+        # database queue.
         db_queue.put(pool.map(read_song, args_list))
         print "Processed", queue_size - read_queue.qsize(), "items in", time() - start_time, "seconds"
-    event.clear()
+    # Let the other processes know we're finished.
+    working.clear()
 
 
 def read_song(args):
+    # Figure out which function we need to use to read the tags from this file
+    # and then call it.
     if args[3] == 'wma':
         song = read_wma(args[0], args[1], args[2])
     else:
         song = read_metadata(args[0], args[1], args[2])
+    # Return a tuple with the song metadata and whether this item was already
+    # in the database.
     return (song, args[4])
 
 

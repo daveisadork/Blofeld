@@ -181,6 +181,7 @@ tr.now-playing > td.status {
     margin-right: 5px;
     width: 32px;
     height: 32px;
+    background: url('../images/audio-x-generic.png');
 }
 
 #progress {
