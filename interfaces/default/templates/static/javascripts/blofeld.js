@@ -139,6 +139,7 @@ var setupPlayer = function () {
             return
         },
         swfPath: "static/images",
+        nativeSupport: false,
         //oggSupport: true
     })
     .jPlayer("cssId", "play", "play")

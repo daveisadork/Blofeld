@@ -112,7 +112,8 @@ class WebInterface:
                 albums = albums.split(',')
             songs = self.library.songs(artists, albums, query)
         print cherrypy.request.base
-        playlist, ct = json_to_playlist(cherrypy.request.base, songs, output, format, bitrate)
+        playlist, ct = json_to_playlist(cherrypy.request.base, songs, output,
+                                                                format, bitrate)
         cherrypy.response.headers['Content-Type'] = ct
         return playlist
 
@@ -131,7 +132,8 @@ class WebInterface:
         try:
             force_transcode = False
             if format and bitrate and \
-               (int(bitrate) in [8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320]) and \
+               (int(bitrate) in [8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112,
+                                          128, 160, 192, 224, 256, 320]) and \
                (song['bitrate'] / 1024 > int(bitrate)):
                 force_transcode = True
         except:
@@ -205,7 +207,7 @@ class WebInterface:
             artwork = urllib2.urlopen(uri)
         if download:
             return serve_file(os.path.join(path, filename),
-                           artwork.info()['Content-Type'], "attachment", filename)
+                        artwork.info()['Content-Type'], "attachment", filename)
         cherrypy.response.headers['Content-Type'] = artwork.info()['Content-Type']
         return artwork.read()
 
