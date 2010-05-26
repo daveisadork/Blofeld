@@ -36,9 +36,9 @@ if not os.path.exists(CONFIG_FILE):
     _cfg.add_section('misc')
     _cfg.set('misc', 'ffmpeg', '/usr/bin/ffmpeg')
     _cfg.add_section('server')
-    _cfg.set('server', 'use_internal', True)
+    _cfg.set('server', 'use_internal', 'True')
     _cfg.set('server', 'host', '0.0.0.0')
-    _cfg.set('server', 'port', '8080')
+    _cfg.set('server', 'port', '8083')
     _cfg.add_section('database')
     _cfg.set('database', 'source', 'filesystem')
     _cfg.set('database', 'path',
@@ -75,6 +75,6 @@ ACCEPTED_EXTENSIONS = [
     'mp4',     # MPEG-4 (usually contains AAC)
     'm4a',     # MPEG-4 (usually contains AAC)
     'flac',    # FLAC
-    'wma',     # Windows Media Audio
+    #'wma',     # Windows Media Audio
     'mp2'      # MPEG-2
     ]

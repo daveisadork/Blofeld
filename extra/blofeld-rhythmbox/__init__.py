@@ -5,6 +5,8 @@ import urllib2
 import cjson as json
 import datetime
 
+PATH_TO_BLOFELD = "http://localhost:8083"
+
 class Blofeld(rb.Plugin):
 
     def __init__(self):
@@ -53,7 +55,7 @@ class BlofeldSource(rb.BrowserSource):
         self.__activated = False
         self.__updating = False
         self.__load_total_size = 0
-        self.url = "http://192.168.111.65/blofeld"
+        self.url = PATH_TO_BLOFELD
 
     def do_impl_activate(self):
         if not self.__activated:

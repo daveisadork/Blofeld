@@ -9,15 +9,14 @@ This thing is a monster. I'm not joking. Trying to get this thing running on
 your machine at this stage is just simply not recommended, but I know some
 people just can't help themselves, so here's what you need to do. First things
 first, save yourself a lot of pain and heartache and only attempt this on 
-Ubuntu 9.10 or newer (I have successfully made it run on Windows, but it wasn't
-what you'd call "easy"). Here's what you're going to need:
+Ubuntu 9.10 or newer. Here's what you're going to need:
 
  * CherryPy 3 ( http://www.cherrypy.org/ )
  * Cheetah ( http://www.cheetahtemplate.org/ )
  * Python Imaging Library ( http://www.pythonware.com/products/pil/ )
  * Mutagen ( http://code.google.com/p/mutagen/ )
  * Couchdbkit ( http://couchdbkit.org/ )
- * FFmpeg ( http://ffmpeg.org/ )
+ * Gstreamer ( http://www.gstreamer.net/ )
  * CouchDB ( http://couchdb.apache.org/ )
 
 On Ubuntu, we first need to add the quodlibet-unstable PPA to get a newer
@@ -29,8 +28,9 @@ version of mutagen:
 Then we need to install all of the dependencies we can with aptitude (or
 whatever you want to use):
 
-  sudo aptitude install python-cherrypy3 python-cheetah python-pil \
-    python-cjson python-celementtree python-setuptools python-mutagen ffmpeg
+  sudo aptitude install python-cherrypy3 python-cheetah python-imaging \
+    python-cjson python-celementtree python-setuptools python-mutagen \
+    python-gst0.10 couchdb
 
 Followed by:
 
@@ -43,11 +43,11 @@ Then you just need to run Blofeld.py. It will create a configuration file at
 ~/.blofeld/blofeld.cfg. The options there that you might want to change should
 be pretty self explanatory. As far as the 'backends' are concerned, Blofeld's
 internal file scanning is the default and the recommended option, but there is
-also a Rhythmbox backend you can active by setting 'source = rhythmbox' and 
+also a Rhythmbox backend you can activate by setting 'source = rhythmbox' and 
 then Blofeld will just import your Rhythmbox library instead of scanning for
 itself.
 
-Once you're up and running, point your web browser to http://localhost:8080/
+Once you're up and running, point your web browser to http://localhost:8083/
 and hopefully you'll see the web interface and be able to start browsing and
 listening to music. Hopefully.
 
@@ -58,8 +58,9 @@ not they'll work is another matter. Embedded art support is planned.
 
 There's also a very basic plugin for Rhythmbox which can add a Blofeld server
 as a source. The plugin is in the extra directory, and you need to drop the
-whole blofeld-rhythmbox folder into ~/.local/share/rhythmbox/plugins. Fun.
+whole blofeld-rhythmbox folder into ~/.local/share/rhythmbox/plugins and then
+edit __init__.py and replace PATH_TO_BLOFELD with the path to your Blofeld.
+Then write a UI to make that configurable and send me a pull request.
 
 There's also a pretty useful JSON API that I don't feel like documenting right
-now. There's also a pretty appalling lack of comments in the code, but a smart
-person should be able to figure out what's going on. 
+now.

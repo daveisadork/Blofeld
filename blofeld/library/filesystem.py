@@ -50,7 +50,7 @@ def load_music_from_dir(music_path, couchdb):
             if extension in ACCEPTED_EXTENSIONS:
                 # Get the full decoded path of the file. The decoding part is
                 # important if the filename includes non-ASCII characters.
-                location = os.path.join(root, item).decode(ENCODING)
+                location = unicode(os.path.join(root, item).decode(ENCODING))
                 # Generate a unique ID for this song by making a SHA-1 hash of
                 # its location.
                 id = hashlib.sha1(location.encode('utf-8')).hexdigest()
