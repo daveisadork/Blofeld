@@ -1,5 +1,7 @@
 var loadingImage = "<div class='scrollingContainer'><img src='static/images/loading.gif' alt='loading...' class='loading'></div>";
 var playlist = []
+var selectedAlbums = []
+var selectedArtists = []
 var playingCurrently = null
 var activeSong = null
 var ajaxQueue = {'artists': null, 'albums': null, 'songs': null}
@@ -226,6 +228,7 @@ $(document).ready(function() {
         }
     })
     $('#albums .album').live("click", function (event) {
+        selectedAlbums = []
         if (!event.ctrlKey) {
             $('.album.selected').removeClass('selected')
         }
@@ -234,17 +237,18 @@ $(document).ready(function() {
         } else {
             $(this).addClass('selected')
         }
-        var selectedAlbums = []
+        
         $('.album.selected').each(function () {
             selectedAlbums.push($(this).attr('id'))
         })
-        listSongs(null, selectedAlbums, $('#query').val())
+        listSongs(selectedArtists, selectedAlbums, $('#query').val())
     })
     $('#albums .album').live("dblclick", function () {
 //        listSongs(artists, selectedAlbums, $('#query').val(), true)
         playSong(0)
     })
     $('#artists .artist').live("click", function (event) {
+        selectedArtists = []
         if (!event.ctrlKey) {
             $('.artist.selected').removeClass('selected')
         }
@@ -253,7 +257,6 @@ $(document).ready(function() {
         } else {
             $(this).addClass('selected')
         }
-        var selectedArtists = []
         $('.artist.selected').each(function () {
             selectedArtists.push($(this).attr('id'))
         })
