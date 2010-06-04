@@ -18,7 +18,8 @@
 
 from operator import itemgetter, attrgetter
 from time import time
-import thread
+import threading
+
 
 from couchdbkit import *
 from couchdbkit.loaders import FileSystemDocsLoader
@@ -33,10 +34,9 @@ class Library:
     their metadata into the database. It also handles making calls to the
     database.
     """
-    def __init__(self):
+    def __init__(self, URL='http://localhost:5984'):
         """Sets up the database connection and starts loading songs."""
         # Initiate a connection to the database server
-        URL = 'http://localhost:5984'
         self._server = Server(URL)
         # Get a reference to our database
         self.db = self._server.get_or_create_db("blofeld")
@@ -47,22 +47,33 @@ class Library:
             loader.sync(self.db, verbose=True)
         except:
             pass
-        # Spawn a new thread to start the backend
-        thread.start_new_thread(self._load_songs, ())
-#        self._load_songs()
+        self.updating = threading.Lock()
 
-    def _load_songs(self):
+    def update(self, verbose=False):
         """Figures out which backend to load and then updates the database"""
+        if not self.updating.acquire(False):
+            print "Update already in progress."
+#            if verbose:
+#                yield "Update already in progress.\n"
+            return
         start_time = time()
         if USE_RHYTHMBOX:
             print "Importing Rhythmbox database..."
+#            if verbose:
+#                yield "Importing Rhythmbox database...\n"
             from blofeld.library.rhythmbox import load_rhythmbox_db
             load_rhythmbox_db(RB_DATABASE, self.db)
         if USE_FILESYSTEM:
             print "Starting filesystem scan..."
+#            if verbose:
+#                yield "Starting filesystem scan...\n"
             from blofeld.library.filesystem import load_music_from_dir
             load_music_from_dir(MUSIC_PATH, self.db)
-        print "Updated database in " + str(time() - start_time) + " seconds."
+        finish_time = time() - start_time
+        print "Updated database in " + str(finish_time) + " seconds."
+#        if verbose:
+#            yield "Updated database in " + str(finish_time) + " seconds.\n"
+        self.updating.release()
 
     def songs(self, artists=None, albums=None, query=None):
         '''Returns a list of songs as dictionary objects.'''

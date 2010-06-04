@@ -18,8 +18,12 @@
 from datetime import datetime
 from blofeld.config import *
 
-
-logfile = open(os.path.join('', 'blofeld.log'), 'a')
+for i in range(100):
+    try:
+        logfile = open(os.path.join('/tmp', 'blofeld'+str(i)+'.log'), 'a')
+        break
+    except:
+        continue
 
 
 def log(message):

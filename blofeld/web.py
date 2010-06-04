@@ -20,6 +20,7 @@ import sys
 import urllib
 import urllib2
 import cjson as json
+import thread
 
 import cherrypy
 from cherrypy.lib.static import serve_file
@@ -34,11 +35,14 @@ from blofeld.coverart import find_cover, resize_cover
 from blofeld.playlist import json_to_playlist
 from blofeld.log import log
 
+
 class WebInterface:
     """Handles any web requests, including API calls."""
     def __init__(self):
         # Create a library object to run queries against
         self.library = Library()
+        #thread.start_new_thread(self.library.update, ())
+#        self.library.update()
 
     @cherrypy.expose
     def index(self):
@@ -212,19 +216,31 @@ class WebInterface:
         return artwork.read()
 
     @cherrypy.expose
+    def update_library(self):
+        def update():
+            yield "Updating library...\n"
+            thread.start_new_thread(self.library.update, ())
+            while not self.library.updating.acquire(False):
+                yield ".\n"
+                sleep(1)
+            self.library.updating.release()
+            yield "Done.\n"
+        return update()
+    update_library._cp_config = {'response.stream': True}
+
+    @cherrypy.expose
     def shutdown(self):
         def quit():
-            yield "Blofeld is shutting down."
-            sys.exit()
+            yield "Blofeld is shutting down.\n"
+            cherrypy.engine.exit()
         return quit()
     shutdown._cp_config = {'response.stream': True}
 
 
-def setup():
+def start():
     """Starts the CherryPy web server, or configures it to run behind Apache
     or some other web server.
     """
-
     cherrypy.config.update({
         'server.socket_host': HOSTNAME,
         'server.socket_port': PORT,
@@ -250,8 +266,7 @@ def setup():
         cherrypy.engine.SIGTERM = None
         cherrypy.server.unsubscribe()
 
-    cherrypy.tree.mount(WebInterface(), "/", config=conf)
+    application = cherrypy.tree.mount(WebInterface(), "/", config=conf)
 
-def start():
-    setup()
     cherrypy.engine.start()
+    cherrypy.engine.block()

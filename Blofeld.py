@@ -19,7 +19,6 @@
 
 
 import blofeld.web
-from blofeld.config import *
 
 if __name__ == "__main__":
     blofeld.web.start()

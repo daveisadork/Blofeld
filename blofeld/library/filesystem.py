@@ -83,9 +83,8 @@ def load_music_from_dir(music_path, couchdb):
     # database.
     db_process = Process(target=add_items_to_db,
                          args=(couchdb, scanning, db_queue, db_lock))
+    db_lock.acquire()
     db_process.start()
-    # Wait a few seconds for everything to get started running
-    sleep(5)
     # Block while we wait for everything to finish
     db_lock.acquire()
     # Join our processes back
@@ -96,15 +95,13 @@ def load_music_from_dir(music_path, couchdb):
 
 
 def add_items_to_db(couchdb, scanning, db_queue, db_lock):
-    # Acquire the database lock so we don't overwhelm the database
-    db_lock.acquire()
     # While the read queue is still being processed or we have stuff waiting
     # to be added to the database...
     while (scanning.is_set() or db_queue.qsize() > 0):
         if db_queue.qsize() == 0:
             # Files are still being read, but we don't have anything to add to 
-            # the database so we'll wait a few seconds and try again.
-            sleep(5)
+            # the database so we'll try again.
+            sleep(0.1)
         else:
             songs = []
             while db_queue.qsize() > 0:
