@@ -33,7 +33,7 @@ import blofeld.util as util
 from blofeld.library import Library
 from blofeld.coverart import find_cover, resize_cover
 from blofeld.playlist import json_to_playlist
-from blofeld.log import log
+from blofeld.log import logger, enable_console, enable_file
 
 
 class WebInterface:
@@ -41,8 +41,8 @@ class WebInterface:
     def __init__(self):
         # Create a library object to run queries against
         self.library = Library()
-        #thread.start_new_thread(self.library.update, ())
-#        self.library.update()
+        # Do a startup scan for new music
+        thread.start_new_thread(self.library.update, ())
 
     @cherrypy.expose
     def index(self):
@@ -115,7 +115,6 @@ class WebInterface:
             if albums:
                 albums = albums.split(',')
             songs = self.library.songs(artists, albums, query)
-        print cherrypy.request.base
         playlist, ct = json_to_playlist(cherrypy.request.base, songs, output,
                                                                 format, bitrate)
         cherrypy.response.headers['Content-Type'] = ct
@@ -123,7 +122,6 @@ class WebInterface:
 
     @cherrypy.expose
     def get_song(self, songid=None, download=False, format=None, bitrate=False):
-        print "\n\n\n", cherrypy.request.headers, "\n\n\n"
         try:
             range_request = cherrypy.request.headers['Range']
         except:
@@ -145,9 +143,9 @@ class WebInterface:
         uri = "file://" + urllib.pathname2url(path)
         song_file = urllib2.urlopen(uri)
         try:
-            log("%(ip)s played %(title)s by %(artist)s from %(album)s." % \
+            logger.info("%(ip)s played %(title)s by %(artist)s from %(album)s." % \
                 {
-                    'ip': cherrypy.request.headers['X-Real-Ip'],
+                    'ip': cherrypy.request.headers['Remote-Addr'],
                     'artist': song['artist'],
                     'album': song['album'],
                     'title': song['title']
@@ -164,7 +162,7 @@ class WebInterface:
                             os.path.splitext(path)[1].lower()[1:]]
         except:
             song_format = [os.path.splitext(path)[1].lower()[1:]]
-        print "Client wants", format, "and the file is", song_format
+        logger.debug("The client wants %s and the file is %s" % (format, song_format))
         if True in [True for x in format if x in song_format] and not force_transcode:
             return serve_file(path, song_file.info()['Content-Type'],
                                 "inline", os.path.split(path)[1])
@@ -241,6 +239,11 @@ def start():
     """Starts the CherryPy web server, or configures it to run behind Apache
     or some other web server.
     """
+    
+    # Enable logging output
+    enable_console()
+    enable_file()
+    
     cherrypy.config.update({
         'server.socket_host': HOSTNAME,
         'server.socket_port': PORT,
@@ -260,7 +263,7 @@ def start():
         }
 
     if USE_INTERNAL:
-        cherrypy.config.update({'log.screen': True})
+        cherrypy.config.update({'log.screen': False})
     else:
         cherrypy.engine.SIGHUP = None
         cherrypy.engine.SIGTERM = None

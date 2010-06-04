@@ -15,18 +15,29 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from datetime import datetime
-from blofeld.config import *
-
-for i in range(100):
-    try:
-        logfile = open(os.path.join('/tmp', 'blofeld'+str(i)+'.log'), 'a')
-        break
-    except:
-        continue
+import logging
 
 
-def log(message):
-    message = "%(time)s: %(message)s" % {'time': datetime.now(), 'message': message}
-    print message
-    logfile.write(message + "\n")
+logger = logging.getLogger("BLOFELD")
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter("[%(asctime)s] %(name)s %(levelname)s: %(message)s")
+
+def enable_file(LOG_FILE="/tmp/blofeld.log"):
+    fh = logging.FileHandler(LOG_FILE)
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
+def enable_console(level=logging.DEBUG):
+    ch = logging.StreamHandler()
+    ch.setLevel(level)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+
+# "application" code
+#logger.debug("debug message")
+#logger.info("info message")
+#logger.warn("warn message")
+#logger.error("error message")
+#logger.critical("critical message")

@@ -70,8 +70,6 @@ def find_cover(location, songid=None):
     # ham fisted approach, will need to refine this later.
     try:
         images.sort(reverse=True)
-        for image in images:
-            print "Score:", image[0], "Path:", image[1]
         return images[0][1]
     except:
         return None

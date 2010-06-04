@@ -30,7 +30,7 @@ def load_rhythmbox_db(rhythmdb, couchdb):
     """Parses the Rhythmbox XML database file rhythmdb and adds all of the
     songs in it to couchdb
     """
-    print "Importing Rhythmbox database"
+    logger.debug("Importing Rhythmbox database")
     # Create an ElementTree containing everything from the Rhythmbox database
     tree = ElementTree()
     tree.parse(rhythmdb)

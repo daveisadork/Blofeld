@@ -24,6 +24,7 @@ from multiprocessing import Process, Pool, Queue, Event, Lock
 import mutagen
 
 from blofeld.config import *
+from blofeld.log import logger
 
 
 def load_music_from_dir(music_path, couchdb):
@@ -35,7 +36,7 @@ def load_music_from_dir(music_path, couchdb):
     records = remove_missing_files(music_path, couchdb,
                                    couchdb.view('songs/mtime'))
     start_time = time()
-    print "Scanning for new files..."
+    logger.debug("Scanning for new files.")
     # Create queues for songs that need to be read and saved to the DB
     read_queue = Queue()
     db_queue = Queue()
@@ -69,7 +70,7 @@ def load_music_from_dir(music_path, couchdb):
                                     id in records))
                 else:
                     unchanged += 1
-    print "Queued %d songs for reading." % read_queue.qsize()
+    logger.debug("Queued %d songs for reading." % read_queue.qsize())
     # This lets us check whether the process that is dealing with the read 
     # read is still working or not.
     scanning = Event()
@@ -91,7 +92,7 @@ def load_music_from_dir(music_path, couchdb):
     scanning_process.join()
     db_process.join()
     finish_time = time() - start_time
-    print "Finished updating library in %d seconds." % finish_time
+    logger.debug("Added all new songs in %0.2f seconds." % finish_time)
 
 
 def add_items_to_db(couchdb, scanning, db_queue, db_lock):
@@ -124,7 +125,7 @@ def add_items_to_db(couchdb, scanning, db_queue, db_lock):
             # Make our changes to the database
             couchdb.bulk_delete(remove)
             couchdb.bulk_save(add)
-            print "added", len(add), "songs to couchdb,", len(remove), "of which already existed."
+            logger.debug("Added %d songs to the database, %d of which already existed." % (len(add), len(remove)))
     # Compact the database so it doesn't get too huge. Really only needed
     # if we've added a bunch of files, maybe we should check for that.
     couchdb.compact()
@@ -149,7 +150,7 @@ def process_read_queue(read_queue, db_queue, working, start_time, records):
         # Read the tags from the 100 songs and then stick the results in the
         # database queue.
         db_queue.put(pool.map(read_song, args_list))
-        print "Processed", queue_size - read_queue.qsize(), "items in", time() - start_time, "seconds"
+        logger.debug("Processed %d items in %0.2f seconds" % (queue_size - read_queue.qsize(), time() - start_time))
     # Let the other processes know we're finished.
     working.clear()
 
@@ -171,7 +172,7 @@ def remove_missing_files(music_path, couchdb, records):
     removed, and then remove them from couchdb.
     """
     start_time = time()
-    print "Removing missing files..."
+    logger.debug("Searching for changed/removed files.")
     # Create a list of files that are missing and need to be removed and also
     # a dict that is going to hold all of the songs from the database whose
     # corresponding files still exist.
@@ -189,16 +190,14 @@ def remove_missing_files(music_path, couchdb, records):
             if removed % 100 == 0:
                 couchdb.bulk_delete(remove)
                 remove = []
-                print "Removed", removed, "songs in", time() - start_time, \
-                      "seconds."
+                logger.debug("Removed %d songs in %0.2f seconds." % (removed, time() - start_time))
         else:
             # Add the song to the dict we're going to return
             songs[song['id']] = song['value']
     # We ran out of songs without hitting the magic number 100 to trigger a
     # batch delete, so let's get any stragglers now.
     couchdb.bulk_delete(remove)
-    print "Finished removing", removed, "songs in", time() - start_time, \
-          "seconds."
+    logger.debug("Removed %d songs in %0.2f seconds." % (removed, time() - start_time))
     return songs
 
 
@@ -208,7 +207,7 @@ def read_metadata(location, id, mtime):
     try:
         metadata = mutagen.File(location, None, True)
     except:
-        print location, "made Mutagen explode."
+        logger.error("%s made Mutagen explode." % location)
         return None
     # Create the metadata object we're going to return
     song = {}
@@ -276,7 +275,7 @@ def read_wma(location, id, mtime):
     try:
         metadata = mutagen.File(location, None, True)
     except:
-        print location, "made Mutagen explode."
+        logger.error("%s made Mutagen explode." % location)
         return None
     # Create the metadata object we're going to return
     song = {}
@@ -333,7 +332,7 @@ def read_wma(location, id, mtime):
         except KeyError:
             # We encountered a tag that wasn't in asf_map. Print it out to the
             # console so that hopefully someone will tell us and we can add it.
-            print "Skipping unrecognized tag", tag, "with data", value[0]
+            logger.warn("Skipping unrecognized tag %s with data %s" % (tag, value[0]))
     return song
 
 

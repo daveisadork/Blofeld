@@ -21,6 +21,8 @@ import time
 import pygst
 import gst
 
+from blofeld.log import logger
+
 
 def transcode(path, format='mp3', bitrate=False):
     start_time = time.time()
@@ -29,14 +31,14 @@ def transcode(path, format='mp3', bitrate=False):
         bitrate = int(bitrate)
     except:
         bitrate = False
-    print "Transcoding", path
+    logger.info("Transcoding %s to %s" % (path, format))
     # Create our transcoding pipeline using one of the strings at the end of
     # this module.
     transcoder = gst.parse_launch(pipeline[format])
     # Set the bitrate we were asked for
     if bitrate in [8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192,
                                                                 224, 256, 320]:
-        print "Setting bitrate to", bitrate, "kbps"
+        logger.debug("Setting bitrate to %d kbps" % bitrate)
         encoder = transcoder.get_by_name('encoder')
         if format is 'mp3':
             encoder.set_property("target", "bitrate")
@@ -58,10 +60,10 @@ def transcode(path, format='mp3', bitrate=False):
         while not output.get_property("eos"):
             yield output.emit('pull-buffer').data
     except:
-        print "User didn't want the rest of the song."
+        logger.debug("User doesn't want the rest of the song.")
     # I think this is supposed to free the memory used by the transcoder
     transcoder.set_state(gst.STATE_NULL)
-    print "Guess we're finished.", time.time() - start_time, "seconds."
+    logger.debug("Transcoded %s in %0.2f seconds." % (path, time.time() - start_time))
 
 # These are the transcoding pipelines we can use. I should probably add more
 pipeline = {

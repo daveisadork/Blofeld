@@ -26,6 +26,7 @@ from couchdbkit.loaders import FileSystemDocsLoader
 
 from blofeld.config import *
 import blofeld.util as util
+from blofeld.log import logger
 
 
 class Library:
@@ -52,31 +53,34 @@ class Library:
     def update(self, verbose=False):
         """Figures out which backend to load and then updates the database"""
         if not self.updating.acquire(False):
-            print "Update already in progress."
+            logger.warn("Library update requested, but one is already in progress.")
 #            if verbose:
 #                yield "Update already in progress.\n"
             return
+        logger.info("Starting library update.")
         start_time = time()
         if USE_RHYTHMBOX:
-            print "Importing Rhythmbox database..."
+            logger.debug("Importing Rhythmbox database.")
 #            if verbose:
 #                yield "Importing Rhythmbox database...\n"
             from blofeld.library.rhythmbox import load_rhythmbox_db
             load_rhythmbox_db(RB_DATABASE, self.db)
         if USE_FILESYSTEM:
-            print "Starting filesystem scan..."
+            logger.debug("Starting filesystem scan.")
 #            if verbose:
 #                yield "Starting filesystem scan...\n"
             from blofeld.library.filesystem import load_music_from_dir
             load_music_from_dir(MUSIC_PATH, self.db)
         finish_time = time() - start_time
-        print "Updated database in " + str(finish_time) + " seconds."
+        logger.info("Updated library in %0.2f seconds." % finish_time)
 #        if verbose:
 #            yield "Updated database in " + str(finish_time) + " seconds.\n"
         self.updating.release()
 
     def songs(self, artists=None, albums=None, query=None):
         '''Returns a list of songs as dictionary objects.'''
+        logger.debug("Generating song list.")
+        start_time = time()
         # Create a list to hold songs we're going to return to the client
         result = []
         # If the client didn't supply any arguments, we just get all the songs
@@ -135,13 +139,15 @@ class Library:
                         temp_result.append(song)
                 # Replace the existing results with the filtered ones.
                 result = temp_result
+        finish_time = time() - start_time
+        logger.debug("Generated list of %d songs in %0.2f seconds." % (len(result), finish_time))
         return sorted(result, key=itemgetter('artist', 'album',
                                                'tracknumber'))
 
     def albums(self, artists=None, query=None):
         '''Returns a list of albums as dictionary objects.'''
+        logger.debug("Generating album list.")
         start_time = time()
-        print "Generating album list..."
         # Create a list to hold the albums we're going to return to the client
         result = []
         # If the client didn't give any arguments, get all the artists from the
@@ -201,12 +207,14 @@ class Library:
                     # Make sure this isn't a duplicate result
                     if entry not in result:
                         result.append(entry)
-        print "Generated album list in", time() - start_time, "seconds."
+        finish_time = time() - start_time
+        logger.debug("Generated list of %d albums in %0.2f seconds." % (len(result), finish_time))
         return sorted(result, key=itemgetter('title'))
 
     def artists(self, query=None):
         '''Returns a list of artists as dictionary objects.'''
-        print "Generating artist list..."
+        logger.debug("Generating artist list.")
+        start_time = time()
         # Make a list to hold the results of our search
         result = []
         if query:
@@ -238,5 +246,7 @@ class Library:
                     'name': artist['key']
                     }
                 result.append(entry)
+        finish_time = time() - start_time
+        logger.debug("Generated list of %d artists in %0.2f seconds." % (len(result), finish_time))
         return result
 

@@ -6,7 +6,11 @@ sys.path.insert(0, os.path.dirname(__file__))
 import atexit
 import cherrypy
 from blofeld.config import *
+from blofeld.log import logger, enable_file
 from blofeld.web import WebInterface
+
+
+enable_file()
 
 if cherrypy.__version__.startswith('3.0') and cherrypy.engine.state == 0:
     cherrypy.engine.start(blocking=False)
