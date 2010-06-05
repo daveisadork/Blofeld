@@ -36,10 +36,10 @@ class Library:
     their metadata into the database. It also handles making calls to the
     database.
     """
-    def __init__(self, URL='http://localhost:5984'):
+    def __init__(self, db_url=COUCHDB_URL):
         """Sets up the database connection and starts loading songs."""
         # Initiate a connection to the database server
-        self._server = Server(URL)
+        self._server = Server(db_url)
         # Get a reference to our database
         self.db = self._server.get_or_create_db("blofeld")
         # Load our database views from the filesystem

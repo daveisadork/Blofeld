@@ -45,6 +45,7 @@ if not os.path.exists(CONFIG_FILE):
     _cfg.add_section('database')
     _cfg.set('database', 'path',
              os.path.join(os.path.expanduser("~"), "Music"))
+    _cfg.set('database', 'couchdb_url', 'http://localhost:5984')
     _cfg.add_section('interface')
     _cfg.set('interface', 'theme', 'default')
     with open(CONFIG_FILE, 'w') as conf_file:
@@ -59,6 +60,7 @@ if not os.path.isdir(MUSIC_PATH):
     logger.critical("Music path does not exist!")
     raise Exception("Music path does not exist!")
 
+COUCHDB_URL = _cfg.get('database', 'couchdb_url')
 HOSTNAME = _cfg.get('server', 'host')
 PORT = _cfg.getint('server', 'port')
 THEME_DIR = os.path.join(PROGRAM_DIR, 'interfaces',

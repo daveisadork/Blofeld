@@ -39,9 +39,9 @@ Followed by:
 There is a couchdbkit package for Lucid, but it appears to be broken somehow
 and won't actually work, hence having to install it with easy_install.
 
-Then you just need to run Blofeld.py. It will create a configuration file at
-~/.blofeld/blofeld.cfg. The options there that you might want to change should
-be pretty self explanatory.
+Then you just need to run Blofeld.py. It will create a configuration file 
+called blofeld.cfg. Any of the options there that you might want to change
+should be pretty self explanatory.
 
 Once you're up and running, point your web browser to http://localhost:8083/
 and hopefully you'll see the web interface and be able to start browsing and
