@@ -24,54 +24,54 @@ from PIL import Image
 import mutagen
 
 from blofeld.config import *
+from blofeld.log import logger
 
 
 def find_cover(location, songid=None):
     """Attempts to locate a cover image that would be associated with a given
     file.
     """
-    # This block of code was for getting cover art embedded in the tags in the
-    # file itself. So far, I haven't been able to make it work.
-#    img_path = os.path.join(CACHE_DIR, songid + '.jpg')
-#    if not os.path.exists(os.path.split(img_path)[0]):
-#        os.makedirs(os.path.split(img_path)[0])
-#    if os.path.exists(img_path):
-#        return img_path
-#    try:
-#        metadata = mutagen.File(location)
-#        for tag, value in metadata.iteritems():
-#            if tag in ['coverart', 'WM/Picture', 'APIC:', 'covr']:
-#                print type(value[0])
-#                with open(img_path, 'w') as image:
-#                    image.write(value[0])
-#                print "Found an embedded image, using that one"
-#                return img_path
-#        return None
-#    except:
-#        return None
-    # This list will hold the results of our search.
-    images = []
-    # Try to get the path to the folder containing the song for which we need
-    # a cover.
+    logger.debug("Looking for a cover for %s" % location)
+    # Check the cache for the cover image and send that if we have it.
+    img_path = os.path.join(CACHE_DIR, songid + '.jpg')
+    if not os.path.exists(os.path.split(img_path)[0]):
+        os.makedirs(os.path.split(img_path)[0])
+    if os.path.exists(img_path):
+        logger.debug("Using cached cover image at %s" % img_path)
+        return img_path
+
+    # Try to get embedded cover art
+    metadata = mutagen.File(location)
+    for tag, value in metadata.iteritems():
+        if tag in ['coverart', 'WM/Picture', 'APIC:', 'covr']:
+            image = open(img_path, "wb")
+            image.write(value.data)
+            image.close()
+            logger.debug("Using cover image embedded in %s" % location)
+            return img_path
+
+    # Search the song's directory for images that might be cover art
     try:
+        # Get the path to the folder containing the song for which we need a
+        # cover image
         path = os.path.split(location)[0]
-    except:
-        return None
-    # Look for any files in the path that are images and give them a score
-    # based on their filename and append them to our results list.
-    for item in os.listdir(path):
-        name, extension = os.path.splitext(item)
-        if extension.lower()[1:] in COVER_EXTENSIONS:
-            score = 0
-            if name.lower() in COVER_NAMES:
-                score += 1
-            images.append([score, os.path.join(path, item)])
-    # Sort our images by score and return the highest one. Seems like a pretty
-    # ham fisted approach, will need to refine this later.
-    try:
+        # Look for any files in the path that are images and give them a score
+        # based on their filename and append them to our results list.
+        images = []
+        for item in os.listdir(path):
+            name, extension = os.path.splitext(item)
+            if extension.lower()[1:] in COVER_EXTENSIONS:
+                score = 0
+                if name.lower() in COVER_NAMES:
+                    score += 1
+                images.append([score, os.path.join(path, item)])
+        # Sort our images by score and return the highest one. Seems like a pretty
+        # ham fisted approach, will need to refine this later.
         images.sort(reverse=True)
+        logger.debug("Using cover image at %s" % images[0][1])
         return images[0][1]
     except:
+        logger.debug("Couldn't find any suitable cover image.")
         return None
 
 def resize_cover(songid, cover, uri, size):
@@ -108,8 +108,11 @@ def resize_cover(songid, cover, uri, size):
 
 COVER_EXTENSIONS = [
     "jpg",
+    "jpeg"
     "png",
     "gif",
+    "tif",
+    "tiff",
     "bmp"
 ]
 

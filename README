@@ -41,22 +41,13 @@ and won't actually work, hence having to install it with easy_install.
 
 Then you just need to run Blofeld.py. It will create a configuration file at
 ~/.blofeld/blofeld.cfg. The options there that you might want to change should
-be pretty self explanatory. As far as the 'backends' are concerned, Blofeld's
-internal file scanning is the default and the recommended option, but there is
-also a Rhythmbox backend you can activate by setting 'source = rhythmbox' and 
-then Blofeld will just import your Rhythmbox library instead of scanning for
-itself.
+be pretty self explanatory.
 
 Once you're up and running, point your web browser to http://localhost:8083/
 and hopefully you'll see the web interface and be able to start browsing and
 listening to music. Hopefully.
 
-If you want to see cover art, you're going to have to have an image named 
-'cover', 'front', 'folder' or 'coverart' in the folder with the song. I've only
-tested with .jpg files, but .png and .bmp files will be picked up. Whether or
-not they'll work is another matter. Embedded art support is planned.
-
-There's also a very basic plugin for Rhythmbox which can add a Blofeld server
+There's a very basic plugin for Rhythmbox which can add a Blofeld server
 as a source. The plugin is in the extra directory, and you need to drop the
 whole blofeld-rhythmbox folder into ~/.local/share/rhythmbox/plugins and then
 edit __init__.py and replace PATH_TO_BLOFELD with the path to your Blofeld.
