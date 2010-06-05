@@ -332,7 +332,7 @@ def read_wma(location, id, mtime):
         except KeyError:
             # We encountered a tag that wasn't in asf_map. Print it out to the
             # console so that hopefully someone will tell us and we can add it.
-            logger.warn("Skipping unrecognized tag %s with data %s" % (tag, value[0]))
+            logger.warn("Skipping unrecognized tag %s with data %s in file %s" % (tag, value[0], location))
     return song
 
 

@@ -25,6 +25,7 @@ from couchdbkit import *
 from couchdbkit.loaders import FileSystemDocsLoader
 
 from blofeld.config import *
+from blofeld.library.filesystem import load_music_from_dir
 import blofeld.util as util
 from blofeld.log import logger
 
@@ -54,27 +55,12 @@ class Library:
         """Figures out which backend to load and then updates the database"""
         if not self.updating.acquire(False):
             logger.warn("Library update requested, but one is already in progress.")
-#            if verbose:
-#                yield "Update already in progress.\n"
             return
         logger.info("Starting library update.")
         start_time = time()
-        if USE_RHYTHMBOX:
-            logger.debug("Importing Rhythmbox database.")
-#            if verbose:
-#                yield "Importing Rhythmbox database...\n"
-            from blofeld.library.rhythmbox import load_rhythmbox_db
-            load_rhythmbox_db(RB_DATABASE, self.db)
-        if USE_FILESYSTEM:
-            logger.debug("Starting filesystem scan.")
-#            if verbose:
-#                yield "Starting filesystem scan...\n"
-            from blofeld.library.filesystem import load_music_from_dir
-            load_music_from_dir(MUSIC_PATH, self.db)
+        load_music_from_dir(MUSIC_PATH, self.db)
         finish_time = time() - start_time
         logger.info("Updated library in %0.2f seconds." % finish_time)
-#        if verbose:
-#            yield "Updated database in " + str(finish_time) + " seconds.\n"
         self.updating.release()
 
     def songs(self, artists=None, albums=None, query=None):

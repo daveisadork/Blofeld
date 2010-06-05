@@ -45,10 +45,21 @@ def find_cover(location, songid=None):
     for tag, value in metadata.iteritems():
         if tag in ['coverart', 'WM/Picture', 'APIC:', 'covr']:
             image = open(img_path, "wb")
-            image.write(value.data)
-            image.close()
-            logger.debug("Using cover image embedded in %s" % location)
-            return img_path
+            try:
+                if type(value) == type(list()):
+                    raise(TypeError)
+                    try:
+                        image.write(value[0].value)
+                    except:
+                        image.write(value[0].encode('utf-8'))
+                else:
+                    image.write(value.data)
+                logger.debug("Using cover image embedded in %s" % location)
+                return img_path
+            except:
+                pass
+            finally:
+                image.close()
 
     # Search the song's directory for images that might be cover art
     try:
