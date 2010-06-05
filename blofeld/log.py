@@ -15,15 +15,19 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import os
 import logging
+import logging.handlers
+
+from blofeld.config import *
 
 
-logger = logging.getLogger("BLOFELD")
+logger = logging.getLogger("Blofeld")
 logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter("[%(asctime)s] %(name)s %(levelname)s: %(message)s")
+formatter = logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s")
 
-def enable_file(LOG_FILE="/tmp/blofeld.log"):
-    fh = logging.FileHandler(LOG_FILE)
+def enable_file(LOG_FILE=os.path.join(LOG_DIR, "blofeld.log")):
+    fh = logging.handlers.RotatingFileHandler(LOG_FILE, maxBytes=1048576, backupCount=5)
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(formatter)
     logger.addHandler(fh)

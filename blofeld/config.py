@@ -22,12 +22,15 @@ import ConfigParser
 
 PROGRAM_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
                               os.pardir))
-CONFIG_DIR = os.path.abspath(os.path.join(os.path.expanduser("~"), '.blofeld'))
-CONFIG_FILE = os.path.join(CONFIG_DIR, 'blofeld.cfg')
-CACHE_DIR = os.path.join(CONFIG_DIR, 'cache')
+CONFIG_FILE = os.path.join(PROGRAM_DIR, 'blofeld.cfg')
+LOG_DIR = os.path.join(PROGRAM_DIR, 'logs')
+CACHE_DIR = os.path.join(PROGRAM_DIR, 'cache')
 
-if not os.path.isdir(CONFIG_DIR):
-    os.mkdir(CONFIG_DIR)
+if not os.path.isdir(CACHE_DIR):
+    os.mkdir(CACHE_DIR)
+
+if not os.path.isdir(LOG_DIR):
+    os.mkdir(LOG_DIR)
 
 _cfg = ConfigParser.ConfigParser()
 
