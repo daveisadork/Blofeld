@@ -60,7 +60,7 @@ def transcode(path, format='mp3', bitrate=False):
         while not output.get_property("eos"):
             yield output.emit('pull-buffer').data
     except:
-        logger.debug("User doesn't want the rest of the song.")
+        logger.warn("User doesn't want the rest of the song.")
     # I think this is supposed to free the memory used by the transcoder
     transcoder.set_state(gst.STATE_NULL)
     logger.debug("Transcoded %s in %0.2f seconds." % (path, time.time() - start_time))

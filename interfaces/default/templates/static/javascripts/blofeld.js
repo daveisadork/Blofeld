@@ -228,6 +228,10 @@ $(document).ready(function() {
         }
     })
     $('#albums .album').live("click", function (event) {
+        selectedArtists = []
+        $('.artist.selected').each(function () {
+            selectedArtists.push($(this).attr('id'))
+        })
         selectedAlbums = []
         if (!event.ctrlKey) {
             $('.album.selected').removeClass('selected')
