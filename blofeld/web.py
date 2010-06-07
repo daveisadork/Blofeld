@@ -47,7 +47,7 @@ class WebInterface:
     @cherrypy.expose
     def index(self):
         logger.debug("%s\tindex()\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), cherrypy.request.headers))
-        template = Template(file=os.path.join(THEME_DIR, 'index.tmpl'))
+        template = Template(file=os.path.join(cfg['THEME_DIR'], 'index.tmpl'))
         return template.respond()
 
     @cherrypy.expose
@@ -60,7 +60,7 @@ class WebInterface:
             cherrypy.response.headers['Content-Type'] = 'application/json'
             return json.encode(albums)
         elif output == 'html':
-            template = Template(file=os.path.join(THEME_DIR, 'list_albums.tmpl'))
+            template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_albums.tmpl'))
             template.albums = albums
             return template.respond()
         else:
@@ -74,7 +74,7 @@ class WebInterface:
             cherrypy.response.headers['Content-Type'] = 'application/json'
             return json.encode(artists)
         elif output == 'html':
-            template = Template(file=os.path.join(THEME_DIR, 'list_artists.tmpl'))
+            template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_artists.tmpl'))
             template.artists = artists
             return template.respond()
         else:
@@ -102,7 +102,7 @@ class WebInterface:
             cherrypy.response.headers['Content-Type'] = 'application/json'
             return json.encode(songs)
         elif output == 'html':
-            template = Template(file=os.path.join(THEME_DIR, 'list_songs.tmpl'))
+            template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_songs.tmpl'))
             template.songs = songs
             return template.respond()
         else:
@@ -135,7 +135,7 @@ class WebInterface:
             range_request = "bytes=0-"
         try:
             song = self.library.db[songid]
-            path = song['location'].encode(ENCODING)
+            path = song['location'].encode(cfg['ENCODING'])
         except:
             log_message += "a song ID which could not be found: %s" % str(songid)
             logger.error(log_message)
@@ -215,7 +215,7 @@ class WebInterface:
             size = int(size)
         except:
             size = 'original'
-        cover = find_cover(song['location'].encode(ENCODING), songid)
+        cover = find_cover(song['location'].encode(cfg['ENCODING']), songid)
         if cover is None:
             raise cherrypy.HTTPError(404,'Not Found') 
         uri = 'file://' + urllib.pathname2url(cover)
@@ -256,34 +256,24 @@ class WebInterface:
 def start(log_level='warn'):
     """Starts the CherryPy web server and initiates the logging module."""
     
-    # Enable logging output
-    enable_file()
-    enable_console(log_level)
-    
     cherrypy.config.update({
-        'server.socket_host': HOSTNAME,
-        'server.socket_port': PORT,
+        'server.socket_host': cfg['HOSTNAME'],
+        'server.socket_port': cfg['PORT'],
         'tools.encode.on': True, 
         'tools.encode.encoding': 'utf-8',
-        'tools.gzip.on': True
+        'tools.gzip.on': True,
+        'log.screen': cfg['CHERRYPY_OUTPUT']
         })
 
     static = {
         'tools.staticdir.on': True,
-        'tools.staticdir.dir': os.path.join(THEME_DIR, 'static')
+        'tools.staticdir.dir': os.path.join(cfg['THEME_DIR'], 'static')
         }
 
     conf = {
         '/static': static,
         '/blofeld/static': static
         }
-
-    if USE_INTERNAL:
-        cherrypy.config.update({'log.screen': False})
-    else:
-        cherrypy.engine.SIGHUP = None
-        cherrypy.engine.SIGTERM = None
-        cherrypy.server.unsubscribe()
 
     application = cherrypy.tree.mount(WebInterface(), "/", config=conf)
 

@@ -23,7 +23,7 @@ from multiprocessing import Process, Pool, Queue, Event, Lock
 
 import mutagen
 
-from blofeld.config import *
+from blofeld.config import cfg
 from blofeld.log import logger
 
 
@@ -48,10 +48,10 @@ def load_music_from_dir(music_path, couchdb):
             # Get the file extension, e.g. 'mp3' or 'flac', and see if it's in
             # the list of extensions we're supposed to look for.
             extension = os.path.splitext(item)[1].lower()[1:]
-            if extension in ACCEPTED_EXTENSIONS:
+            if extension in cfg['MUSIC_EXTENSIONS']:
                 # Get the full decoded path of the file. The decoding part is
                 # important if the filename includes non-ASCII characters.
-                location = unicode(os.path.join(root, item).decode(ENCODING))
+                location = unicode(os.path.join(root, item).decode(cfg['ENCODING']))
                 # Generate a unique ID for this song by making a SHA-1 hash of
                 # its location.
                 id = hashlib.sha1(location.encode('utf-8')).hexdigest()
@@ -102,7 +102,7 @@ def add_items_to_db(couchdb, scanning, db_queue, db_lock):
         if db_queue.qsize() == 0:
             # Files are still being read, but we don't have anything to add to 
             # the database so we'll try again.
-            sleep(0.1)
+            sleep(2)
         else:
             songs = []
             while db_queue.qsize() > 0:
@@ -182,7 +182,7 @@ def remove_missing_files(music_path, couchdb, records):
     for song in records:
         # Check if the file this database record points to is still there, and
         # add it to the list to be removed if it's not.
-        if not os.path.isfile(song['key']):
+        if not os.path.isfile(song['key']) or not song['key'].startswith(music_path):
             remove.append(couchdb[song['id']])
             removed += 1
             # Once our list of songs to be removed hits 100, delete them all in

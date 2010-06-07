@@ -19,8 +19,9 @@ import os
 import logging
 import logging.handlers
 
-from blofeld.config import *
+from blofeld.config import cfg
 
+__all__ = ['logger', 'enable_file', 'enable_single_file', 'enable_console']
 
 logger = logging.getLogger("Blofeld")
 logger.setLevel(logging.DEBUG)
@@ -35,15 +36,21 @@ log_levels = {
 }
 
 
-def enable_file(LOG_FILE=os.path.join(LOG_DIR, "blofeld.log")):
-    fh = logging.handlers.RotatingFileHandler(LOG_FILE, maxBytes=1048576, backupCount=5)
+def enable_file(log_file=os.path.join(cfg['LOG_DIR'], "blofeld.log")):
+    fh = logging.handlers.RotatingFileHandler(log_file, maxBytes=1048576, backupCount=5)
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
+def enable_single_file(path):
+    fh = logging.FileHandler(path)
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
 def enable_console(level='warn'):
     ch = logging.StreamHandler()
-    ch.setLevel(log_level[level])
+    ch.setLevel(log_levels[level])
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 

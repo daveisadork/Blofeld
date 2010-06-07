@@ -19,12 +19,12 @@
 from operator import itemgetter, attrgetter
 from time import time
 import threading
-
+import os
 
 from couchdbkit import *
 from couchdbkit.loaders import FileSystemDocsLoader
 
-from blofeld.config import *
+from blofeld.config import cfg
 from blofeld.library.filesystem import load_music_from_dir
 import blofeld.util as util
 from blofeld.log import logger
@@ -36,14 +36,14 @@ class Library:
     their metadata into the database. It also handles making calls to the
     database.
     """
-    def __init__(self, db_url=COUCHDB_URL):
+    def __init__(self, db_url=cfg['COUCHDB_URL']):
         """Sets up the database connection and starts loading songs."""
         # Initiate a connection to the database server
         self._server = Server(db_url)
         # Get a reference to our database
         self.db = self._server.get_or_create_db("blofeld")
         # Load our database views from the filesystem
-        loader = FileSystemDocsLoader(os.path.join(PROGRAM_DIR,
+        loader = FileSystemDocsLoader(os.path.join(cfg['PROGRAM_DIR'],
                                       'views/_design'))
         try:
             loader.sync(self.db, verbose=True)
@@ -58,7 +58,7 @@ class Library:
             return
         logger.info("Starting library update.")
         start_time = time()
-        load_music_from_dir(MUSIC_PATH, self.db)
+        load_music_from_dir(cfg['MUSIC_PATH'], self.db)
         finish_time = time() - start_time
         logger.info("Updated library in %0.2f seconds." % finish_time)
         self.updating.release()

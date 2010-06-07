@@ -23,7 +23,7 @@ from urlparse import urlparse
 from PIL import Image
 import mutagen
 
-from blofeld.config import *
+from blofeld.config import cfg
 from blofeld.log import logger
 
 
@@ -33,7 +33,7 @@ def find_cover(location, songid=None):
     """
     logger.debug("Looking for a cover for %s" % location)
     # Check the cache for the cover image and send that if we have it.
-    img_path = os.path.join(CACHE_DIR, songid + '.jpg')
+    img_path = os.path.join(cfg['CACHE_DIR'], songid + '.jpg')
     if not os.path.exists(os.path.split(img_path)[0]):
         os.makedirs(os.path.split(img_path)[0])
     if os.path.exists(img_path):
@@ -71,9 +71,9 @@ def find_cover(location, songid=None):
         images = []
         for item in os.listdir(path):
             name, extension = os.path.splitext(item)
-            if extension.lower()[1:] in COVER_EXTENSIONS:
+            if extension.lower()[1:] in cfg['COVER_EXTENSIONS']:
                 score = 0
-                if name.lower() in COVER_NAMES:
+                if name.lower() in cfg['COVER_NAMES']:
                     score += 1
                 images.append([score, os.path.join(path, item)])
         # Sort our images by score and return the highest one. Seems like a pretty
@@ -89,9 +89,9 @@ def resize_cover(songid, cover, uri, size):
     """Resizes the cover image for a specific song to a given size and caches
     the resized image for any subsequent requests."""
     # This is the path to the resized image in the cache
-    img_path = os.path.join(CACHE_DIR, str(size), songid + '.jpg')
+    img_path = os.path.join(cfg['CACHE_DIR'], str(size), songid + '.jpg')
     # This is a URI of the above path
-    img_uri = 'file://' + urllib.pathname2url(img_path.encode(ENCODING))
+    img_uri = 'file://' + urllib.pathname2url(img_path.encode(cfg['ENCODING']))
     # Make sure our cache directory exists
     if not os.path.exists(os.path.split(img_path)[0]):
         os.makedirs(os.path.split(img_path)[0])
@@ -117,19 +117,4 @@ def resize_cover(songid, cover, uri, size):
             artwork = urllib2.urlopen(uri)
     return artwork
 
-COVER_EXTENSIONS = [
-    "jpg",
-    "jpeg"
-    "png",
-    "gif",
-    "tif",
-    "tiff",
-    "bmp"
-]
 
-COVER_NAMES = [
-    "folder",
-    "cover",
-    "front",
-    "coverart"
-]
