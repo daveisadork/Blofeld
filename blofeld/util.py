@@ -61,3 +61,14 @@ def detectCPUs():
         if ncpus > 0:
             return ncpus
     return 1 # Default
+
+
+def find_originating_host(headers):
+    remote_add = ''
+    if 'Remote-Addr' in headers:
+        remote_add = headers['Remote-Addr']
+    if 'X-Forwarded-For' in headers:
+        remote_add = headers['X-Forwarded-For']
+    if 'X-Real-IP' in headers:
+        remote_add = headers['X-Real-IP']
+    return remote_add

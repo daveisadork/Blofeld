@@ -26,15 +26,24 @@ logger = logging.getLogger("Blofeld")
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s")
 
+log_levels = {
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warn': logging.WARN,
+    'error': logging.ERROR,
+    'critical': logging.CRITICAL
+}
+
+
 def enable_file(LOG_FILE=os.path.join(LOG_DIR, "blofeld.log")):
     fh = logging.handlers.RotatingFileHandler(LOG_FILE, maxBytes=1048576, backupCount=5)
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
-def enable_console(level=logging.DEBUG):
+def enable_console(level='warn'):
     ch = logging.StreamHandler()
-    ch.setLevel(level)
+    ch.setLevel(log_level[level])
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 

@@ -46,11 +46,13 @@ class WebInterface:
 
     @cherrypy.expose
     def index(self):
+        logger.debug("%s\tindex()\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), cherrypy.request.headers))
         template = Template(file=os.path.join(THEME_DIR, 'index.tmpl'))
         return template.respond()
 
     @cherrypy.expose
     def list_albums(self, artists=None, query=None, output='json'):
+        logger.debug("%s\tlist_albums(artists=%s, query=%s, output=%s)\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), artists, query, output, cherrypy.request.headers))
         if artists:
             artists = artists.split(',')
         albums = self.library.albums(artists, query)
@@ -66,6 +68,7 @@ class WebInterface:
 
     @cherrypy.expose
     def list_artists(self, query=None, output='json'):
+        logger.debug("%s\tlist_artists(query=%s, output=%s)\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), query, output, cherrypy.request.headers))
         artists = self.library.artists(query)
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
@@ -80,6 +83,7 @@ class WebInterface:
     @cherrypy.expose
     def list_songs(self, artists=None ,albums=None, start=None, length=None,
                    query=None, list_all=False, archive=False, output='json'):
+        logger.debug("%s\tlist_songs(artists=%s, albums=%s, start=%s, length=%s, query=%s, list_all=%s, archive=%s output=%s)\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), artists, albums, start, length, query, list_all, archive, output, cherrypy.request.headers))
         if not list_all and not artists and not albums and not query and not archive:
             songs = []
         else:
@@ -107,6 +111,7 @@ class WebInterface:
     @cherrypy.expose
     def get_playlist(self, artists=None, albums=None, query=None, format=None,
                      list_all=False, bitrate=None, output='xspf'):
+        logger.debug("%s\tget_playlist(artists=%s, albums=%s, query=%s, format=%s, list_all=%s, bitrate=%s, output=%s)\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), artists, albums, query, format, list_all, bitrate, output, cherrypy.request.headers))
         if not (list_all or artists or albums or query):
             songs = []
         else:
@@ -121,7 +126,9 @@ class WebInterface:
         return playlist
 
     @cherrypy.expose
-    def get_song(self, songid=None, download=False, format=None, bitrate=False):
+    def get_song(self, songid=None, download=False, format=False, bitrate=False):
+        logger.debug("%s\tget_song(songid=%s, download=%s, format=%s, bitrate=%s)\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), songid, download, format, bitrate, cherrypy.request.headers))
+        log_message = "%s requested " % util.find_originating_host(cherrypy.request.headers)
         try:
             range_request = cherrypy.request.headers['Range']
         except:
@@ -130,48 +137,56 @@ class WebInterface:
             song = self.library.db[songid]
             path = song['location'].encode(ENCODING)
         except:
+            log_message += "a song ID which could not be found: %s" % str(songid)
+            logger.error(log_message)
             raise cherrypy.HTTPError(404)
+        log_message += "%(title)s by %(artist)s from %(album)s " % song
+        try:
+            log_message += "using %s." % cherrypy.request.headers['User-Agent']
+        except:
+            pass
         try:
             force_transcode = False
             if format and bitrate and \
                (int(bitrate) in [8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112,
                                           128, 160, 192, 224, 256, 320]) and \
-               (song['bitrate'] / 1024 > int(bitrate)):
+               (song['bitrate'] / 1000 > int(bitrate)):
                 force_transcode = True
         except:
             pass
         uri = "file://" + urllib.pathname2url(path)
         song_file = urllib2.urlopen(uri)
         try:
-            logger.info("%(ip)s played %(title)s by %(artist)s from %(album)s." % \
-                {
-                    'ip': cherrypy.request.headers['Remote-Addr'],
-                    'artist': song['artist'],
-                    'album': song['album'],
-                    'title': song['title']
-                }
-            )
-        except:
-            pass
-        if not format:
-            return serve_file(path, song_file.info()['Content-Type'],
-                                "inline", os.path.split(path)[1])
-        format = format.split(',')
-        try:
             song_format = [song['mimetype'].split('/')[1],
                             os.path.splitext(path)[1].lower()[1:]]
         except:
             song_format = [os.path.splitext(path)[1].lower()[1:]]
-        logger.debug("The client wants %s and the file is %s" % (format, song_format))
-        if True in [True for x in format if x in song_format] and not force_transcode:
+        if not format:
+            log_message += " The client did not request any specific format so the file is being sent as-is (%s kbps %s)." % (str(song['bitrate'] / 1000), str(song_format))
+            logger.info(log_message)
             return serve_file(path, song_file.info()['Content-Type'],
                                 "inline", os.path.split(path)[1])
+        format = format.split(',')
+        logger.debug("The client wants %s and the file is %s" % (format, song_format))
+        if True in [True for x in format if x in song_format] and not force_transcode:
+            if bitrate:
+                log_message += " The client requested %s kbps %s, but the file is already %s kbps %s, so the file is being sent as-is." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
+            else:
+                log_message += " The client requested %s, but the file is already %s, so the file is being sent as-is." % (format, str(song_format))
+            return serve_file(path, song_file.info()['Content-Type'],
+                                "inline", os.path.split(path)[1])
+        else:
+            if bitrate:
+                log_message += " The client requested %s kbps %s, but the file is %s kbps %s, so we're transcoding the file for them." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
+            else:
+                log_message += " The client requested %s, but the file %s, so we're transcoding the file for them." % (format, str(song_format))
+            logger.info(log_message)
         # If we're transcoding audio and the client is trying to make range
         # requests, we have to throw an error 416. This sucks because it breaks
         # <audio> in all the WebKit browsers I've tried, but at least it stops
         # them from spawning a zillion transcoder threads (I'm looking at you,
         # Chromium).
-        elif True in [True for x in format if x in ['mp3']]:
+        if True in [True for x in format if x in ['mp3']]:
 #            cherrypy.response.headers['Content-Length'] = '-1'
             if range_request != 'bytes=0-':
                 raise cherrypy.HTTPError(416)
@@ -191,6 +206,7 @@ class WebInterface:
 
     @cherrypy.expose
     def get_cover(self, songid=None, size='original', download=False):
+        logger.debug("%s\tget_cover(songid=%s, size=%s, download=%s)\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), songid, size, download, cherrypy.request.headers))
         try:
             song = self.library.db[songid]
         except:
@@ -215,6 +231,7 @@ class WebInterface:
 
     @cherrypy.expose
     def update_library(self):
+        logger.debug("%s\tupdate()\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), cherrypy.request.headers))
         def update():
             yield "Updating library...\n"
             thread.start_new_thread(self.library.update, ())
@@ -228,6 +245,7 @@ class WebInterface:
 
     @cherrypy.expose
     def shutdown(self):
+        logger.debug("%s\tshutdown()\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), cherrypy.request.headers))
         def quit():
             yield "Blofeld is shutting down.\n"
             cherrypy.engine.exit()
@@ -235,14 +253,12 @@ class WebInterface:
     shutdown._cp_config = {'response.stream': True}
 
 
-def start():
-    """Starts the CherryPy web server, or configures it to run behind Apache
-    or some other web server.
-    """
+def start(log_level='warn'):
+    """Starts the CherryPy web server and initiates the logging module."""
     
     # Enable logging output
-    enable_console()
     enable_file()
+    enable_console(log_level)
     
     cherrypy.config.update({
         'server.socket_host': HOSTNAME,
