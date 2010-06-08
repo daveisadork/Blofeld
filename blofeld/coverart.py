@@ -37,15 +37,18 @@ def find_cover(location, songid=None):
     if not os.path.exists(os.path.split(img_path)[0]):
         os.makedirs(os.path.split(img_path)[0])
     if os.path.exists(img_path):
-        logger.debug("Using cached cover image at %s" % img_path)
-        return img_path
+        if os.stat(img_path).st_size == 0:
+            os.remove(img_path)
+        else:
+            logger.debug("Using cached cover image at %s" % img_path)
+            return img_path
 
     # Try to get embedded cover art
     metadata = mutagen.File(location)
     for tag, value in metadata.iteritems():
         if tag in ['coverart', 'WM/Picture', 'APIC:', 'covr']:
-            image = open(img_path, "wb")
             try:
+                image = open(img_path, "wb")
                 if type(value) == type(list()):
                     raise(TypeError)
                     try:
@@ -60,6 +63,8 @@ def find_cover(location, songid=None):
                 pass
             finally:
                 image.close()
+                if os.stat(img_path).st_size == 0:
+                    os.remove(img_path)
 
     # Search the song's directory for images that might be cover art
     try:
@@ -88,6 +93,7 @@ def find_cover(location, songid=None):
 def resize_cover(songid, cover, uri, size):
     """Resizes the cover image for a specific song to a given size and caches
     the resized image for any subsequent requests."""
+    logger.debug("resize_cover(songid=%s, cover=%s, uri=%s, size=%s)" % (songid, cover, uri, size))
     # This is the path to the resized image in the cache
     img_path = os.path.join(cfg['CACHE_DIR'], str(size), songid + '.jpg')
     # This is a URI of the above path
@@ -100,7 +106,7 @@ def resize_cover(songid, cover, uri, size):
         artwork = urllib2.urlopen(img_uri)
     except:
         # Load the source image file with PIL
-        image = Image.open(os.path.join(cover))
+        image = Image.open(cover)
         # Check if the image is larger than what the client asked for. If it
         # is, we'll resize it. Otherwise we'll just send the original.
         if image.size[0] > size or image.size[1] > size:
