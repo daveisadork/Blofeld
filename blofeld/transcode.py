@@ -31,14 +31,14 @@ def transcode(path, format='mp3', bitrate=False):
         bitrate = int(bitrate)
     except:
         bitrate = False
-    logger.info("Transcoding %s to %s" % (path, format))
+    log_message = "Transcoding %s to %s" % (path, format)
     # Create our transcoding pipeline using one of the strings at the end of
     # this module.
     transcoder = gst.parse_launch(pipeline[format])
     # Set the bitrate we were asked for
     if bitrate in [8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192,
                                                                 224, 256, 320]:
-        logger.debug("Setting bitrate to %d kbps" % bitrate)
+        log_message += " at %d kbps" % bitrate
         encoder = transcoder.get_by_name('encoder')
         if format is 'mp3':
             encoder.set_property("target", "bitrate")
@@ -46,6 +46,7 @@ def transcode(path, format='mp3', bitrate=False):
         elif format is 'ogg':
             encoder.set_property("max-bitrate", bitrate * 1024)
     # Load our file into the transcoder
+    logger.info(log_message + ".")
     source = transcoder.get_by_name('source')
     source.set_property("location", path)
     # Set the output to be asynchronous so the transcoding happens as quickly
@@ -60,7 +61,7 @@ def transcode(path, format='mp3', bitrate=False):
         while not output.get_property("eos"):
             yield output.emit('pull-buffer').data
     except:
-        logger.warn("User doesn't want the rest of the song.")
+        logger.warn("User canceled the request during transcoding.")
     # I think this is supposed to free the memory used by the transcoder
     transcoder.set_state(gst.STATE_NULL)
     logger.debug("Transcoded %s in %0.2f seconds." % (path, time.time() - start_time))

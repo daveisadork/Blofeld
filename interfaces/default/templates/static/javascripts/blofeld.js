@@ -207,7 +207,11 @@ $(document).ready(function() {
     listAlbums();
     listSongs();
     resizeInterface();
-    window.onresize = resizeInterface();
+    try{
+        window.onresize = resizeInterface();
+    } catch (err) {
+        
+    }
     $('#clear_search').click(function () {
         $('#query').val('');
         find();

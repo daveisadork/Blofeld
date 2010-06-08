@@ -33,6 +33,7 @@ from Cheetah.Template import Template
 from blofeld.config import *
 from blofeld.transcode import transcode
 import blofeld.utils as utils
+import blofeld.utils.browsercap as browsercap
 from blofeld.library import Library
 from blofeld.coverart import find_cover, resize_cover
 from blofeld.playlist import json_to_playlist
@@ -46,6 +47,8 @@ class WebInterface:
         self.library = Library()
         # Do a startup scan for new music
         thread.start_new_thread(self.library.update, ())
+        browsercap.update()
+        self.bc = browsercap.BrowserCapabilities()
 
     @cherrypy.expose
     def index(self):
@@ -145,15 +148,21 @@ class WebInterface:
             raise cherrypy.HTTPError(404)
         log_message += "%(title)s by %(artist)s from %(album)s " % song
         try:
-            log_message += "using %s." % cherrypy.request.headers['User-Agent']
+            b = False
+            #b = self.bc(cherrypy.request.headers['User-Agent'])
+            if b:
+                browser = "%s %s.%s on %s" % (b.name(), b.version()[0], b.version()[1], b.get("platform"))
+            else:
+                browser = cherrypy.request.headers['User-Agent']
+            log_message += "using %s." % browser
         except:
             pass
         try:
             force_transcode = False
-            if format and bitrate and \
+            if bitrate and \
                (int(bitrate) in [8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112,
                                           128, 160, 192, 224, 256, 320]) and \
-               (song['bitrate'] / 1000 > int(bitrate)):
+               (song['bitrate'] / 1024 > int(bitrate)):
                 force_transcode = True
         except:
             pass
@@ -164,18 +173,22 @@ class WebInterface:
                             os.path.splitext(path)[1].lower()[1:]]
         except:
             song_format = [os.path.splitext(path)[1].lower()[1:]]
-        if not format:
-            log_message += " The client did not request any specific format so the file is being sent as-is (%s kbps %s)." % (str(song['bitrate'] / 1000), str(song_format))
+        if not (format or bitrate):
+            log_message += " The client did not request any specific format or bitrate so the file is being sent as-is (%s kbps %s)." % (str(song['bitrate'] / 1000), str(song_format))
             logger.info(log_message)
             return serve_file(path, song_file.info()['Content-Type'],
                                 "inline", os.path.split(path)[1])
-        format = format.split(',')
+        if format:
+            format = format.split(',')
+        else:
+            format = song_format
         logger.debug("The client wants %s and the file is %s" % (format, song_format))
         if True in [True for x in format if x in song_format] and not force_transcode:
             if bitrate:
                 log_message += " The client requested %s kbps %s, but the file is already %s kbps %s, so the file is being sent as-is." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
             else:
                 log_message += " The client requested %s, but the file is already %s, so the file is being sent as-is." % (format, str(song_format))
+            logger.info(log_message)
             return serve_file(path, song_file.info()['Content-Type'],
                                 "inline", os.path.split(path)[1])
         else:
