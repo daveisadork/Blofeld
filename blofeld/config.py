@@ -25,10 +25,25 @@ __all__ = ['cfg']
 
 class Config(dict):
 
-    def __init__(self):
+    def __init__(self, installed=False, system=False):
         dict.__init__(self)
         self['PROGRAM_DIR'] = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                       os.pardir))
+        if system:
+            self['CONFIG_DIR'] = '/etc/blofeld'
+            self['LOG_DIR'] = '/var/log/blofeld'
+            self['CACHE_DIR'] = '/var/cache/blofeld'
+            self['ASSETS_DIR'] = '/usr/share/blofeld'
+        elif installed:
+            self['CONFIG_DIR'] = os.path.join(os.path.expanduser("~"), '.blofeld')
+            self['LOG_DIR'] = os.path.join(self['CONFIG_DIR'], 'log')
+            self['CACHE_DIR'] = os.path.join(self['CONFIG_DIR'], 'cache')
+            self['ASSETS_DIR'] = '/usr/share/blofeld'
+        else:
+            self['CONFIG_DIR'] = self['PROGRAM_DIR']
+            self['LOG_DIR'] = os.path.join(self['PROGRAM_DIR'], 'log')
+            self['CACHE_DIR'] = os.path.join(self['PROGRAM_DIR'], 'cache')
+            self['ASSETS_DIR'] = self['PROGRAM_DIR']
 
     def load_config(self, path=None):
         if path:
@@ -37,10 +52,7 @@ class Config(dict):
             else:
                 self['CONFIG_FILE'] = path
         else:
-            self['CONFIG_FILE'] = os.path.join(self['PROGRAM_DIR'], 'blofeld.cfg')
-        
-        self['LOG_DIR'] = os.path.join(self['PROGRAM_DIR'], 'logs')
-        self['CACHE_DIR'] = os.path.join(self['PROGRAM_DIR'], 'cache')
+            self['CONFIG_FILE'] = os.path.join(self['CONFIG_DIR'], 'blofeld.cfg')
 
         if not os.path.isdir(self['CACHE_DIR']):
             os.mkdir(self['CACHE_DIR'])
@@ -79,7 +91,7 @@ class Config(dict):
         self['COUCHDB_URL'] = self._cfg.get('database', 'couchdb_url')
         self['HOSTNAME'] = self._cfg.get('server', 'host')
         self['PORT'] = self._cfg.getint('server', 'port')
-        self['THEME_DIR'] = os.path.join(self['PROGRAM_DIR'], 'interfaces',
+        self['THEME_DIR'] = os.path.join(self['ASSETS_DIR'], 'interfaces',
                                  self._cfg.get('interface', 'theme'), 'templates')
 
         self['ENCODING'] = sys.getfilesystemencoding()
