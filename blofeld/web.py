@@ -38,6 +38,7 @@ from blofeld.library import Library
 from blofeld.coverart import find_cover, resize_cover
 from blofeld.playlist import json_to_playlist
 from blofeld.log import logger, enable_console, enable_file
+from blofeld.download import create_archive
 
 
 class WebInterface:
@@ -132,8 +133,8 @@ class WebInterface:
         return playlist
 
     @cherrypy.expose
-    def get_song(self, songid=None, download=False, format=False, bitrate=False):
-        logger.debug("%s\tget_song(songid=%s, download=%s, format=%s, bitrate=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), songid, download, format, bitrate, cherrypy.request.headers))
+    def get_song(self, songid=None, format=False, bitrate=False):
+        logger.debug("%s\tget_song(songid=%s, format=%s, bitrate=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), songid, format, bitrate, cherrypy.request.headers))
         log_message = "%s requested " % utils.find_originating_host(cherrypy.request.headers)
         try:
             range_request = cherrypy.request.headers['Range']
@@ -244,6 +245,20 @@ class WebInterface:
                         artwork.info()['Content-Type'], "attachment", filename)
         cherrypy.response.headers['Content-Type'] = artwork.info()['Content-Type']
         return artwork.read()
+
+    @cherrypy.expose
+    def download(self, songs=None, album=None, artist=None):
+        logger.debug("%s\t download(songs=%s, album=%s, artist=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), songs, album, artist, cherrypy.request.headers))
+        file_list = []
+        if album:
+            songs = self.library.songs(albums=[album])
+            for item in songs:
+                song = self.library.db[item['id']]
+                file_list.append(song['location'].encode(cfg['ENCODING']))
+                cover = find_cover(song['location'].encode(cfg['ENCODING']), song['_id'])
+                if cover not in file_list:
+                    file_list.append(cover)
+        return serve_file(create_archive(file_list), 'application/zip', 'download.zip')
 
     @cherrypy.expose
     def update_library(self):
