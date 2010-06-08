@@ -26,7 +26,7 @@ from couchdbkit.loaders import FileSystemDocsLoader
 
 from blofeld.config import cfg
 from blofeld.library.filesystem import load_music_from_dir
-import blofeld.util as util
+import blofeld.utils as utils
 from blofeld.log import logger
 
 
@@ -102,7 +102,7 @@ class Library:
                         result.append(song['value'])
         if query:
             # Clean up the search string
-            query = util.clean_text(query)
+            query = utils.clean_text(query)
             # Figure out whether we already have some songs we need to filter
             # or if we need to grab them all from the database.
             if not (albums or artists):
@@ -110,7 +110,7 @@ class Library:
                 for song in self.db.view('songs/all'):
                     # Create a searchable string by joining together the artist,
                     # album and title fields and cleaning them up.
-                    search_field = util.clean_text(";".join([song['key'][0],
+                    search_field = utils.clean_text(";".join([song['key'][0],
                                               song['key'][1], song['key'][3]]))
                     if query in search_field:
                         result.append(song['value'])
@@ -119,7 +119,7 @@ class Library:
                 # Look through our existing results for any songs that contain
                 # our search term.
                 for song in result:
-                    search_field = util.clean_text(";".join([song['artist'],
+                    search_field = utils.clean_text(";".join([song['artist'],
                                                 song['album'], song['title']]))
                     if query in search_field:
                         temp_result.append(song)
@@ -143,7 +143,7 @@ class Library:
                 result.append({'id': album['value'], 'title': album['key']})
         if query and artists:
             # Clean up the search term 
-            query = util.clean_text(query)
+            query = utils.clean_text(query)
             for artist in artists:
                 # Get all the albums from the database using the search view
                 for album in self.db.view('albums/search', key=artist):
@@ -154,7 +154,7 @@ class Library:
                             }
                     # Clean up the search field and see if our search term is
                     # in it.
-                    if query in util.clean_text(album['value']['search_string']):
+                    if query in utils.clean_text(album['value']['search_string']):
                         # Make sure this album is not already in the results
                         # list so we don't end up with duplicates and make sure
                         # the album is by an artist the client specified. Then
@@ -163,7 +163,7 @@ class Library:
                             result.append(entry)
         if query and not artists:
             # Clean up the search term 
-            query = util.clean_text(query)
+            query = utils.clean_text(query)
             # Get all the albums from the database using the search view
             for album in self.db.view('albums/search'):
                 # Create an object that we can append to the results list
@@ -174,7 +174,7 @@ class Library:
                 # Clean up the search field and see if our search term is
                 # in it. If it is, make sure it's not a duplicate result
                 # and then append it to the results list.
-                if query in util.clean_text(album['value']['search_string']):
+                if query in utils.clean_text(album['value']['search_string']):
                     if entry not in result:
                         result.append(entry)
         if artists and not query:
@@ -205,7 +205,7 @@ class Library:
         result = []
         if query:
             # Clean up the search term
-            query = util.clean_text(query)
+            query = utils.clean_text(query)
             # Get all the artists from the database using the search view,
             # the key of which is a list consisting of [artist, album, title].
             # This is done so that the results will be alphabetized by artist
@@ -217,7 +217,7 @@ class Library:
                     'name': artist['key'][0]
                     }
                 # Create a search field consisting of artist;album;title
-                search_field =  util.clean_text(';'.join(artist['key']))
+                search_field =  utils.clean_text(';'.join(artist['key']))
                 # Make sure our search term is in the search field and this
                 # artist won't be a duplicate result and then add it to the
                 # list.

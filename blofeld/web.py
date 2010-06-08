@@ -19,7 +19,10 @@ import os
 import sys
 import urllib
 import urllib2
-import cjson as json
+try:
+    import cjson as json
+except:
+    import json
 import thread
 
 import cherrypy
@@ -29,7 +32,7 @@ from Cheetah.Template import Template
 
 from blofeld.config import *
 from blofeld.transcode import transcode
-import blofeld.util as util
+import blofeld.utils as utils
 from blofeld.library import Library
 from blofeld.coverart import find_cover, resize_cover
 from blofeld.playlist import json_to_playlist
@@ -46,13 +49,13 @@ class WebInterface:
 
     @cherrypy.expose
     def index(self):
-        logger.debug("%s\tindex()\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), cherrypy.request.headers))
+        logger.debug("%s\tindex()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.headers))
         template = Template(file=os.path.join(cfg['THEME_DIR'], 'index.tmpl'))
         return template.respond()
 
     @cherrypy.expose
     def list_albums(self, artists=None, query=None, output='json'):
-        logger.debug("%s\tlist_albums(artists=%s, query=%s, output=%s)\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), artists, query, output, cherrypy.request.headers))
+        logger.debug("%s\tlist_albums(artists=%s, query=%s, output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), artists, query, output, cherrypy.request.headers))
         if artists:
             artists = artists.split(',')
         albums = self.library.albums(artists, query)
@@ -68,7 +71,7 @@ class WebInterface:
 
     @cherrypy.expose
     def list_artists(self, query=None, output='json'):
-        logger.debug("%s\tlist_artists(query=%s, output=%s)\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), query, output, cherrypy.request.headers))
+        logger.debug("%s\tlist_artists(query=%s, output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), query, output, cherrypy.request.headers))
         artists = self.library.artists(query)
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
@@ -83,7 +86,7 @@ class WebInterface:
     @cherrypy.expose
     def list_songs(self, artists=None ,albums=None, start=None, length=None,
                    query=None, list_all=False, archive=False, output='json'):
-        logger.debug("%s\tlist_songs(artists=%s, albums=%s, start=%s, length=%s, query=%s, list_all=%s, archive=%s output=%s)\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), artists, albums, start, length, query, list_all, archive, output, cherrypy.request.headers))
+        logger.debug("%s\tlist_songs(artists=%s, albums=%s, start=%s, length=%s, query=%s, list_all=%s, archive=%s output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), artists, albums, start, length, query, list_all, archive, output, cherrypy.request.headers))
         if not list_all and not artists and not albums and not query and not archive:
             songs = []
         else:
@@ -111,7 +114,7 @@ class WebInterface:
     @cherrypy.expose
     def get_playlist(self, artists=None, albums=None, query=None, format=None,
                      list_all=False, bitrate=None, output='xspf'):
-        logger.debug("%s\tget_playlist(artists=%s, albums=%s, query=%s, format=%s, list_all=%s, bitrate=%s, output=%s)\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), artists, albums, query, format, list_all, bitrate, output, cherrypy.request.headers))
+        logger.debug("%s\tget_playlist(artists=%s, albums=%s, query=%s, format=%s, list_all=%s, bitrate=%s, output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), artists, albums, query, format, list_all, bitrate, output, cherrypy.request.headers))
         if not (list_all or artists or albums or query):
             songs = []
         else:
@@ -127,8 +130,8 @@ class WebInterface:
 
     @cherrypy.expose
     def get_song(self, songid=None, download=False, format=False, bitrate=False):
-        logger.debug("%s\tget_song(songid=%s, download=%s, format=%s, bitrate=%s)\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), songid, download, format, bitrate, cherrypy.request.headers))
-        log_message = "%s requested " % util.find_originating_host(cherrypy.request.headers)
+        logger.debug("%s\tget_song(songid=%s, download=%s, format=%s, bitrate=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), songid, download, format, bitrate, cherrypy.request.headers))
+        log_message = "%s requested " % utils.find_originating_host(cherrypy.request.headers)
         try:
             range_request = cherrypy.request.headers['Range']
         except:
@@ -206,7 +209,7 @@ class WebInterface:
 
     @cherrypy.expose
     def get_cover(self, songid=None, size='original', download=False):
-        logger.debug("%s\tget_cover(songid=%s, size=%s, download=%s)\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), songid, size, download, cherrypy.request.headers))
+        logger.debug("%s\tget_cover(songid=%s, size=%s, download=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), songid, size, download, cherrypy.request.headers))
         try:
             song = self.library.db[songid]
         except:
@@ -231,7 +234,7 @@ class WebInterface:
 
     @cherrypy.expose
     def update_library(self):
-        logger.debug("%s\tupdate()\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), cherrypy.request.headers))
+        logger.debug("%s\tupdate()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.headers))
         def update():
             yield "Updating library...\n"
             thread.start_new_thread(self.library.update, ())
@@ -245,7 +248,7 @@ class WebInterface:
 
     @cherrypy.expose
     def shutdown(self):
-        logger.debug("%s\tshutdown()\tHeaders: %s" % (util.find_originating_host(cherrypy.request.headers), cherrypy.request.headers))
+        logger.debug("%s\tshutdown()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.headers))
         def quit():
             yield "Blofeld is shutting down.\n"
             cherrypy.engine.exit()

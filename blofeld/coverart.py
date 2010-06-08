@@ -20,7 +20,10 @@ import urllib
 import urllib2
 
 from urlparse import urlparse
-from PIL import Image
+try:
+    from PIL import Image
+except:
+    from pil import Image
 import mutagen
 
 from blofeld.config import cfg
