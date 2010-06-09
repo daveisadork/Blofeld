@@ -1,11 +1,26 @@
 import rhythmdb, rb
 import gobject, gtk
 import gnome, gconf
-import urllib2
+import urlparse
 import cjson as json
 import datetime
 
+#########################
+# Configuration Section #
+#########################
+
+# Specify the user name and password if you need them
+USERNAME = 'user'
+PASSWORD = 'pass'
+
+# Specify the URL you use to access Blofeld, just like you'd type it in your
+# web browser to access the web interface.
 PATH_TO_BLOFELD = "http://localhost:8083"
+
+# Don't change anything past this point!
+
+
+
 
 class Blofeld(rb.Plugin):
 
@@ -55,7 +70,10 @@ class BlofeldSource(rb.BrowserSource):
         self.__activated = False
         self.__updating = False
         self.__load_total_size = 0
-        self.url = PATH_TO_BLOFELD
+        (scheme, netloc,  path, query,
+                                fragment) = urlparse.urlsplit(PATH_TO_BLOFELD)
+        netloc = "%s:%s@%s" % (USERNAME, PASSWORD, netloc)
+        self.url = urlparse.urlunsplit((scheme, netloc, path, query, fragment))
 
     def do_impl_activate(self):
         if not self.__activated:
