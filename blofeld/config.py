@@ -20,6 +20,11 @@ import sys
 
 import ConfigParser
 
+try:
+    import cjson as json
+except:
+    import json
+
 
 __all__ = ['cfg']
 
@@ -62,13 +67,21 @@ class Config(dict):
 
         from blofeld.log import logger
 
-        self._cfg = ConfigParser.ConfigParser()
+        self._cfg = ConfigParser.SafeConfigParser()
 
         # Load the configuration file, or create one with the defaults.
         if not os.path.exists(self['CONFIG_FILE']) and not path:
             self._cfg.add_section('server')
             self._cfg.set('server', 'host', '0.0.0.0')
             self._cfg.set('server', 'port', '8083')
+            self._cfg.add_section('security')
+            self._cfg.set('security', 'require_login', 'false')
+            self._cfg.set('security', 'users', json.encode({
+                'admin': 'password',
+                'user1': 'password1',
+                'user2': 'password2'
+                }))
+            self._cfg.set('security', 'admins', json.encode(['admin']))
             self._cfg.add_section('database')
             self._cfg.set('database', 'path',
                      os.path.join(os.path.expanduser("~"), "Music"))
@@ -88,6 +101,9 @@ class Config(dict):
             logger.critical("Music path does not exist!")
             raise Exception("Music path does not exist!")
 
+        self['REQUIRE_LOGIN'] = self._cfg.getboolean('security', 'require_login')
+        self['USERS'] = json.decode(self._cfg.get('security', 'users'))
+        self['ADMINS'] = json.decode(self._cfg.get('security', 'admins'))
         self['COUCHDB_URL'] = self._cfg.get('database', 'couchdb_url')
         self['HOSTNAME'] = self._cfg.get('server', 'host')
         self['PORT'] = self._cfg.getint('server', 'port')

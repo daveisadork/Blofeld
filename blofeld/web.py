@@ -24,6 +24,7 @@ try:
 except:
     import json
 import thread
+import hashlib
 from random import shuffle
 
 import cherrypy
@@ -54,13 +55,13 @@ class WebInterface:
 
     @cherrypy.expose
     def index(self):
-        logger.debug("%s\tindex()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.headers))
+        logger.debug("%s (%s)\tindex()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, cherrypy.request.headers))
         template = Template(file=os.path.join(cfg['THEME_DIR'], 'index.tmpl'))
         return template.respond()
 
     @cherrypy.expose
     def list_albums(self, artists=None, query=None, output='json'):
-        logger.debug("%s\tlist_albums(artists=%s, query=%s, output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), artists, query, output, cherrypy.request.headers))
+        logger.debug("%s (%s)\tlist_albums(artists=%s, query=%s, output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, artists, query, output, cherrypy.request.headers))
         if artists:
             artists = artists.split(',')
         albums = self.library.albums(artists, query)
@@ -76,7 +77,7 @@ class WebInterface:
 
     @cherrypy.expose
     def list_artists(self, query=None, output='json'):
-        logger.debug("%s\tlist_artists(query=%s, output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), query, output, cherrypy.request.headers))
+        logger.debug("%s (%s)\tlist_artists(query=%s, output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, query, output, cherrypy.request.headers))
         artists = self.library.artists(query)
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
@@ -91,7 +92,7 @@ class WebInterface:
     @cherrypy.expose
     def list_songs(self, artists=None ,albums=None, start=None, length=None,
                    query=None, list_all=False, archive=False, output='json'):
-        logger.debug("%s\tlist_songs(artists=%s, albums=%s, start=%s, length=%s, query=%s, list_all=%s, archive=%s output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), artists, albums, start, length, query, list_all, archive, output, cherrypy.request.headers))
+        logger.debug("%s (%s)\tlist_songs(artists=%s, albums=%s, start=%s, length=%s, query=%s, list_all=%s, archive=%s output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, artists, albums, start, length, query, list_all, archive, output, cherrypy.request.headers))
         if not list_all and not artists and not albums and not query and not archive:
             songs = []
         else:
@@ -119,7 +120,7 @@ class WebInterface:
     @cherrypy.expose
     def get_playlist(self, artists=None, albums=None, query=None, format=None,
                      list_all=False, bitrate=None, output='xspf'):
-        logger.debug("%s\tget_playlist(artists=%s, albums=%s, query=%s, format=%s, list_all=%s, bitrate=%s, output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), artists, albums, query, format, list_all, bitrate, output, cherrypy.request.headers))
+        logger.debug("%s (%s)\tget_playlist(artists=%s, albums=%s, query=%s, format=%s, list_all=%s, bitrate=%s, output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, artists, albums, query, format, list_all, bitrate, output, cherrypy.request.headers))
         if not (list_all or artists or albums or query):
             songs = []
         else:
@@ -135,8 +136,8 @@ class WebInterface:
 
     @cherrypy.expose
     def get_song(self, songid=None, format=False, bitrate=False):
-        logger.debug("%s\tget_song(songid=%s, format=%s, bitrate=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), songid, format, bitrate, cherrypy.request.headers))
-        log_message = "%s requested " % utils.find_originating_host(cherrypy.request.headers)
+        logger.debug("%s (%s)\tget_song(songid=%s, format=%s, bitrate=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, songid, format, bitrate, cherrypy.request.headers))
+        log_message = "%s (%s) requested " % (cherrypy.request.login, utils.find_originating_host(cherrypy.request.headers))
         try:
             range_request = cherrypy.request.headers['Range']
         except:
@@ -224,7 +225,7 @@ class WebInterface:
 
     @cherrypy.expose
     def get_cover(self, songid=None, size='original', download=False):
-        logger.debug("%s\tget_cover(songid=%s, size=%s, download=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), songid, size, download, cherrypy.request.headers))
+        logger.debug("%s (%s)\tget_cover(songid=%s, size=%s, download=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, songid, size, download, cherrypy.request.headers))
         try:
             song = self.library.db[songid]
         except:
@@ -249,7 +250,7 @@ class WebInterface:
 
     @cherrypy.expose
     def download(self, songs=None, artists=None ,albums=None, query=None):
-        logger.debug("%s\tdownload(songs=%s, artists=%s, albums=%s, query=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), songs, artists, albums, query, cherrypy.request.headers))
+        logger.debug("%s (%s)\tdownload(songs=%s, artists=%s, albums=%s, query=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, songs, artists, albums, query, cherrypy.request.headers))
         file_list = []
         if not songs and not artists and not albums and not query:
             raise cherrypy.HTTPError(501) 
@@ -277,21 +278,25 @@ class WebInterface:
 
     @cherrypy.expose
     def update_library(self):
-        logger.debug("%s\tupdate()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.headers))
-        def update():
-            yield "Updating library...\n"
-            thread.start_new_thread(self.library.update, ())
-            while not self.library.updating.acquire(False):
-                yield ".\n"
-                sleep(1)
-            self.library.updating.release()
-            yield "Done.\n"
-        return update()
+        logger.debug("%s (%s)\tupdate()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, cherrypy.request.headers))
+        if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['ADMINS']:
+            logger.warn("%(user)s (%(ip)s) requested a library update, but was denied because %(user)s is not a member of the admins group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
+            raise cherrypy.HTTPError(401,'Not Authorized')
+        else:
+            def update():
+                yield "Updating library...\n"
+                thread.start_new_thread(self.library.update, ())
+                while not self.library.updating.acquire(False):
+                    yield ".\n"
+                    sleep(1)
+                self.library.updating.release()
+                yield "Done.\n"
+            return update()
     update_library._cp_config = {'response.stream': True}
 
     @cherrypy.expose
     def random(self, songs=None, artists=None ,albums=None, query=None, limit=None):
-        logger.debug("%s\trandom(songs=%s, artists=%s, albums=%s, query=%s, limit=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), songs, artists, albums, query, limit,  cherrypy.request.headers))
+        logger.debug("%s (%s)\trandom(songs=%s, artists=%s, albums=%s, query=%s, limit=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, songs, artists, albums, query, limit,  cherrypy.request.headers))
         song_list = []
         if artists:
             artists = artists.split(',')
@@ -315,16 +320,24 @@ class WebInterface:
 
     @cherrypy.expose
     def shutdown(self):
-        logger.debug("%s\tshutdown()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.headers))
-        def quit():
-            yield "Blofeld is shutting down.\n"
-            cherrypy.engine.exit()
-        return quit()
+        logger.debug("%s (%s)\tshutdown()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, cherrypy.request.headers))
+        if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['ADMINS']:
+            logger.warn("%(user)s (%(ip)s) requested that the server shut down, but was denied because %(user)s is not a member of the admins group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
+            raise cherrypy.HTTPError(401,'Not Authorized')
+        else:
+            def quit():
+                logger.info("Received shutdown request, complying.")
+                yield "Blofeld is shutting down.\n"
+                cherrypy.engine.exit()
+            return quit()
     shutdown._cp_config = {'response.stream': True}
 
 
 def start(log_level='warn'):
     """Starts the CherryPy web server and initiates the logging module."""
+    
+    def cleartext(password):
+        return password
     
     cherrypy.config.update({
         'server.socket_host': cfg['HOSTNAME'],
@@ -332,20 +345,24 @@ def start(log_level='warn'):
         'tools.encode.on': True, 
         'tools.encode.encoding': 'utf-8',
         'tools.gzip.on': True,
-        'log.screen': cfg['CHERRYPY_OUTPUT']
+        'log.screen': cfg['CHERRYPY_OUTPUT'],
+        'tools.basic_auth.on': cfg['REQUIRE_LOGIN'],
+        'tools.basic_auth.realm': 'Blofeld',
+        'tools.basic_auth.users': cfg['USERS'],
+        'tools.basic_auth.encrypt': cleartext
         })
 
     static = {
-        'tools.staticdir.on': True,
-        'tools.staticdir.dir': os.path.join(cfg['THEME_DIR'], 'static')
-        }
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': os.path.join(cfg['THEME_DIR'], 'static')
+            }
 
     conf = {
         '/static': static,
         '/blofeld/static': static
         }
 
-    application = cherrypy.tree.mount(WebInterface(), "/", config=conf)
+    application = cherrypy.tree.mount(WebInterface(), '/', config=conf)
 
     cherrypy.engine.start()
     cherrypy.engine.block()
