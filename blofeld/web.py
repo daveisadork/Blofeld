@@ -235,7 +235,7 @@ class WebInterface:
         cover = find_cover(song)
         if cover is None:
             raise cherrypy.HTTPError(404,'Not Found') 
-        uri = 'file://' + urllib.pathname2url(cover)
+        uri = 'file://' + urllib.pathname2url(cover.encode(cfg['ENCODING']))
         if size != 'original':
             artwork = resize_cover(song, cover, uri, size)
         else:

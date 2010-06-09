@@ -18,6 +18,7 @@
 import os
 import urllib
 import urllib2
+import hashlib
 
 from urlparse import urlparse
 try:
@@ -36,7 +37,7 @@ def find_cover(song):
     """
     logger.debug("Looking for a cover for %s" % song['location'])
     # Check the cache for the cover image and send that if we have it.
-    img_path = os.path.join(cfg['CACHE_DIR'], song['album_hash'] + '.jpg')
+    img_path = os.path.join(cfg['CACHE_DIR'], hashlib.sha1(song['artist_hash'] + song['album_hash']).hexdigest() + '.jpg')
     if not os.path.exists(os.path.split(img_path)[0]):
         os.makedirs(os.path.split(img_path)[0])
     if os.path.exists(img_path):
@@ -98,7 +99,7 @@ def resize_cover(song, cover, uri, size):
     the resized image for any subsequent requests."""
     logger.debug("resize_cover(song=%s, cover=%s, uri=%s, size=%s)" % (song, cover, uri, size))
     # This is the path to the resized image in the cache
-    img_path = os.path.join(cfg['CACHE_DIR'], str(size), song['album_hash'] + '.jpg')
+    img_path = os.path.join(cfg['CACHE_DIR'], str(size), hashlib.sha1(song['artist_hash'] + song['album_hash']).hexdigest() + '.jpg')
     # This is a URI of the above path
     img_uri = 'file://' + urllib.pathname2url(img_path.encode(cfg['ENCODING']))
     # Make sure our cache directory exists
