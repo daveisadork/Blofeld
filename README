@@ -47,11 +47,7 @@ and hopefully you'll see the web interface and be able to start browsing and
 listening to music. Hopefully.
 
 There's a very basic plugin for Rhythmbox which can add a Blofeld server
-as a source. The plugin is in the extra directory, and you need to drop the
-whole blofeld-rhythmbox folder into ~/.local/share/rhythmbox/plugins and then
-edit __init__.py and replace PATH_TO_BLOFELD with the path to your Blofeld and
-fill in the USERNAME and PASSWORD variables if you need those. Then write a UI
-to make all that configurable and send me a pull request.
+as a source. It can be found at http://github.com/daveisadork/blofeld-rhythmbox 
 
 There's also a pretty useful JSON API that I don't feel like documenting right
 now.
