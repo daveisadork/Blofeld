@@ -241,8 +241,8 @@ class WebInterface:
         else:
             artwork = urllib2.urlopen(uri)
         if download:
-            return serve_file(os.path.join(path, filename),
-                        artwork.info()['Content-Type'], "attachment", filename)
+            return serve_file(cover,
+                        artwork.info()['Content-Type'], "attachment", os.path.basename(cover))
         cherrypy.response.headers['Content-Type'] = artwork.info()['Content-Type']
         return artwork.read()
 
