@@ -40,11 +40,17 @@ def transcode(path, format='mp3', bitrate=False):
                                                                 224, 256, 320]:
         log_message += " at %d kbps" % bitrate
         encoder = transcoder.get_by_name('encoder')
+        muxer = transcoder.get_by_name('muxer')
         if format is 'mp3':
             encoder.set_property("target", "bitrate")
             encoder.set_property("bitrate", bitrate)
         elif format is 'ogg':
             encoder.set_property("max-bitrate", bitrate * 1024)
+        elif format is 'm4a':
+            encoder.set_property("bitrate", bitrate * 1000)
+            #encoder.set_property("outputformat", 1)
+            #encoder.set_property("profile", 1)
+            #muxer.set_property("faststart", True)
     # Load our file into the transcoder
     logger.info(log_message + ".")
     source = transcoder.get_by_name('source')
@@ -71,6 +77,7 @@ pipeline = {
     # id3v2mux would be preferable because it transfers embedded cover art, but
     # stupid jPlayer chokes on its output so we have to use id3mux instead.
     #'mp3': "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! id3v2mux ! appsink name=output",
-    'mp3': "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! id3mux ! appsink name=output",
-    'ogg': "filesrc name=source ! decodebin ! audioconvert ! vorbisenc name=encoder ! oggmux ! appsink name=output"
+    'mp3': "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! id3mux name=muxer ! appsink name=output",
+    'ogg': "filesrc name=source ! decodebin ! audioconvert ! vorbisenc name=encoder ! oggmux name=muxer ! appsink name=output",
+    'm4a': "filesrc name=source ! decodebin ! audioconvert ! faac name=encoder,profile=1 ! ffmux_mp4 ! appsink name=output"
 }

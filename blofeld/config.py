@@ -78,10 +78,12 @@ class Config(dict):
             self._cfg.set('security', 'require_login', 'false')
             self._cfg.set('security', 'users', json.encode({
                 'admin': 'password',
-                'user1': 'password1',
-                'user2': 'password2'
+                'user': 'password'
                 }))
-            self._cfg.set('security', 'admins', json.encode(['admin']))
+            self._cfg.set('security', 'groups', json.encode({
+                'admin': ['admin'],
+                'download': ['admin', 'user']
+            }))
             self._cfg.add_section('database')
             self._cfg.set('database', 'path',
                      os.path.join(os.path.expanduser("~"), "Music"))
@@ -103,7 +105,7 @@ class Config(dict):
 
         self['REQUIRE_LOGIN'] = self._cfg.getboolean('security', 'require_login')
         self['USERS'] = json.decode(self._cfg.get('security', 'users'))
-        self['ADMINS'] = json.decode(self._cfg.get('security', 'admins'))
+        self['GROUPS'] = json.decode(self._cfg.get('security', 'groups'))
         self['COUCHDB_URL'] = self._cfg.get('database', 'couchdb_url')
         self['HOSTNAME'] = self._cfg.get('server', 'host')
         self['PORT'] = self._cfg.getint('server', 'port')

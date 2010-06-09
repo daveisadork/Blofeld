@@ -50,8 +50,6 @@ class WebInterface:
         self.library = Library()
         # Do a startup scan for new music
         thread.start_new_thread(self.library.update, ())
-        browsercap.update()
-        self.bc = browsercap.BrowserCapabilities()
 
     @cherrypy.expose
     def index(self):
@@ -211,6 +209,7 @@ class WebInterface:
                 raise cherrypy.HTTPError(416)
             else:
                 cherrypy.response.headers['Content-Type'] = 'audio/mpeg'
+                #cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
                 return transcode(path, 'mp3', bitrate)
         elif True in [True for x in format if x in ['ogg', 'vorbis', 'oga']]:
 #            cherrypy.response.headers['Content-Length'] = '-1'
@@ -218,7 +217,16 @@ class WebInterface:
                 raise cherrypy.HTTPError(416)
             else:
                 cherrypy.response.headers['Content-Type'] = 'audio/ogg'
+                #cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
                 return transcode(path, 'ogg', bitrate)
+        elif True in [True for x in format if x in ['m4a', 'aac', 'mp4']]:
+#            cherrypy.response.headers['Content-Length'] = '-1'
+            if range_request != 'bytes=0-':
+                raise cherrypy.HTTPError(416)
+            else:
+                cherrypy.response.headers['Content-Type'] = 'audio/x-m4a'
+                #cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
+                return transcode(path, 'm4a', bitrate)
         else:
             raise cherrypy.HTTPError(501) 
     get_song._cp_config = {'response.stream': True}
@@ -251,6 +259,9 @@ class WebInterface:
     @cherrypy.expose
     def download(self, songs=None, artists=None ,albums=None, query=None):
         logger.debug("%s (%s)\tdownload(songs=%s, artists=%s, albums=%s, query=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, songs, artists, albums, query, cherrypy.request.headers))
+        if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['GROUPS']['download']:
+            logger.warn("%(user)s (%(ip)s) requested a download, but was denied because %(user)s is not a member of the download group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
+            raise cherrypy.HTTPError(401,'Not Authorized')
         file_list = []
         if not songs and not artists and not albums and not query:
             raise cherrypy.HTTPError(501) 
@@ -279,19 +290,18 @@ class WebInterface:
     @cherrypy.expose
     def update_library(self):
         logger.debug("%s (%s)\tupdate()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, cherrypy.request.headers))
-        if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['ADMINS']:
-            logger.warn("%(user)s (%(ip)s) requested a library update, but was denied because %(user)s is not a member of the admins group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
+        if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['GROUPS']['admin']:
+            logger.warn("%(user)s (%(ip)s) requested a library update, but was denied because %(user)s is not a member of the admin group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
             raise cherrypy.HTTPError(401,'Not Authorized')
-        else:
-            def update():
-                yield "Updating library...\n"
-                thread.start_new_thread(self.library.update, ())
-                while not self.library.updating.acquire(False):
-                    yield ".\n"
-                    sleep(1)
-                self.library.updating.release()
-                yield "Done.\n"
-            return update()
+        def update():
+            yield "Updating library...\n"
+            thread.start_new_thread(self.library.update, ())
+            while not self.library.updating.acquire(False):
+                yield ".\n"
+                sleep(1)
+            self.library.updating.release()
+            yield "Done.\n"
+        return update()
     update_library._cp_config = {'response.stream': True}
 
     @cherrypy.expose
@@ -321,15 +331,14 @@ class WebInterface:
     @cherrypy.expose
     def shutdown(self):
         logger.debug("%s (%s)\tshutdown()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, cherrypy.request.headers))
-        if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['ADMINS']:
-            logger.warn("%(user)s (%(ip)s) requested that the server shut down, but was denied because %(user)s is not a member of the admins group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
+        if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['GROUPS']['admin']:
+            logger.warn("%(user)s (%(ip)s) requested that the server shut down, but was denied because %(user)s is not a member of the admin group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
             raise cherrypy.HTTPError(401,'Not Authorized')
-        else:
-            def quit():
-                logger.info("Received shutdown request, complying.")
-                yield "Blofeld is shutting down.\n"
-                cherrypy.engine.exit()
-            return quit()
+        def quit():
+            logger.info("Received shutdown request, complying.")
+            yield "Blofeld is shutting down.\n"
+            cherrypy.engine.exit()
+        return quit()
     shutdown._cp_config = {'response.stream': True}
 
 
@@ -364,5 +373,6 @@ def start(log_level='warn'):
 
     application = cherrypy.tree.mount(WebInterface(), '/', config=conf)
 
+    logger.debug("Starting CherryPy server.")
     cherrypy.engine.start()
     cherrypy.engine.block()
