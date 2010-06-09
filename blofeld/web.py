@@ -24,6 +24,7 @@ try:
 except:
     import json
 import thread
+from random import shuffle
 
 import cherrypy
 from cherrypy.lib.static import serve_file
@@ -287,6 +288,30 @@ class WebInterface:
             yield "Done.\n"
         return update()
     update_library._cp_config = {'response.stream': True}
+
+    @cherrypy.expose
+    def random(self, songs=None, artists=None ,albums=None, query=None, limit=None):
+        logger.debug("%s\trandom(songs=%s, artists=%s, albums=%s, query=%s, limit=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), songs, artists, albums, query, limit,  cherrypy.request.headers))
+        song_list = []
+        if artists:
+            artists = artists.split(',')
+        if albums:
+            albums = albums.split(',')
+        files = self.library.songs(artists, albums, query)
+        if songs:
+            songs = songs.split(',')
+            for song in files:
+                if song['id'] in songs:
+                    songs_list.append(song)
+        else:
+            song_list = files
+        shuffle(song_list)
+        try:
+            limit = int(limit)
+        except:
+            limit = len(song_list)
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+        return json.encode(song_list[:limit])
 
     @cherrypy.expose
     def shutdown(self):
