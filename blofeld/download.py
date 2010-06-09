@@ -8,7 +8,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSEh.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -18,11 +18,21 @@
 import os
 import zipfile
 
+from blofeld.log import logger
+from blofeld.config import cfg
+from blofeld.coverart import find_cover
 
-def create_archive(files):
+
+def create_archive(songs):
+    files = []
+    for song in songs:
+        files.append((song['location'], song['location'].replace(cfg['MUSIC_PATH'], '')))
+        cover = (find_cover(song), os.path.join(os.path.dirname(song['location']), 'Cover.jpg').replace(cfg['MUSIC_PATH'], ''))
+        if cover not in files:
+            files.append(cover)
     path = '/tmp/download.zip'
     archive = zipfile.ZipFile(path, 'w', zipfile.ZIP_STORED)
     for item in files:
-        archive.write(item, os.path.basename(item))
+        archive.write(item[0], item[1])
     archive.close()
     return path

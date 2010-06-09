@@ -229,12 +229,14 @@ def read_metadata(location, id, mtime):
         artist = metadata['artist'][0]
         song['artist_hash'] = hashlib.sha1(artist.encode('utf-8')).hexdigest()
     except:
-        song['artist_hash'] = hashlib.sha1("Unknown Artist").hexdigest()
+        artist = "Unknown Artist"
+        song['artist_hash'] = hashlib.sha1(artist.encode('utf-8')).hexdigest()
     try:
         album = metadata['album'][0]
         song['album_hash'] = hashlib.sha1(album.encode('utf-8')).hexdigest()
     except:
-        song['album_hash'] = hashlib.sha1("Unknown Album").hexdigest()
+        album = "Unknown Album"
+        song['album_hash'] = hashlib.sha1(album.encode('utf-8')).hexdigest()
     # Go through each tag we read from the file and add it to our ojbect.
     for tag, value in metadata.iteritems():
         try:
@@ -297,12 +299,14 @@ def read_wma(location, id, mtime):
         artist = metadata['Author'][0]
         song['artist_hash'] = hashlib.sha1(artist.encode('utf-8')).hexdigest()
     except:
-        song['artist_hash'] = hashlib.sha1("Unknown Artist").hexdigest()
+        artist = "Unknown Artist"
+        song['artist_hash'] = hashlib.sha1(artist.encode('utf-8')).hexdigest()
     try:
         album = metadata['WM/AlbumTitle'][0]
         song['album_hash'] = hashlib.sha1(album.encode('utf-8')).hexdigest()
     except:
-        song['album_hash'] = hashlib.sha1("Unknown Album").hexdigest()
+        album = "Unknown Album"
+        song['album_hash'] = hashlib.sha1(album.encode('utf-8')).hexdigest()
     for tag, value in metadata.iteritems():
         try:
             # Mutagen returns all metadata as lists, so normally we'd just get

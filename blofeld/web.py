@@ -232,12 +232,12 @@ class WebInterface:
             size = int(size)
         except:
             size = 'original'
-        cover = find_cover(song['location'].encode(cfg['ENCODING']), songid)
+        cover = find_cover(song)
         if cover is None:
             raise cherrypy.HTTPError(404,'Not Found') 
         uri = 'file://' + urllib.pathname2url(cover)
         if size != 'original':
-            artwork = resize_cover(songid, cover, uri, size)
+            artwork = resize_cover(song, cover, uri, size)
         else:
             artwork = urllib2.urlopen(uri)
         if download:
@@ -247,18 +247,32 @@ class WebInterface:
         return artwork.read()
 
     @cherrypy.expose
-    def download(self, songs=None, album=None, artist=None):
-        logger.debug("%s\t download(songs=%s, album=%s, artist=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), songs, album, artist, cherrypy.request.headers))
+    def download(self, songs=None, artists=None ,albums=None, query=None):
+        logger.debug("%s\tdownload(songs=%s, artists=%s, albums=%s, query=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), songs, artists, albums, query, cherrypy.request.headers))
         file_list = []
-        if album:
-            songs = self.library.songs(albums=[album])
-            for item in songs:
-                song = self.library.db[item['id']]
-                file_list.append(song['location'].encode(cfg['ENCODING']))
-                cover = find_cover(song['location'].encode(cfg['ENCODING']), song['_id'])
-                if cover not in file_list:
-                    file_list.append(cover)
-        return serve_file(create_archive(file_list), 'application/zip', 'download.zip')
+        if not songs and not artists and not albums and not query:
+            raise cherrypy.HTTPError(501) 
+        elif songs:
+            songs = songs.split(',')
+            if len(songs) > 100:
+                return "Too many songs! Please narrow your criteria."
+            for song in songs:
+                try:
+                    file_list.append(self.library.db[song])
+                except:
+                    raise cherrypy.HTTPError(404,'Not Found')
+        else:
+            if artists:
+                artists = artists.split(',')
+            if albums:
+                albums = albums.split(',')
+            files = self.library.songs(artists, albums, query)
+            if len(files) > 100:
+                return "Too many songs! Please narrow your criteria."
+            for song in files:
+                file_list.append(self.library.db[song['id']])
+        archive = create_archive(file_list)
+        return serve_file(archive, 'application/zip', 'download.zip')
 
     @cherrypy.expose
     def update_library(self):

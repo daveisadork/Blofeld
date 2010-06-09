@@ -30,13 +30,13 @@ from blofeld.config import cfg
 from blofeld.log import logger
 
 
-def find_cover(location, songid=None):
+def find_cover(song):
     """Attempts to locate a cover image that would be associated with a given
     file.
     """
-    logger.debug("Looking for a cover for %s" % location)
+    logger.debug("Looking for a cover for %s" % song['location'])
     # Check the cache for the cover image and send that if we have it.
-    img_path = os.path.join(cfg['CACHE_DIR'], songid + '.jpg')
+    img_path = os.path.join(cfg['CACHE_DIR'], song['album_hash'] + '.jpg')
     if not os.path.exists(os.path.split(img_path)[0]):
         os.makedirs(os.path.split(img_path)[0])
     if os.path.exists(img_path):
@@ -47,7 +47,7 @@ def find_cover(location, songid=None):
             return img_path
 
     # Try to get embedded cover art
-    metadata = mutagen.File(location)
+    metadata = mutagen.File(song['location'])
     for tag, value in metadata.iteritems():
         if tag in ['coverart', 'WM/Picture', 'APIC:', 'covr']:
             try:
@@ -60,7 +60,7 @@ def find_cover(location, songid=None):
                         image.write(value[0].encode('utf-8'))
                 else:
                     image.write(value.data)
-                logger.debug("Using cover image embedded in %s" % location)
+                logger.debug("Using cover image embedded in %s" % song['location'])
                 return img_path
             except:
                 pass
@@ -73,7 +73,7 @@ def find_cover(location, songid=None):
     try:
         # Get the path to the folder containing the song for which we need a
         # cover image
-        path = os.path.split(location)[0]
+        path = os.path.split(song['location'])[0]
         # Look for any files in the path that are images and give them a score
         # based on their filename and append them to our results list.
         images = []
@@ -93,12 +93,12 @@ def find_cover(location, songid=None):
         logger.debug("Couldn't find any suitable cover image.")
         return None
 
-def resize_cover(songid, cover, uri, size):
+def resize_cover(song, cover, uri, size):
     """Resizes the cover image for a specific song to a given size and caches
     the resized image for any subsequent requests."""
-    logger.debug("resize_cover(songid=%s, cover=%s, uri=%s, size=%s)" % (songid, cover, uri, size))
+    logger.debug("resize_cover(song=%s, cover=%s, uri=%s, size=%s)" % (song, cover, uri, size))
     # This is the path to the resized image in the cache
-    img_path = os.path.join(cfg['CACHE_DIR'], str(size), songid + '.jpg')
+    img_path = os.path.join(cfg['CACHE_DIR'], str(size), song['album_hash'] + '.jpg')
     # This is a URI of the above path
     img_uri = 'file://' + urllib.pathname2url(img_path.encode(cfg['ENCODING']))
     # Make sure our cache directory exists
