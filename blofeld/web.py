@@ -65,7 +65,7 @@ class WebInterface:
         albums = self.library.albums(artists, query)
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
-            return json.encode(albums)
+            return json.encode({'albums': albums})
         elif output == 'html':
             template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_albums.tmpl'))
             template.albums = albums
@@ -79,7 +79,7 @@ class WebInterface:
         artists = self.library.artists(query)
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
-            return json.encode(artists)
+            return json.encode({'artists': artists})
         elif output == 'html':
             template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_artists.tmpl'))
             template.artists = artists
@@ -107,7 +107,7 @@ class WebInterface:
             songs = songs[start:end]
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
-            return json.encode(songs)
+            return json.encode({'songs': songs})
         elif output == 'html':
             template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_songs.tmpl'))
             template.songs = songs
