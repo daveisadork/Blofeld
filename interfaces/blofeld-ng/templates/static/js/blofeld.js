@@ -1,4 +1,5 @@
 var mainLayout, browserLayout;
+var global_loadPercent = 0;
 var loadingImage = "<div class='scrollingContainer'><img src='static/images/loading.gif' alt='loading...' class='loading'></div>";
 var playlist = []
 var selectedAlbums = []
@@ -8,6 +9,7 @@ var activeSong = null
 var ajaxQueue = {'artists': null, 'albums': null, 'songs': null}
 
 var playSong = function (songIndex) {
+    $("#progress-bar").slider("disable")
     song = playlist[songIndex];
     playingCurrently = songIndex;
     $("#player").jPlayer('setFile', 'get_song?format=mp3&songid=' + song, 'get_song?format=ogg&songid=' + song).jPlayer("play");
@@ -17,10 +19,14 @@ var playSong = function (songIndex) {
     $('#np_title').html($('#' + song + ' .title').html())
     $('#np_artist').html($('#' + song + ' .artist').html())
     $('#np_album').html($('#' + song + ' .album').html());
-    $('.song').removeClass('now-playing');
-    $('#' + song).addClass('now-playing');
-    $("#now_playing").show();
-    $("#progress").show();
+    $('.now-playing, #' + song).toggleClass('now-playing')
+    $('.now-playing > .status > .status-icon, .status > .ui-icon').toggleClass('ui-icon ui-icon-volume-on')
+//    $('.song').removeClass('now-playing');
+//    $('.now-playing').removeClass('now-playing');
+//    $('.status > .ui-icon-volume-on').removeClass('ui-icon').removeClass('ui-icon-volume-on');
+//    $('#' + song).addClass('now-playing');
+//    $('.now-playing > .status > .status-icon').addClass('ui-icon').addClass('ui-icon-volume-on');
+    $("#now_playing, #progress").show();
 //    $("#songsContainer .scrollingContainer").scrollTo($('#'+song), 0, {offset:-(Math.floor($("#songsContainer").height() / 2)-10)});
     activeSong = song;
 }
@@ -143,15 +149,24 @@ var setupPlayer = function () {
         },
         swfPath: "static/images",
         nativeSupport: false,
+        customCssIds: true,
         //oggSupport: true
     })
     .jPlayer("cssId", "play", "play")
     .jPlayer("cssId", "pause", "pause")
+//    .jPlayer("cssId", "loadBar", "progress-bar")
     .jPlayer("onProgressChange", function(loadPercent, playedPercentRelative, playedPercentAbsolute, playedTime, totalTime) {
 //        $('#load_progress').width(loadPercent)
 //        $('#play_head').width(playedPercentRelative)
-        $('#progress-bar').slider('option', 'value', parseInt(playedPercentAbsolute))
-        $('#progress-bar').progressbar('option', 'value', parseInt(loadPercent))
+        global_loadPercent = parseInt(loadPercent)
+        if (global_loadPercent > 0) {
+            if ($('#progress-bar').slider("option", "disabled")) {
+                $('#progress-bar').slider("enable")
+            }
+        } else if (!$('#progress-bar').slider("option", "disabled")) {
+            $('#progress-bar').slider("disable")
+        }
+        $('#progress-bar').progressbar('option', 'value', global_loadPercent).slider('option', 'value', parseInt(playedPercentAbsolute))
 //        var myPlayedTime = new Date(playedTime);
 //        var ptMin = (myPlayedTime.getUTCMinutes() < 10) ? "0" + myPlayedTime.getUTCMinutes() : myPlayedTime.getUTCMinutes();
 //        var ptSec = (myPlayedTime.getUTCSeconds() < 10) ? "0" + myPlayedTime.getUTCSeconds() : myPlayedTime.getUTCSeconds();
@@ -214,7 +229,8 @@ $(document).ready(function() {
         south__spacing_closed:  8,
         south__spacing_open:    8,
         east__paneSelector:     '#sidebar',
-        east__closable:         'true',
+        east__closable:         true,
+        east__initClosed:       true,
         west__paneSelector:     "#browser",
 //        west__contentSelector:  ".ui-layout-content",
 //        applyDefaultStyles:     true,
@@ -236,6 +252,7 @@ $(document).ready(function() {
     setupPlayer();
     disableSelection(document.getElementById("browser"))
     disableSelection(document.getElementById("songsContainer"))
+    disableSelection(document.getElementById("controls"))
     listArtists();
     listAlbums();
     listSongs();
@@ -243,7 +260,7 @@ $(document).ready(function() {
     $('#clear_search').click(function () {
         $('#query').val('');
         find();
-    })
+    }).hover
     $("#now_playing").hide();
     $("#progress").hide();
     $('#songs .song').live("dblclick", function () {
@@ -253,11 +270,7 @@ $(document).ready(function() {
         if (!event.ctrlKey) {
             $('.song.ui-state-highlight').removeClass('ui-state-highlight')
         }
-        if ($(this).hasClass('ui-state-highlight')) {
-            $(this).removeClass('ui-state-highlight')
-        } else {
-            $(this).addClass('ui-state-highlight')
-        }
+        $(this).toggleClass('ui-state-highlight')
     })
     $('#albums .album').live("click", function (event) {
         selectedArtists = []
@@ -268,11 +281,7 @@ $(document).ready(function() {
         if (!event.ctrlKey) {
             $('.album.ui-state-highlight').removeClass('ui-state-highlight')
         }
-        if ($(this).hasClass('ui-state-highlight')) {
-            $(this).removeClass('ui-state-highlight')
-        } else {
-            $(this).addClass('ui-state-highlight')
-        }
+        $(this).toggleClass('ui-state-highlight')
         
         $('.album.ui-state-highlight').each(function () {
             selectedAlbums.push($(this).attr('id'))
@@ -288,11 +297,7 @@ $(document).ready(function() {
         if (!event.ctrlKey) {
             $('.artist.ui-state-highlight').removeClass('ui-state-highlight')
         }
-        if ($(this).hasClass('ui-state-highlight')) {
-            $(this).removeClass('ui-state-highlight')
-        } else {
-            $(this).addClass('ui-state-highlight')
-        }
+        $(this).toggleClass('ui-state-highlight')
         $('.artist.ui-state-highlight').each(function () {
             selectedArtists.push($(this).attr('id'))
         })
@@ -310,12 +315,16 @@ $(document).ready(function() {
             primary: 'ui-icon-play'
         },
         text: false
+    }).click(function () {
+        $(".now-playing .ui-icon-volume-off").toggleClass("ui-icon-volume-on ui-icon-volume-off")
     })
     $("#pause").button({
         icons: {
             primary: 'ui-icon-pause'
         },
         text: false
+    }).click(function () {
+        $(".now-playing .ui-icon-volume-on").toggleClass("ui-icon-volume-on ui-icon-volume-off")
     })
     $("#skip_forward").button({
         icons: {
@@ -323,8 +332,16 @@ $(document).ready(function() {
         },
         text: false
     })
-    $("#progress-bar").slider()
-    $("#progress-bar").progressbar()
+    $("#progress-bar").progressbar().slider({
+        max: 100,
+        animate: true,
+        disabled: true,
+        slide: function(event, ui) {
+            if (global_loadPercent > 0) {
+                $("#player").jPlayer("playHead", ui.value*(100.0/global_loadPercent));
+            }
+        }
+    })
 })
 
 

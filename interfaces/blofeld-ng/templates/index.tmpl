@@ -36,7 +36,9 @@
 <!--                                <div id="play_head"></div>-->
 <!--                            </div>-->
 <!--                        </div>-->
+                        
                         <div id="progress-bar"></div>
+                        
                         <div id="play_status"></div>
                     </div>
                     <div id="now_playing">
@@ -44,12 +46,13 @@
                         <span id="np_title"></span><br><span class="ui-state-disabled">by</span> <span id="np_artist"></span> <span class="ui-state-disabled">from</span> <span id="np_album"></span>
                     </div>
                 </div>
-                <div id="find">
-                    <form name="find" action="javascript:find()" autocomplete="off">
-                        <div id="search_icon"></div>
-                        <div id="clear_search"></div>
-                        <input type="text" name="query" id="query">
+                <div id="find" class="ui-widget ui-widget-content ui-state-default ui-corner-all">
+                    <form name="find" action="javascript:find()" autocomplete="off" >
+<!--                        <div id="search_icon"></div>-->
+<!--                        <div id="clear_search"></div>-->
+                        <input type="text" name="query" id="query" class="ui-corner-all">
                     </form>
+                    <div id="clear_search" class="ui-icon ui-icon-circle-close"></div>
                 </div>
             </div>
             </div>

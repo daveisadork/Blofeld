@@ -120,18 +120,18 @@ thead {
     position: relative;
 }
 
-tr.now-playing {
-    font-weight: bold;
-}
+/*tr.now-playing {*/
+/*    font-weight: bold;*/
+/*}*/
 
 .status {
     width: 19px;
 }
 
 tr.now-playing > td.status > .status-icon {
-    width: 16px;
-    height: 16px;
-    background: url('../images/cp.png') center center no-repeat;
+/*    width: 16px;*/
+/*    height: 16px;*/
+/*    background: url('../images/cp.png') center center no-repeat;*/
 }
 
 #songsContainer, #artistsContainer, #albumsContainer {
@@ -274,9 +274,10 @@ tr.now-playing > td.status > .status-icon {
 #find {
     float: right;
     position: absolute;
-    height: 32px;
-    right: 8px;
-    top: 16px;
+/*    height: 32px;*/
+    padding: 3px ;
+    right: 14px;
+    top: 14px;
 }
 
 #search_icon {
@@ -289,21 +290,22 @@ tr.now-playing > td.status > .status-icon {
 }
 
 #clear_search {
-    width: 16px;
-    height: 16px;
+/*    width: 16px;*/
+/*    height: 16px;*/
     position: absolute;
-    top: 3px;
-    right: 6px;
-    background: url('../images/sprite.png') -272px 0 no-repeat;
+    top: 6px;
+    right: 5px;
+/*    background: url('../images/sprite.png') -272px 0 no-repeat;*/
 }
 
 #query {
     height: 16px;
-    background: #666;
-    border: #555753 2px solid;
-    color: #eeeeec;
-    padding-left: 22px;
-    padding-right: 22px;
+/*    background: #666;*/
+/*    border: #555753 2px solid;*/
+/*    color: #eeeeec;*/
+    padding-left: 6px;
+    margin: 0 22px 0 0;
+/*    padding-right: 22px;*/
 }
 
 /*#controls > li:active {*/

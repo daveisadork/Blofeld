@@ -206,6 +206,7 @@ class WebInterface:
         if True in [True for x in format if x in ['mp3']]:
 #            cherrypy.response.headers['Content-Length'] = '-1'
             if range_request != 'bytes=0-':
+                logger.debug("Got a range request for a file that needs transcoded: %s" % range_request)
                 raise cherrypy.HTTPError(416)
             else:
                 cherrypy.response.headers['Content-Type'] = 'audio/mpeg'
@@ -214,6 +215,7 @@ class WebInterface:
         elif True in [True for x in format if x in ['ogg', 'vorbis', 'oga']]:
 #            cherrypy.response.headers['Content-Length'] = '-1'
             if range_request != 'bytes=0-':
+                logger.debug("Got a range request for a file that needs transcoded: %s" % range_request)
                 raise cherrypy.HTTPError(416)
             else:
                 cherrypy.response.headers['Content-Type'] = 'audio/ogg'
@@ -222,6 +224,7 @@ class WebInterface:
         elif True in [True for x in format if x in ['m4a', 'aac', 'mp4']]:
 #            cherrypy.response.headers['Content-Length'] = '-1'
             if range_request != 'bytes=0-':
+                logger.debug("Got a range request for a file that needs transcoded: %s" % range_request)
                 raise cherrypy.HTTPError(416)
             else:
                 cherrypy.response.headers['Content-Type'] = 'audio/x-m4a'
