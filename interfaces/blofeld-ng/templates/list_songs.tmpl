@@ -1,0 +1,26 @@
+                    <div class="scrollingContainer">
+                        <table id="songs">
+                            <thead class="ui-widget-header ui-corner-all">
+                                <tr class="">
+                                    <th class="status ui-corner-left"></th>
+                                    <th class="track-number">#</th>
+                                    <th class="title">Title</th>
+                                    <th class="genre">Genre</th>
+                                    <th class="artist">Artist</th>
+                                    <th class="album  ui-corner-right">Album</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+#for $song in $songs
+                                <tr class="song" id="$song['id']">
+                                    <td class="status ui-corner-left"></td>
+                                    <td class="track-number">#try#$song['tracknumber']#except# #end try#</td>
+                                    <td class="title">#try#$song['title']#except#Unknown Title#end try#</td>
+                                    <td class="genre">#try##echo ', '.join($song['genre'])##except# #end try#</td>
+                                    <td class="artist">#try#$song['artist']#except#Unknown Artist#end try#</td>
+                                    <td class="album ui-corner-right">#try#$song['album']#except#Unknown Album#end try#</td>
+                                </tr>
+#end for
+                            </tbody>
+                        </table>
+                    </div>

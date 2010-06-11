@@ -1,0 +1,16 @@
+                    <div class="scrollingContainer">
+                        <table id="artists">
+                            <thead class="ui-widget-header">
+                                <tr>
+                                    <th class="ui-corner-all">Artists</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+#for $artist in $artists
+                                <tr class="artist" id="$artist['id']">
+                                    <td class="ui-corner-all">$artist['name']</td>
+                                </tr>
+#end for
+                            </tbody>
+                        </table>
+                    </div>
