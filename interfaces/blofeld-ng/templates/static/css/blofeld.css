@@ -4,9 +4,9 @@ html, html body {
 }
 
 body {
-    background: #2e3436;
+    background: #3c3b37;
 /*    color: #eeeeec;*/
-    padding: 0 6px 0 6px;
+    padding: 0;
 /*    overflow: hidden;*/
 /*    font-family: sans-serif;*/
     font-size: 62.5%;
@@ -38,7 +38,13 @@ img, table, td, th, tr, thead {
 }
 
 #header {
-    padding: 6px 0;
+    padding: 6px 6px 0 6px;
+}
+
+#header-widget {
+    height: 38px;
+    padding: 4px 6px 0 6px;
+    margin: 0;
 }
 
 table {
@@ -58,10 +64,9 @@ h1 {
     background: url('../images/sprite.png') 0 -32px no-repeat;
 }
 
-/*#browser {*/
-/*    height: 100%;*/
-/*    margin: 0;*/
-/*}*/
+#browser {
+    padding-left: 6px;
+}
 
 /*tbody {*/
 /*    height: 100%;*/
@@ -120,10 +125,10 @@ tr.now-playing {
 }
 
 .status {
-    width: 16px;
+    width: 19px;
 }
 
-tr.now-playing > td.status {
+tr.now-playing > td.status > .status-icon {
     width: 16px;
     height: 16px;
     background: url('../images/cp.png') center center no-repeat;
@@ -142,7 +147,7 @@ tr.now-playing > td.status {
 /*    text-align: center;*/
     padding: 0 3px 0 0;
     height: 100%;
-/*    width: 100%;*/
+    width: 100%;
 }
 
 /*#songsContainer {*/
@@ -176,30 +181,31 @@ tr.now-playing > td.status {
 #controls li {
     overflow: hidden;
     text-indent: -9999px;
-	display: block;
+/*	display: inline-block;*/
 	position: absolute;
-	width:32px;
-	height:32px;
-	cursor: pointer;
+	top: 4px;
+/*	width:32px;*/
+/*	height:32px;*/
+/*	cursor: pointer;*/
 }
 
 #skip_back {
-    background: url('../images/sprite.png') 0 0 no-repeat;
+/*    background: url('../images/sprite.png') 0 0 no-repeat;*/
     left:0px;
 }
 
 #pause {
-    background: url('../images/sprite.png') -64px 0 no-repeat;
+/*    background: url('../images/sprite.png') -64px 0 no-repeat;*/
     left: 32px;
 }
 
 #play {
-    background: url('../images/sprite.png') -96px 0 no-repeat;
+/*    background: url('../images/sprite.png') -96px 0 no-repeat;*/
     left: 32px;
 }
 
 #skip_forward {
-    background: url('../images/sprite.png') -128px 0 no-repeat;
+/*    background: url('../images/sprite.png') -128px 0 no-repeat;*/
     left: 64px;
 }
 
@@ -226,6 +232,12 @@ tr.now-playing > td.status {
     overflow: hidden;
 }
 
+#progress-bar {
+/*    height: 16px;*/
+    margin-top: 11px;
+    width: 100%;
+}
+
 #load_progress {
     background: #707070;
     height: 32px;
@@ -244,7 +256,7 @@ tr.now-playing > td.status {
 
 #now_playing {
     position: absolute;
-    color: #888a85;
+/*    color: #888a85;*/
     left: 245px;
     height: 32px;
     width: 50%;
@@ -256,15 +268,15 @@ tr.now-playing > td.status {
 }
 
 #np_title, #np_artist, #np_album {
-    color: #eeeeec;
+/*    color: #eeeeec;*/
 }
 
 #find {
     float: right;
     position: absolute;
     height: 32px;
-    right: 0px;
-    top: 11px;
+    right: 8px;
+    top: 16px;
 }
 
 #search_icon {

@@ -4,21 +4,24 @@
         <title>Blofeld</title>
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
         <link type="text/css" rel="stylesheet" href="./static/css/blofeld.css">
-        <link type="text/css" rel="stylesheet" href="http://jqueryui.com/themes/base/ui.all.css" />
+        <link type="text/css" rel="stylesheet" href="http://jqueryui.com/themes/base/jquery.ui.all.css" />
         <script type="text/javascript" src="./static/js/jquery-1.4.2.min.js"></script>
         <script type="text/javascript" src="./static/js/jquery.layout.min-1.2.0.js"></script>
         <script type="text/javascript" src="./static/js/jquery.jplayer.min.js"></script>
         <script type="text/javascript" src="./static/js/jquery.lightbox-0.5.mod.js"></script>
+        <script type="text/javascript" src="./static/js/jquery-ui-1.8.2.custom.min.js"></script>
         <script type="text/javascript" src="./static/js/blofeld.js"></script>
         <link type="image/x-icon" rel="shortcut icon" href="./static/images/favicon.ico">
     </head>
     <body>
-        <div id="wrapper">
+<!--        <div id="wrapper">-->
             <div id="sidebar">
+                
                 <script type="text/javascript" src="http://jqueryui.com/themeroller/themeswitchertool/"></script>
                 <div id="switcher"></div>
             </div>
             <div id="header">
+             <div id="header-widget" class="ui-widget ui-widget-content ui-corner-all">
                 <div><h1>Blofeld</h1></div>
                 <div id="player_container">
                     <ul id="controls">
@@ -28,16 +31,17 @@
                         <li id="skip_forward">forward</li>
                     </ul>
                     <div id="progress">
-                        <div id="progress_bar">
-                            <div id="load_progress">
-                                <div id="play_head"></div>
-                            </div>
-                        </div>
+<!--                        <div id="progress_bar">-->
+<!--                            <div id="load_progress">-->
+<!--                                <div id="play_head"></div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+                        <div id="progress-bar"></div>
                         <div id="play_status"></div>
                     </div>
                     <div id="now_playing">
                         <div id="cover_art"></div>
-                        <span id="np_title"></span><br>by <span id="np_artist"></span> from <span id="np_album"></span>
+                        <span id="np_title"></span><br><span class="ui-state-disabled">by</span> <span id="np_artist"></span> <span class="ui-state-disabled">from</span> <span id="np_album"></span>
                     </div>
                 </div>
                 <div id="find">
@@ -48,6 +52,7 @@
                     </form>
                 </div>
             </div>
+            </div>
             <div id="browser">
                 <div id="artistsContainer" class="ui-widget ui-widget-content ui-corner-left"></div>
                 <div id="albumsContainer" class="ui-widget ui-widget-content ui-corner-left"></div>
@@ -56,7 +61,7 @@
             <div id="footer">
                 
             </div>
-        </div>
+<!--        </div>-->
         <div id="player"></div>
     </body>
 </html>

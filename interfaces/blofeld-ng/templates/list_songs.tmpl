@@ -13,7 +13,7 @@
                             <tbody>
 #for $song in $songs
                                 <tr class="song" id="$song['id']">
-                                    <td class="status ui-corner-left"></td>
+                                    <td class="status ui-corner-left"><div class="status-icon"></div></td>
                                     <td class="track-number">#try#$song['tracknumber']#except# #end try#</td>
                                     <td class="title">#try#$song['title']#except#Unknown Title#end try#</td>
                                     <td class="genre">#try##echo ', '.join($song['genre'])##except# #end try#</td>

@@ -148,8 +148,10 @@ var setupPlayer = function () {
     .jPlayer("cssId", "play", "play")
     .jPlayer("cssId", "pause", "pause")
     .jPlayer("onProgressChange", function(loadPercent, playedPercentRelative, playedPercentAbsolute, playedTime, totalTime) {
-        $('#load_progress').width(loadPercent)
-        $('#play_head').width(playedPercentRelative)
+//        $('#load_progress').width(loadPercent)
+//        $('#play_head').width(playedPercentRelative)
+        $('#progress-bar').slider('option', 'value', parseInt(playedPercentAbsolute))
+        $('#progress-bar').progressbar('option', 'value', parseInt(loadPercent))
 //        var myPlayedTime = new Date(playedTime);
 //        var ptMin = (myPlayedTime.getUTCMinutes() < 10) ? "0" + myPlayedTime.getUTCMinutes() : myPlayedTime.getUTCMinutes();
 //        var ptSec = (myPlayedTime.getUTCSeconds() < 10) ? "0" + myPlayedTime.getUTCSeconds() : myPlayedTime.getUTCSeconds();
@@ -195,13 +197,14 @@ var find = function () {
 
 $(document).ready(function() {
     
-    mainLayout = $('#wrapper').layout({
+    mainLayout = $('body').layout({
         center__paneSelector:   "#songsContainer",
-        east__onresize:       "browserLayout.resizeAll",
+//        center__contentSelector:".ui-layout-content",
+        west__onresize:         "browserLayout.resizeAll",
         north__paneSelector:    "#header",
         north__closable:        false,
         north__resizable:       false,
-        north__size:            38,
+        north__size:            50,
         north__spacing_open:    8,
         south__paneSelector:    "#footer",
         south__closable:        true,
@@ -213,13 +216,16 @@ $(document).ready(function() {
         east__paneSelector:     '#sidebar',
         east__closable:         'true',
         west__paneSelector:     "#browser",
+//        west__contentSelector:  ".ui-layout-content",
 //        applyDefaultStyles:     true,
     })
 
     browserLayout = $('#browser').layout({
         minSize:                100,
         center__paneSelector:   "#albumsContainer",
+//        center__contentSelector:".ui-layout-content",
         north__paneSelector:    "#artistsContainer",
+//        north__contentSelector: ".ui-layout-content",
         north__size:            250,
         north__resizable:       true,
         north__spacing_open:    8,
@@ -293,6 +299,32 @@ $(document).ready(function() {
         listAlbums(selectedArtists, $('#query').val())
         listSongs(selectedArtists, null, $('#query').val())
     })
+    $("#skip_back").button({
+        icons: {
+            primary: 'ui-icon-seek-first'
+        },
+        text: false
+    })
+    $("#play").button({
+        icons: {
+            primary: 'ui-icon-play'
+        },
+        text: false
+    })
+    $("#pause").button({
+        icons: {
+            primary: 'ui-icon-pause'
+        },
+        text: false
+    })
+    $("#skip_forward").button({
+        icons: {
+            primary: 'ui-icon-seek-end'
+        },
+        text: false
+    })
+    $("#progress-bar").slider()
+    $("#progress-bar").progressbar()
 })
 
 
