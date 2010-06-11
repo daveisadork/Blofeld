@@ -42,7 +42,7 @@ img, table, td, th, tr, thead {
 }
 
 #header-widget {
-    height: 38px;
+    height: 39px;
     padding: 4px 6px 0 6px;
     margin: 0;
 }
@@ -135,7 +135,7 @@ tr.now-playing > td.status > .status-icon {
 }
 
 #songsContainer, #artistsContainer, #albumsContainer {
-    padding: 3px;
+    padding: 0 6px 3px 0;
 /*    overflow-y: scroll;*/
 /*    overflow-x: hidden;*/
 /*    background: #666;*/
@@ -145,7 +145,7 @@ tr.now-playing > td.status > .status-icon {
     overflow-y: scroll;
     overflow-x: hidden;
 /*    text-align: center;*/
-    padding: 0 3px 0 0;
+    padding: 3px 3px 0 3px;
     height: 100%;
     width: 100%;
 }
