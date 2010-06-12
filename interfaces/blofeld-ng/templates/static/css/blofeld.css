@@ -294,7 +294,7 @@ tr.now-playing > td.status > .status-icon {
 /*    height: 16px;*/
     position: absolute;
     top: 6px;
-    right: 5px;
+    right: 6px;
 /*    background: url('../images/sprite.png') -272px 0 no-repeat;*/
 }
 
@@ -304,7 +304,7 @@ tr.now-playing > td.status > .status-icon {
 /*    border: #555753 2px solid;*/
 /*    color: #eeeeec;*/
     padding-left: 6px;
-    margin: 0 22px 0 0;
+    margin: 0 25px 0 0;
 /*    padding-right: 22px;*/
 }
 
