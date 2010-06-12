@@ -268,22 +268,22 @@ $(document).ready(function() {
     })
     $('#songs .song').live("click", function (event) {
         if (!event.ctrlKey) {
-            $('.song.ui-state-highlight').removeClass('ui-state-highlight')
+            $('.song.ui-state-default').removeClass('ui-state-default')
         }
-        $(this).toggleClass('ui-state-highlight')
+        $(this).toggleClass('ui-state-default')
     })
     $('#albums .album').live("click", function (event) {
         selectedArtists = []
-        $('.artist.ui-state-highlight').each(function () {
+        $('.artist.ui-state-default').each(function () {
             selectedArtists.push($(this).attr('id'))
         })
         selectedAlbums = []
         if (!event.ctrlKey) {
-            $('.album.ui-state-highlight').removeClass('ui-state-highlight')
+            $('.album.ui-state-default').removeClass('ui-state-default')
         }
-        $(this).toggleClass('ui-state-highlight')
+        $(this).toggleClass('ui-state-default')
         
-        $('.album.ui-state-highlight').each(function () {
+        $('.album.ui-state-default').each(function () {
             selectedAlbums.push($(this).attr('id'))
         })
         listSongs(selectedArtists, selectedAlbums, $('#query').val())
@@ -295,10 +295,10 @@ $(document).ready(function() {
     $('#artists .artist').live("click", function (event) {
         selectedArtists = []
         if (!event.ctrlKey) {
-            $('.artist.ui-state-highlight').removeClass('ui-state-highlight')
+            $('.artist.ui-state-default').removeClass('ui-state-default')
         }
-        $(this).toggleClass('ui-state-highlight')
-        $('.artist.ui-state-highlight').each(function () {
+        $(this).toggleClass('ui-state-default')
+        $('.artist.ui-state-default').each(function () {
             selectedArtists.push($(this).attr('id'))
         })
         listAlbums(selectedArtists, $('#query').val())
