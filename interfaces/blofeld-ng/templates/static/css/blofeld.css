@@ -75,7 +75,7 @@ img.loading {
     width: 2.3em;
 }
 
-.time {
+.time, .year {
     width: 4em;
 }
 
@@ -175,4 +175,8 @@ img.loading {
     height: 16px;
     padding-left: 4px;
     margin: 0;
+}
+
+#sidebar-toggler {
+    background: red;
 }
