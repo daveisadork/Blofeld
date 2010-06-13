@@ -23,13 +23,7 @@ var playSong = function (songIndex) {
     $('.now-playing').removeClass('now-playing')
     $('#' + song).addClass('now-playing')
     $('.now-playing > .status > .status-icon, .status > .ui-icon').addClass('ui-icon ui-icon-volume-on')
-//    $('.song').removeClass('now-playing');
-//    $('.now-playing').removeClass('now-playing');
-//    $('.status > .ui-icon-volume-on').removeClass('ui-icon').removeClass('ui-icon-volume-on');
-//    $('#' + song).addClass('now-playing');
-//    $('.now-playing > .status > .status-icon').addClass('ui-icon').addClass('ui-icon-volume-on');
     $("#now_playing, #progress").show();
-//    $("#songsContainer .scrollingContainer").scrollTo($('#'+song), 0, {offset:-(Math.floor($("#songsContainer").height() / 2)-10)});
     activeSong = song;
 }
 
@@ -108,10 +102,11 @@ var listSongs = function (artists, albums, query, play) {
 //                sortList: [[4,0], [5,0], [1,0]]
 //            }); 
             playlist = []
-            playingCurrently = null
+//            playingCurrently = null
             $('.song').each(function (index) {
                 playlist.push($(this).attr('id'))
             })
+            playingCurrently = playlist.indexOf(activeSong)
             $('#' + activeSong).addClass('now-playing')
             if ($('#player').jPlayer("getData", "diag.isPlaying")) {
                 $('.now-playing > .status > .status-icon').addClass('ui-icon ui-icon-volume-on')

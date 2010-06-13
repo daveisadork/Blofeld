@@ -75,6 +75,10 @@ img.loading {
     width: 2.3em;
 }
 
+.time {
+    width: 4em;
+}
+
 #albums tr, #artists tr, #songs tr {
     height: 2em;
 }

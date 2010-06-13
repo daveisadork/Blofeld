@@ -7,7 +7,8 @@
                                     <th class="title">Title</th>
                                     <th class="genre">Genre</th>
                                     <th class="artist">Artist</th>
-                                    <th class="album  ui-corner-right">Album</th>
+                                    <th class="album">Album</th>
+                                    <th class="time ui-corner-right">Time</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -18,7 +19,11 @@
                                     <td class="title">#try#$song['title']#except#Unknown Title#end try#</td>
                                     <td class="genre">#try##echo ', '.join($song['genre'])##except# #end try#</td>
                                     <td class="artist">#try#$song['artist']#except#Unknown Artist#end try#</td>
-                                    <td class="album ui-corner-right">#try#$song['album']#except#Unknown Album#end try#</td>
+                                    <td class="album">#try#$song['album']#except#Unknown Album#end try#</td>
+                                    <td class="time ui-corner-right">#try#
+                                    #echo '%d:%02d' % ($song['length'] / 60, $song['length'] % 60)#
+                                    #except# 
+                                    #end try#</td>
                                 </tr>
 #end for
                             </tbody>
