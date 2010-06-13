@@ -1,6 +1,6 @@
 var mainLayout, browserLayout;
 var global_loadPercent = 0;
-var loadingImage = "<div class='scrollingContainer'><img src='static/images/loading.gif' alt='loading...' class='loading'></div>";
+var loadingImage = '<div class="scrollingContainer"><table id="artists"><thead class="ui-widget-header"><th class="ui-corner-all"><center>Loading...</center></th></tr></thead></table></div>';
 var playlist = []
 var selectedAlbums = []
 var selectedArtists = []
@@ -13,14 +13,16 @@ var playSong = function (songIndex) {
     song = playlist[songIndex];
     playingCurrently = songIndex;
     $("#player").jPlayer('setFile', 'get_song?format=mp3&songid=' + song, 'get_song?format=ogg&songid=' + song).jPlayer("play");
-    $('#cover_art').html('<a href="get_cover?size='+ Math.floor(document.body.clientHeight * 0.75) + '&songid=' + song + '" id="cover_link"><img src="get_cover?size=32&songid=' + song + '" width="32" height="32" onload="$(\'#cover_link\').show()"></a>')
+//    $('#cover_art').html('<a href="get_cover?size='+ Math.floor(document.body.clientHeight * 0.75) + '&songid=' + song + '" id="cover_link"><img src="get_cover?size=32&songid=' + song + '" width="32" height="32" onload="$(\'#cover_link\').show()"></a>')
+        $('#cover_art').html('<img id="cover-img" "src="get_cover?size=32&songid=' + song + '" width="32" height="32">')
     $('#cover_link').hide()
-    $('#cover_art > a').lightBox({imageLoading:'static/images/loading.gif', songid:song});
     $('#np_title').html($('#' + song + ' .title').html())
     $('#np_artist').html($('#' + song + ' .artist').html())
     $('#np_album').html($('#' + song + ' .album').html());
-    $('.now-playing, #' + song).toggleClass('now-playing')
-    $('.now-playing > .status > .status-icon, .status > .ui-icon').toggleClass('ui-icon ui-icon-volume-on')
+    $('.now-playing > .status > .status-icon, .status > .ui-icon').removeClass('ui-icon ui-icon-volume-on ui-icon-volume-off')
+    $('.now-playing').removeClass('now-playing')
+    $('#' + song).addClass('now-playing')
+    $('.now-playing > .status > .status-icon, .status > .ui-icon').addClass('ui-icon ui-icon-volume-on')
 //    $('.song').removeClass('now-playing');
 //    $('.now-playing').removeClass('now-playing');
 //    $('.status > .ui-icon-volume-on').removeClass('ui-icon').removeClass('ui-icon-volume-on');
@@ -105,16 +107,17 @@ var listSongs = function (artists, albums, query, play) {
 //                sortForce: [[4,0], [5,0], [1,0]],
 //                sortList: [[4,0], [5,0], [1,0]]
 //            }); 
-            $("#songs tr:odd").addClass('tinted')
             playlist = []
             playingCurrently = null
             $('.song').each(function (index) {
                 playlist.push($(this).attr('id'))
             })
-            try {
-                playingCurrently = playlist.indexOf(activeSong)
-                $('#' + activeSong).addClass('now-playing')
-            } catch (err) {}
+            $('#' + activeSong).addClass('now-playing')
+            if ($('#player').jPlayer("getData", "diag.isPlaying")) {
+                $('.now-playing > .status > .status-icon').addClass('ui-icon ui-icon-volume-on')
+            } else {
+                $('.now-playing > .status > .status-icon').addClass('ui-icon ui-icon-volume-off')
+            }
             if (play) {
                 playSong(0)
             }
@@ -218,16 +221,13 @@ $(document).ready(function() {
         west__onresize:         "browserLayout.resizeAll",
         north__paneSelector:    "#header",
         north__closable:        false,
-        north__resizable:       false,
-        north__size:            50,
-        north__spacing_open:    8,
+//        north__resizable:       false,
+        north__size:            'auto',
         south__paneSelector:    "#footer",
         south__closable:        true,
         south__resizable:       false,
         south__initClosed:      true,
         south__size:            'auto',
-        south__spacing_closed:  8,
-        south__spacing_open:    8,
         east__paneSelector:     '#sidebar',
         east__closable:         true,
         east__initClosed:       true,
@@ -244,7 +244,6 @@ $(document).ready(function() {
 //        north__contentSelector: ".ui-layout-content",
         north__size:            250,
         north__resizable:       true,
-        north__spacing_open:    8,
         north__closable:        false,
 //        applyDefaultStyles:     true,
     })

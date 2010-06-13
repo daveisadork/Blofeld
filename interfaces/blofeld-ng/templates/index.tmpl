@@ -8,63 +8,57 @@
         <script type="text/javascript" src="./static/js/jquery-1.4.2.min.js"></script>
         <script type="text/javascript" src="./static/js/jquery.layout.min-1.2.0.js"></script>
         <script type="text/javascript" src="./static/js/jquery.jplayer.min.js"></script>
-        <script type="text/javascript" src="./static/js/jquery.lightbox-0.5.mod.js"></script>
         <script type="text/javascript" src="./static/js/jquery-ui-1.8.2.custom.min.js"></script>
         <script type="text/javascript" src="./static/js/blofeld.js"></script>
         <link type="image/x-icon" rel="shortcut icon" href="./static/images/favicon.ico">
     </head>
     <body class="ui-state-default">
-<!--        <div id="wrapper">-->
-            <div id="sidebar">
-                
-                <script type="text/javascript" src="http://jqueryui.com/themeroller/themeswitchertool/"></script>
-                <div id="switcher"></div>
-            </div>
-            <div id="header">
-             <div id="header-widget" class="ui-widget ui-widget-content ui-corner-all">
-                <div><h1>Blofeld</h1></div>
-                <div id="player_container">
-                    <ul id="controls">
-                        <li id="skip_back" >back</li>
-                        <li id="play">play</li>
-                        <li id="pause">pause</li>
-                        <li id="skip_forward">forward</li>
-                    </ul>
-                    <div id="progress">
-<!--                        <div id="progress_bar">-->
-<!--                            <div id="load_progress">-->
-<!--                                <div id="play_head"></div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-                        
-                        <div id="progress-bar"></div>
-                        
-                        <div id="play_status"></div>
-                    </div>
-                    <div id="now_playing">
-                        <div id="cover_art"></div>
-                        <span id="np_title"></span><br><span class="ui-state-disabled">by</span> <span id="np_artist"></span> <span class="ui-state-disabled">from</span> <span id="np_album"></span>
-                    </div>
+        <div id="header">
+            <div id="header-widget" class="ui-widget ui-widget-content ui-corner-all">
+<!--                <div id="logo">-->
+<!--                    <h1>Blofeld</h1>-->
+<!--                </div>-->
+                <div id="controls">
+                    <div id="skip_back" >back</div>
+                    <div id="play">play</div>
+                    <div id="pause">pause</div>
+                    <div id="skip_forward">forward</div>
                 </div>
+                <div id="progress">
+                    <div id="progress-bar"></div>
+                </div>
+                <table id="now_playing">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div  id="cover_art"></div>
+                                </td>
+                            <td id="now-playing-text">
+                                <span id="np_title"></span><br><span class="ui-state-disabled">by</span> <span id="np_artist"></span> <span class="ui-state-disabled">from</span> <span id="np_album"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
                 <div id="find" class="ui-widget ui-widget-content ui-state-default ui-corner-all">
-                    <form name="find" action="javascript:find()" autocomplete="off" >
-<!--                        <div id="search_icon"></div>-->
-<!--                        <div id="clear_search"></div>-->
+                    <form name="find" action="javascript:find()" autocomplete="off">
+                        <label for="query">
+                            <div id="clear-search" class="ui-icon ui-icon-circle-close"></div>
+                        </label>
                         <input type="text" name="query" id="query" class="ui-corner-all">
                     </form>
-                    <div id="clear_search" class="ui-icon ui-icon-circle-close"></div>
                 </div>
             </div>
-            </div>
-            <div id="browser">
-                <div id="artistsContainer" class="ui-widget ui-widget-content ui-corner-left"></div>
-                <div id="albumsContainer" class="ui-widget ui-widget-content ui-corner-left"></div>
-            </div>
-            <div id="songsContainer" class="ui-widget ui-widget-content ui-corner-left"></div>
-            <div id="footer">
-                
-            </div>
-<!--        </div>-->
+        </div>
+        <div id="browser">
+            <div id="artistsContainer" class="ui-widget ui-widget-content ui-corner-left"></div>
+            <div id="albumsContainer" class="ui-widget ui-widget-content ui-corner-left"></div>
+        </div>
+        <div id="songsContainer" class="ui-widget ui-widget-content ui-corner-left"></div>
+        <div id="sidebar">
+            <script type="text/javascript" src="http://jqueryui.com/themeroller/themeswitchertool/"></script>
+            <div id="switcher"></div>
+        </div>
+        <div id="footer"></div>
         <div id="player"></div>
     </body>
 </html>
