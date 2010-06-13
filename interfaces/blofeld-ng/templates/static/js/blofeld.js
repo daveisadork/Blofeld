@@ -256,7 +256,7 @@ $(document).ready(function() {
     listAlbums();
     listSongs();
     $('#switcher').themeswitcher()
-    $('#clear_search').click(function () {
+    $('#clear-search').click(function () {
         $('#query').val('');
         find();
     }).hover
