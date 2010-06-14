@@ -164,11 +164,6 @@ img.loading {
     font-weight: bold;
 }
 
-#np_title, #np_artist, #np_alubm {}
-    overflow: hidden;
-    text-overflow: ellipsize;
-}
-
 #find {
     float: right;
     margin: 6px 0;
