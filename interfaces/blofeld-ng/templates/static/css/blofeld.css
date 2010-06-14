@@ -11,11 +11,6 @@ body {
     margin: 0;
 }
 
-#footer {
-    padding: 0 0 6px 0;
-    text-align: center;
-}
-
 img, table, td, th, tr, thead {
     border: none;
 }
@@ -30,6 +25,14 @@ img, table, td, th, tr, thead {
     clear: right;
     margin: 0;
     line-height: 0px;
+}
+
+#sidebar {
+    padding: 0 6px 2px 0;
+}
+
+#sidebar-widget {
+    padding: 3px;
 }
 
 table {
@@ -118,7 +121,7 @@ img.loading {
 
 #controls > div {
     display: inline-block;
-    overflow: hidden;
+/*    overflow: hidden;*/
 }
 
 #progress {
@@ -137,6 +140,7 @@ img.loading {
     height: 32px;
     width: 50%;
     overflow: hidden;
+    text-overflow: ellipsis;
     vertical-align: middle;
 }
 

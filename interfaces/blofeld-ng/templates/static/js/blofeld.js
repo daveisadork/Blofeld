@@ -336,6 +336,18 @@ $(document).ready(function() {
             }
         }
     })
+    $('#repeat-button').button({
+        icons: {
+            primary: 'ui-icon-refresh'
+        },
+        text: false
+    })
+    $('#shuffle-button').button({
+        icons: {
+            primary: 'ui-icon-shuffle'
+        },
+        text: false
+    })
 })
 
 
