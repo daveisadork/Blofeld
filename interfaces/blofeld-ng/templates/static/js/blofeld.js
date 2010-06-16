@@ -125,10 +125,31 @@ var listSongs = function (artists, albums, query, play) {
 
 var playNextSong = function () {
     if (playingCurrently != null) {
-        if (playingCurrently < playlist.length - 1) {
+//        $("#debug-output").html(playlist.join('<br>'))
+        if ($('#repeat-button:checked').val() != null) {
+            if ($('#shuffle-button:checked').val() != null) {
+                if (playlist.length == 0) {
+                    $('.song').each(function (index) {
+                        playlist.push($(this).attr('id'))
+                    })
+                    playingCurrently = playlist.indexOf(activeSong)
+                }
+                randomTrack = Math.floor(Math.random() * playlist.length)
+                playSong(randomTrack)
+                playlist.splice(randomTrack, 1)
+            } else if (playingCurrently < playlist.length - 1) {
+                playSong(playingCurrently + 1);
+            } else {
+                playSong(0)
+            }
+        } else if (playlist.length == 0) {
+            stopPlayback();
+        } else if ($('#shuffle-button:checked').val() != null) {
+            randomTrack = Math.floor(Math.random() * playlist.length)
+            playSong(randomTrack)
+            playlist.splice(randomTrack, 1)
+        } else if (playingCurrently < playlist.length - 1) {
             playSong(playingCurrently + 1);
-        } else if ($('#repeat-button:checked').val() != null) {
-            playSong(0)
         } else {
             stopPlayback();
         }
@@ -269,6 +290,12 @@ $(document).ready(function() {
     $("#progress").hide();
 //    $("#song-list-warning").hide();
     $('#songs .song').live("dblclick", function () {
+        if ($('#shuffle-button:checked').val() != null) {
+            playlist = []
+            $('.song').each(function (index) {
+                playlist.push($(this).attr('id'))
+            })
+        }
         playSong(playlist.indexOf($(this).attr('id')))
     })
     $('#songs .song').live("click", function (event) {
@@ -292,10 +319,6 @@ $(document).ready(function() {
             selectedAlbums.push($(this).attr('id'))
         })
         listSongs(selectedArtists, selectedAlbums, $('#query').val())
-    })
-    $('#albums .album').live("dblclick", function () {
-//        listSongs(artists, selectedAlbums, $('#query').val(), true)
-        playSong(0)
     })
     $('#artists .artist').live("click", function (event) {
         selectedArtists = []
@@ -337,6 +360,14 @@ $(document).ready(function() {
             primary: 'ui-icon-shuffle'
         },
         text: false
+    }).click(function() {
+        if ($('#shuffle-button:checked').val() == null) {
+            playlist = []
+            $('.song').each(function (index) {
+                playlist.push($(this).attr('id'))
+            })
+            playingCurrently = playlist.indexOf(activeSong)
+        }
     })
     $("#play").button({
         icons: {
