@@ -25,7 +25,7 @@ var playSong = function (songIndex) {
     $('.now-playing').removeClass('now-playing');
     $('#' + song).addClass('now-playing');
     $('.now-playing > .status > .status-icon, .status > .ui-icon').addClass('ui-icon ui-icon-volume-on');
-    $("#now-playing, #progress").show();
+    $("#now-playing, #progress-bar").show();
     activeSong = song;
 };
 
@@ -116,7 +116,7 @@ var stopPlayback = function () {
     activeSong = null;
     $("#jplayer").jPlayer("stop");
     $("#now-playing").hide();
-    $("#progress").hide();
+    $("#progress-bar").hide();
     $('.now-playing > .status > .status-icon, .status > .ui-icon').removeClass('ui-icon ui-icon-volume-on ui-icon-volume-off');
     $('.now-playing').removeClass('now-playing');
 };
@@ -258,6 +258,7 @@ $(document).ready(function () {
     setupPlayer();
     disableSelection(document.getElementById("browser"));
     disableSelection(document.getElementById("songs-container"));
+    disableSelection(document.getElementById("controls"));
     disableSelection(document.getElementById("progress-bar"));
 
     listArtists();
@@ -269,7 +270,7 @@ $(document).ready(function () {
         find();
     });
     $("#now-playing").hide();
-    $("#progress").hide();
+    $("#progress-bar").hide();
     $('#songs .song').live("dblclick", function () {
         if ($('#shuffle-button:checked').val() !== null) {
             playlist = [];
