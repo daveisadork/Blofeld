@@ -101,7 +101,7 @@ var listSongs = function (artists, albums, query, play) {
                 playlist.push($(this).attr('id'));
             });
             if (playingCurrently !== null) {
-                playingCurrently = playlist.indexOf(activeSong);
+                playingCurrently = $.inArray(activeSong, playlist);
             }
             $('#' + activeSong).addClass('now-playing');
             if ($('#jplayer').jPlayer("getData", "diag.isPlaying")) {
@@ -135,7 +135,7 @@ var playNextSong = function () {
                     $('.song').each(function (index) {
                         playlist.push($(this).attr('id'));
                     });
-                    playingCurrently = playlist.indexOf(activeSong);
+                    playingCurrently = $.inArray(activeSong, playlist);
                 }
                 randomTrack = Math.floor(Math.random() * playlist.length);
                 playSong(randomTrack);
@@ -352,7 +352,7 @@ $(document).ready(function () {
             $('.song').each(function (index) {
                 playlist.push($(this).attr('id'));
             });
-            playingCurrently = playlist.indexOf(activeSong);
+            playingCurrently = $.inArray(activeSong, playlist);
         }
     });
     $("#play-button").button({
