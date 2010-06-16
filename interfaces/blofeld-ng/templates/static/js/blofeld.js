@@ -380,7 +380,7 @@ $(document).ready(function () {
         },
         text: false
     });
-    $('#bitrate').slider({
+    $('#bitrate-slider').slider({
         value: 7,
         min: 0,
         max: 7,
