@@ -153,6 +153,10 @@ img.loading {
     padding: 0;
 }
 
+#bitrate {
+    width: 200px;
+}
+
 #progress {
     display: inline-block;
     width: 100px;
@@ -199,6 +203,10 @@ img.loading {
     height: 32px;
     margin: 0;
     padding: 0;
+}
+
+#options {
+/*    float: right;*/
 }
 
 #find {
