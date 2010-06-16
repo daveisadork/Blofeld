@@ -282,7 +282,7 @@ $(document).ready(function () {
                 playlist.push($(this).attr('id'));
             });
         }
-        playSong(playlist.indexOf($(this).attr('id')));
+        playSong($.inArray($(this).attr('id'), playlist));
     });
     $('#songs .song').live("mousedown", function (event) {
         if (!event.ctrlKey) {
@@ -363,7 +363,7 @@ $(document).ready(function () {
     }).click(function () {
         if (playerState === 'stopped') {
             if (playlist.length > 0) {
-                playSong(playlist.indexOf($('tr.song.ui-state-default').attr('id')));
+                playSong($.inArray($('tr.song.ui-state-default').attr('id'), playlist));
             }
         } else {
             $(".now-playing .ui-icon-volume-off").toggleClass("ui-icon-volume-on ui-icon-volume-off");
