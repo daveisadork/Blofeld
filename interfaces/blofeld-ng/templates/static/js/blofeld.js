@@ -280,13 +280,13 @@ $(document).ready(function () {
         }
         playSong(playlist.indexOf($(this).attr('id')));
     });
-    $('#songs .song').live("click", function (event) {
+    $('#songs .song').live("mousedown", function (event) {
         if (!event.ctrlKey) {
             $('.song.ui-state-default').removeClass('ui-state-default');
         }
         $(this).toggleClass('ui-state-default');
     });
-    $('#albums .album').live("click", function (event) {
+    $('#albums .album').live("mousedown", function (event) {
         selectedArtists = [];
         $('.artist.ui-state-default').each(function () {
             selectedArtists.push($(this).attr('id'));
@@ -302,7 +302,7 @@ $(document).ready(function () {
         });
         listSongs(selectedArtists, selectedAlbums, $('#search-box').val());
     });
-    $('#artists .artist').live("click", function (event) {
+    $('#artists .artist').live("mousedown", function (event) {
         selectedArtists = [];
         if (!event.ctrlKey) {
             $('.artist.ui-state-default').removeClass('ui-state-default');
