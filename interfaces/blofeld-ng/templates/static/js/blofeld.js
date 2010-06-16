@@ -10,6 +10,7 @@ var ajaxQueue = {'artists': null, 'albums': null, 'songs': null};
 var bitrates = [48, 64, 96, 128, 160, 192, 256, 320];
 var bitrate = 320;
 var randomTrack = null;
+var playerState = 'stopped'
 
 var playSong = function (songIndex) {
     $("#progress-bar").slider("disable");
@@ -27,6 +28,7 @@ var playSong = function (songIndex) {
     $('.now-playing > .status > .status-icon, .status > .ui-icon').addClass('ui-icon ui-icon-volume-on');
     $("#now-playing, #progress-bar").show();
     activeSong = song;
+    playerState = 'playing'
 };
 
 var listArtists = function (query) {
@@ -119,19 +121,19 @@ var stopPlayback = function () {
     $("#progress-bar").hide();
     $('.now-playing > .status > .status-icon, .status > .ui-icon').removeClass('ui-icon ui-icon-volume-on ui-icon-volume-off');
     $('.now-playing').removeClass('now-playing');
+    playerState = 'stopped'
 };
 
 var playNextSong = function () {
     if (playingCurrently !== null) {
-        if ($('#repeat-button:checked').val() !== null) {
-            if ($('#shuffle-button:checked').val() !== null) {
+        if ($('#repeat-button:checked').val() != null) {
+            if ($('#shuffle-button:checked').val() != null) {
                 if (playlist.length === 0) {
                     $('.song').each(function (index) {
                         playlist.push($(this).attr('id'));
                     });
                     playingCurrently = playlist.indexOf(activeSong);
                 }
-                playlist.splice(playingCurrently, 1);
                 randomTrack = Math.floor(Math.random() * playlist.length);
                 playSong(randomTrack);
                 playlist.splice(randomTrack, 1);
@@ -142,8 +144,7 @@ var playNextSong = function () {
             }
         } else if (playlist.length === 0) {
             stopPlayback();
-        } else if ($('#shuffle-button:checked').val() !== null) {
-            playlist.splice(playingCurrently, 1);
+        } else if ($('#shuffle-button:checked').val() != null) {
             randomTrack = Math.floor(Math.random() * playlist.length);
             playSong(randomTrack);
             playlist.splice(randomTrack, 1);
@@ -272,7 +273,7 @@ $(document).ready(function () {
     $("#now-playing").hide();
     $("#progress-bar").hide();
     $('#songs .song').live("dblclick", function () {
-        if ($('#shuffle-button:checked').val() !== null) {
+        if ($('#shuffle-button:checked').val() != null) {
             playlist = [];
             $('.song').each(function (index) {
                 playlist.push($(this).attr('id'));
@@ -343,7 +344,7 @@ $(document).ready(function () {
         },
         text: false
     }).click(function () {
-        if ($('#shuffle-button:checked').val() === null) {
+        if ($('#shuffle-button:checked').val() == null) {
             playlist = [];
             $('.song').each(function (index) {
                 playlist.push($(this).attr('id'));
@@ -357,7 +358,11 @@ $(document).ready(function () {
         },
         text: false
     }).click(function () {
-        $(".now-playing .ui-icon-volume-off").toggleClass("ui-icon-volume-on ui-icon-volume-off");
+        if (playerState === 'stopped') {
+            playSong(playlist.indexOf($('tr.song.ui-state-default').attr('id')))
+        } else {
+            $(".now-playing .ui-icon-volume-off").toggleClass("ui-icon-volume-on ui-icon-volume-off");
+        }
     });
     $("#pause-button").button({
         icons: {
