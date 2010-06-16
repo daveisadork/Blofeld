@@ -100,7 +100,9 @@ var listSongs = function (artists, albums, query, play) {
             $('.song').each(function (index) {
                 playlist.push($(this).attr('id'));
             });
-            playingCurrently = playlist.indexOf(activeSong);
+            if (playingCurrently !== null) {
+                playingCurrently = playlist.indexOf(activeSong);
+            }
             $('#' + activeSong).addClass('now-playing');
             if ($('#jplayer').jPlayer("getData", "diag.isPlaying")) {
                 $('.now-playing > .status > .status-icon').addClass('ui-icon ui-icon-volume-on');
@@ -116,6 +118,7 @@ var listSongs = function (artists, albums, query, play) {
 
 var stopPlayback = function () {
     activeSong = null;
+    playingCurrently = null;
     $("#jplayer").jPlayer("stop");
     $("#now-playing").hide();
     $("#progress-bar").hide();
