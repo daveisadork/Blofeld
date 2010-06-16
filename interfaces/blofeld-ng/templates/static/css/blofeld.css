@@ -24,9 +24,11 @@ html, html body {
     z-index: 99;
 }
 
-.splash-screen {
-
+#loading-progress {
+    height: 10px;
+    margin-top: 70px;
 }
+
 
 body {
     background: #3c3b37;
