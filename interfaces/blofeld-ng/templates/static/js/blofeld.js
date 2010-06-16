@@ -213,8 +213,6 @@ var find = function () {
 
 $(document).ready(function() {
     $('#switcher').themeswitcher()
-    $('#loading-progress').progressbar({value: 0})
-    $('#loading-progress').progressbar('option', 'value', 10)
 //    $('#splash-text').show("drop", {}, 2000)
     mainLayout = $('body').layout({
         center__paneSelector:   "#songsContainer",
@@ -236,7 +234,7 @@ $(document).ready(function() {
 //        west__contentSelector:  ".ui-layout-content",
 //        applyDefaultStyles:     true,
     })
-    $('#loading-progress').progressbar('option', 'value', 20)
+    
     browserLayout = $('#browser').layout({
         minSize:                100,
         center__paneSelector:   "#albumsContainer",
@@ -248,19 +246,17 @@ $(document).ready(function() {
         north__closable:        false,
 //        applyDefaultStyles:     true,
     })
-    $('#loading-progress').progressbar('option', 'value', 30)
-    
+
     setupPlayer();
-    $('#loading-progress').progressbar('option', 'value', 40)
     disableSelection(document.getElementById("browser"))
     disableSelection(document.getElementById("songsContainer"))
     disableSelection(document.getElementById("controls"))
     disableSelection(document.getElementById("progress-bar"))
-    $('#loading-progress').progressbar('option', 'value', 50)
+
     listArtists();
     listAlbums();
     listSongs();
-    $('#loading-progress').progressbar('option', 'value', 60)
+
     $('#clear-search').click(function () {
         $('#query').val('');
         find();
@@ -268,7 +264,6 @@ $(document).ready(function() {
     $("#now_playing").hide();
     $("#progress").hide();
 //    $("#song-list-warning").hide();
-    $('#loading-progress').progressbar('option', 'value', 70)
     $('#songs .song').live("dblclick", function () {
         playSong(playlist.indexOf($(this).attr('id')))
     })
@@ -310,7 +305,6 @@ $(document).ready(function() {
         listAlbums(selectedArtists, $('#query').val())
         listSongs(selectedArtists, null, $('#query').val())
     })
-    $('#loading-progress').progressbar('option', 'value', 80)
     $("#skip_back").button({
         icons: {
             primary: 'ui-icon-seek-first'
@@ -339,7 +333,6 @@ $(document).ready(function() {
         },
         text: false
     })
-    $('#loading-progress').progressbar('option', 'value', 90)
     $("#progress-bar").progressbar().slider({
         max: 100,
         animate: true,
@@ -362,13 +355,14 @@ $(document).ready(function() {
         },
         text: false
     })
-    $('#loading-progress').progressbar('option', 'value', 100).fadeOut(500)
-    setTimeout(function(){
-        $("#splash-bg").fadeOut(1000)
-    }, 1500);
-    setTimeout(function(){
-        $("#splash-text").fadeOut(1500)
-    }, 2000);
+    $('#splash-bg, #splash-text').fadeOut()
+//    $('#loading-progress').fadeOut(500)
+//    setTimeout(function(){
+//        $("#splash-bg").fadeOut(1000)
+//    }, 1500);
+//    setTimeout(function(){
+//        $("#splash-text").fadeOut(1500)
+//    }, 2000);
     
 })
 
