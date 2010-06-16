@@ -4,7 +4,7 @@ html, html body {
 }
 
 #splash-bg {
-    background: inherit;
+    background: black;
     width: 100%;
     height: 100%;
     position: absolute;
@@ -24,13 +24,15 @@ html, html body {
     z-index: 99;
 }
 
-#loading-progress {
-    height: 10px;
-    margin-top: 70px;
-    text-align: center;
-    font-size: 10px;
-    color: white;
-    font-family: sans-serif;
+#background-color {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 0;
+    background-color: inherit;
+    background-image: none;
 }
 
 
@@ -149,11 +151,6 @@ img.loading {
 #controls {
     display: inline-block;
     padding: 0;
-}
-
-#controls > div {
-    display: inline-block;
-/*    overflow: hidden;*/
 }
 
 #progress {

@@ -127,6 +127,8 @@ var playNextSong = function () {
     if (playingCurrently != null) {
         if (playingCurrently < playlist.length - 1) {
             playSong(playingCurrently + 1);
+        } else if ($('#repeat-button:checked').val() != null) {
+            playSong(0)
         } else {
             stopPlayback();
         }
@@ -140,6 +142,8 @@ var stopPlayback = function () {
     $("#player").jPlayer("stop");
     $("#now_playing").hide();
     $("#progress").hide();
+    $('.now-playing > .status > .status-icon, .status > .ui-icon').removeClass('ui-icon ui-icon-volume-on ui-icon-volume-off')
+    $('.now-playing').removeClass('now-playing')
 }
 
 
@@ -311,28 +315,7 @@ $(document).ready(function() {
         },
         text: false
     })
-    $("#play").button({
-        icons: {
-            primary: 'ui-icon-play'
-        },
-        text: false
-    }).click(function () {
-        $(".now-playing .ui-icon-volume-off").toggleClass("ui-icon-volume-on ui-icon-volume-off")
-    })
-    $("#pause").button({
-        icons: {
-            primary: 'ui-icon-pause'
-        },
-        text: false
-    }).click(function () {
-        $(".now-playing .ui-icon-volume-on").toggleClass("ui-icon-volume-on ui-icon-volume-off")
-    })
-    $("#skip_forward").button({
-        icons: {
-            primary: 'ui-icon-seek-end'
-        },
-        text: false
-    })
+
     $("#progress-bar").progressbar().slider({
         max: 100,
         animate: true,
@@ -352,6 +335,28 @@ $(document).ready(function() {
     $('#shuffle-button').button({
         icons: {
             primary: 'ui-icon-shuffle'
+        },
+        text: false
+    })
+    $("#play").button({
+        icons: {
+            primary: 'ui-icon-play'
+        },
+        text: false
+    }).click(function () {
+        $(".now-playing .ui-icon-volume-off").toggleClass("ui-icon-volume-on ui-icon-volume-off")
+    })
+    $("#pause").button({
+        icons: {
+            primary: 'ui-icon-pause'
+        },
+        text: false
+    }).click(function () {
+        $(".now-playing .ui-icon-volume-on").toggleClass("ui-icon-volume-on ui-icon-volume-off")
+    })
+    $("#skip_forward").button({
+        icons: {
+            primary: 'ui-icon-seek-end'
         },
         text: false
     })

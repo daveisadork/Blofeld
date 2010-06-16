@@ -13,10 +13,9 @@
         <link type="image/x-icon" rel="shortcut icon" href="./static/images/favicon.ico">
     </head>
     <body class="ui-state-default">
+        <div id="background-color"></div>
         <div id="splash-bg" class="splash-screen"></div>
-        <div id="splash-text" class="splash-screen">
-            <div id="loading-progress"></div>
-        </div>
+        <div id="splash-text" class="splash-screen"></div>
         <div id="header">
             <div id="header-widget" class="ui-widget ui-widget-content ui-corner-all">
 <!--                <div id="logo">-->
@@ -24,10 +23,15 @@
 <!--                </div>-->
                 
                 <div id="controls">
-                    <div id="skip_back" >back</div>
-                    <div id="play">play</div>
-                    <div id="pause">pause</div>
-                    <div id="skip_forward">forward</div>
+                    <button id="skip_back" >previous</button>
+                    <button id="play">play</button>
+                    <button id="pause">pause</button>
+                    <button id="skip_forward">next</button>
+                    
+                    <label for="repeat-button">Repeat</label>
+                    <input id="repeat-button" type="checkbox"></input>
+<!--                    <label for="shuffle-button">Shuffle</label>-->
+<!--                    <input id="shuffle-button" type="checkbox"></input>-->
                 </div>
                 <div id="progress">
                     <div id="progress-bar"></div>
