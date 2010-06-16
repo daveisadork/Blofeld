@@ -10,7 +10,7 @@ var ajaxQueue = {'artists': null, 'albums': null, 'songs': null};
 var bitrates = [48, 64, 96, 128, 160, 192, 256, 320];
 var bitrate = 320;
 var randomTrack = null;
-var playerState = 'stopped'
+var playerState = 'stopped';
 
 var playSong = function (songIndex) {
     $("#progress-bar").slider("disable");
@@ -28,7 +28,7 @@ var playSong = function (songIndex) {
     $('.now-playing > .status > .status-icon, .status > .ui-icon').addClass('ui-icon ui-icon-volume-on');
     $("#now-playing, #progress-bar").show();
     activeSong = song;
-    playerState = 'playing'
+    playerState = 'playing';
 };
 
 var listArtists = function (query) {
@@ -102,7 +102,7 @@ var listSongs = function (artists, albums, query, play) {
             });
             playingCurrently = playlist.indexOf(activeSong);
             $('#' + activeSong).addClass('now-playing');
-            if ($('#player').jPlayer("getData", "diag.isPlaying")) {
+            if ($('#jplayer').jPlayer("getData", "diag.isPlaying")) {
                 $('.now-playing > .status > .status-icon').addClass('ui-icon ui-icon-volume-on');
             } else {
                 $('.now-playing > .status > .status-icon').addClass('ui-icon ui-icon-volume-off');
@@ -121,7 +121,7 @@ var stopPlayback = function () {
     $("#progress-bar").hide();
     $('.now-playing > .status > .status-icon, .status > .ui-icon').removeClass('ui-icon ui-icon-volume-on ui-icon-volume-off');
     $('.now-playing').removeClass('now-playing');
-    playerState = 'stopped'
+    playerState = 'stopped';
 };
 
 var playNextSong = function () {
@@ -359,7 +359,9 @@ $(document).ready(function () {
         text: false
     }).click(function () {
         if (playerState === 'stopped') {
-            playSong(playlist.indexOf($('tr.song.ui-state-default').attr('id')))
+            if (playlist.length > 0) {
+                playSong(playlist.indexOf($('tr.song.ui-state-default').attr('id')));
+            }
         } else {
             $(".now-playing .ui-icon-volume-off").toggleClass("ui-icon-volume-on ui-icon-volume-off");
         }
@@ -386,7 +388,6 @@ $(document).ready(function () {
         slide: function (event, ui) {
             bitrate = bitrates[ui.value];
             $("#amount").html(bitrate);
-            
         }
     });
     $('#options').button({
@@ -395,8 +396,6 @@ $(document).ready(function () {
         },
         text: false
     });
-    $('#splash-background, #splash-text').fadeOut();
-
+    $('.splash-screen').fadeOut();
 });
-
 
