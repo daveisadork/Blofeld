@@ -3,12 +3,38 @@ html, html body {
     margin: 0;
 }
 
+#splash-bg {
+    background: black;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 98;
+}
+
+#splash-text {
+    background-image: url('../images/logo.png');
+    width: 300px;
+    height: 70px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -35px 0 0 -150px;
+    z-index: 99;
+}
+
+.splash-screen {
+
+}
+
 body {
     background: #3c3b37;
     padding: 0;
     font-size: 62.5%;
     height: 100%;
     margin: 0;
+    overflow: hidden;
 }
 
 img, table, td, th, tr, thead {
@@ -164,9 +190,19 @@ img.loading {
     font-weight: bold;
 }
 
+#spacer {
+    display: inline-block;
+    width: 0px;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+}
+
 #find {
     float: right;
-    margin: 6px 0;
+    position: relative;
+    top: 1px;
+    margin: 7px 0;
     padding: 3px;
 }
 

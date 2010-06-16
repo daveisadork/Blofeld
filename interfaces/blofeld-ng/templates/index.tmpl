@@ -13,11 +13,14 @@
         <link type="image/x-icon" rel="shortcut icon" href="./static/images/favicon.ico">
     </head>
     <body class="ui-state-default">
+        <div id="splash-bg" class="splash-screen"></div>
+        <div id="splash-text" class="splash-screen"></div>
         <div id="header">
             <div id="header-widget" class="ui-widget ui-widget-content ui-corner-all">
 <!--                <div id="logo">-->
 <!--                    <h1>Blofeld</h1>-->
 <!--                </div>-->
+                
                 <div id="controls">
                     <div id="skip_back" >back</div>
                     <div id="play">play</div>
@@ -39,6 +42,7 @@
                         </tr>
                     </tbody>
                 </table>
+                <div id="spacer"></div>
                 <div id="find" class="ui-widget ui-widget-content ui-state-default ui-corner-all">
                     <form name="find" action="javascript:find()" autocomplete="off">
                         <label for="query">

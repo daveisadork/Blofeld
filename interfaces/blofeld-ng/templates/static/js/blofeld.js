@@ -81,6 +81,9 @@ var listSongs = function (artists, albums, query, play) {
         ajaxQueue['songs'].abort()
     }
     options = {'output': 'html'}
+    if (!query && !artists && !albums) {
+        
+    }
     if (query) {
         options['query'] = query
     }
@@ -209,7 +212,8 @@ var find = function () {
 }
 
 $(document).ready(function() {
-    
+    $('#switcher').themeswitcher()
+//    $('#splash-text').show("drop", {}, 2000)
     mainLayout = $('body').layout({
         center__paneSelector:   "#songsContainer",
 //        center__contentSelector:".ui-layout-content",
@@ -247,16 +251,17 @@ $(document).ready(function() {
     disableSelection(document.getElementById("browser"))
     disableSelection(document.getElementById("songsContainer"))
     disableSelection(document.getElementById("controls"))
+    disableSelection(document.getElementById("progress-bar"))
     listArtists();
     listAlbums();
     listSongs();
-    $('#switcher').themeswitcher()
     $('#clear-search').click(function () {
         $('#query').val('');
         find();
     }).hover
     $("#now_playing").hide();
     $("#progress").hide();
+//    $("#song-list-warning").hide();
     $('#songs .song').live("dblclick", function () {
         playSong(playlist.indexOf($(this).attr('id')))
     })
@@ -348,6 +353,14 @@ $(document).ready(function() {
         },
         text: false
     })
+
+    setTimeout(function(){
+        $("#splash-bg").fadeOut(2000)
+    }, 3000);
+    setTimeout(function(){
+        $("#splash-text").fadeOut(3000)
+    }, 4000);
+    
 })
 
 
