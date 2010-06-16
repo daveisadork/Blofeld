@@ -3,7 +3,26 @@ html, html body {
     margin: 0;
 }
 
-#splash-bg {
+body {
+    padding: 0;
+    font-size: 62.5%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+#background-color {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 0;
+    background-color: inherit;
+    background-image: none;
+}
+
+#splash-background {
     background: black;
     width: 100%;
     height: 100%;
@@ -24,31 +43,6 @@ html, html body {
     z-index: 99;
 }
 
-#background-color {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    z-index: 0;
-    background-color: inherit;
-    background-image: none;
-}
-
-
-body {
-    background: #3c3b37;
-    padding: 0;
-    font-size: 62.5%;
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-}
-
-img, table, td, th, tr, thead {
-    border: none;
-}
-
 #header {
     padding: 6px 6px 0 6px;
 }
@@ -61,95 +55,13 @@ img, table, td, th, tr, thead {
     line-height: 0px;
 }
 
-#sidebar {
-    padding: 0 6px 2px 0;
-}
-
-#sidebar-widget {
-    padding: 3px;
-}
-
-table {
-    table-layout: fixed;
-    width: 100%;
-    border-spacing: 0;
-}
-
-#logo {
-    display: inline-block;
-}
-
-h1 {
-/*    float: left;*/
-    display: inline-block;
-    height: 32px;
-    width: 116px;
-    margin: 0;
-    padding: 0;
-    text-indent: -9999px;
-    background: url('../images/sprite.png') 0 -32px no-repeat;
-}
-
-#browser {
-    padding-left: 6px;
-}
-
-td, th {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: left;
-    vertical-align: middle;
-    padding: 3px 5px 3px 5px;
-}
-
-img.loading {
-    position: relative;
-    top: 50%;
-}
-
-.track-number {
-    width: 2.3em;
-}
-
-.time, .year {
-    width: 4em;
-}
-
-#albums tr, #artists tr, #songs tr {
-    height: 2em;
-}
-
-.status {
-    width: 19px;
-}
-
-#songsContainer, #artistsContainer, #albumsContainer {
-    padding: 0 6px 3px 0;
-}
-
-.scrollingContainer {
-    overflow-y: scroll;
-    overflow-x: hidden;
-    text-align: center;
-    padding: 3px 3px 0 3px;
-    height: 100%;
-    width: 100%;
-}
-
-#player_container {
-    overflow: hidden;
-    vertical-align: middle;
-    display: inline-block;
-}
-
 #header-widget > div {
     margin: 0 3px 0 3px;
     vertical-align: middle;
+    display: inline-block;
 }
 
 #controls {
-    display: inline-block;
     padding: 0;
 }
 
@@ -157,32 +69,26 @@ img.loading {
     width: 200px;
 }
 
-#progress {
-    display: inline-block;
+#progress-bar {
     width: 100px;
 }
 
-#progress-bar {
-    display: inline-block;
-    width: 100%;
-}
-
-#now_playing {
+#now-playing {
     display: inline-block;
     margin: 0 0 0 3px;
     height: 32px;
-    width: 50%;
+    width: auto;
     overflow: hidden;
     text-overflow: ellipsis;
     vertical-align: middle;
 }
 
-#now_playing td {
+#now-playing td {
     padding: 0;
     margin: 0;
 }
 
-#cover_art {
+#cover-art {
     margin: 0 6px 0 6px;
     width: 32px;
     height: 32px;
@@ -193,7 +99,7 @@ img.loading {
     line-height: normal;
 }
 
-#np_title {
+#now-playing-title {
     font-weight: bold;
 }
 
@@ -205,11 +111,7 @@ img.loading {
     padding: 0;
 }
 
-#options {
-/*    float: right;*/
-}
-
-#find {
+#search {
     float: right;
     position: relative;
     top: 1px;
@@ -222,10 +124,70 @@ img.loading {
     margin: 3px 0 0 3px;
 }
 
-#query {
+#search-box {
     height: 16px;
     padding-left: 4px;
     margin: 0;
+}
+
+.table-container {
+    padding: 0 6px 3px 0;
+}
+
+.scrolling-container {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    text-align: center;
+    padding: 3px 3px 0 3px;
+    height: 100%;
+    width: 100%;
+}
+
+img, table, td, th, tr, thead {
+    border: none;
+}
+
+table {
+    table-layout: fixed;
+    width: 100%;
+    border-spacing: 0;
+}
+
+td, th {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+    vertical-align: middle;
+    padding: 3px 5px 3px 5px;
+}
+
+.track-number {
+    width: 2.3em;
+}
+
+.time, .year {
+    width: 4em;
+}
+
+.scrolling-container tr {
+    height: 2em;
+}
+
+.status {
+    width: 19px;
+}
+
+#browser {
+    padding-left: 6px;
+}
+
+#sidebar {
+    padding: 0 6px 2px 0;
+}
+
+#sidebar-widget {
+    padding: 3px;
 }
 
 #sidebar-toggler {

@@ -14,80 +14,58 @@
     </head>
     <body class="ui-state-default">
         <div id="background-color"></div>
-        <div id="splash-bg" class="splash-screen"></div>
+        <div id="splash-background" class="splash-screen"></div>
         <div id="splash-text" class="splash-screen"></div>
         <div id="header">
             <div id="header-widget" class="ui-widget ui-widget-content ui-corner-all">
-<!--                <div id="logo">-->
-<!--                    <h1>Blofeld</h1>-->
-<!--                </div>-->
-                
                 <div id="controls">
-                    <button id="skip_back" >previous</button>
-                    <button id="play">play</button>
-                    <button id="pause">pause</button>
-                    <button id="skip_forward">next</button>
-                
+                    <button id="previous-button" >Previous</button>
+                    <button id="play-button">Play</button>
+                    <button id="pause-button">Pause</button>
+                    <button id="next-button">Next</button>
                     <label for="repeat-button">Repeat</label>
                     <input id="repeat-button" type="checkbox">
                     <label for="shuffle-button">Shuffle</label>
                     <input id="shuffle-button" type="checkbox">
                 </div>
-                <div id="progress">
+                <div>
                     <div id="progress-bar"></div>
                 </div>
-                <table id="now_playing">
+                <table id="now-playing">
                     <tbody>
                         <tr>
                             <td>
-                                <div  id="cover_art"></div>
+                                <div  id="cover-art"></div>
                                 </td>
                             <td id="now-playing-text">
-                                <span id="np_title"></span><br><span class="ui-state-disabled">by</span> <span id="np_artist"></span> <span class="ui-state-disabled">from</span> <span id="np_album"></span>
+                                <span id="now-playing-title"></span><br><span class="ui-state-disabled">by</span> <span id="now-playing-artist"></span> <span class="ui-state-disabled">from</span> <span id="now-playing-album"></span>
                             </td>
                         </tr>
                     </tbody>
                 </table>
                 <div id="spacer"></div>
-                <div id="find" class="ui-widget ui-widget-content ui-state-default ui-corner-all">
-                    <form name="find" action="javascript:find()" autocomplete="off">
-                        <label for="query">
+                <div id="search" class="ui-widget ui-widget-content ui-state-default ui-corner-all">
+                    <form action="javascript:find()" autocomplete="off">
+                        <label for="search-box">
                             <div id="clear-search" class="ui-icon ui-icon-circle-close"></div>
                         </label>
-                        <input type="text" name="query" id="query" class="ui-corner-all">
+                        <input type="text" id="search-box" class="ui-corner-all">
                     </form>
                 </div>
             </div>
         </div>
         <div id="browser">
-            <div id="artistsContainer" class="ui-widget ui-widget-content ui-corner-left"></div>
-            <div id="albumsContainer" class="ui-widget ui-widget-content ui-corner-left"></div>
+            <div id="artists-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
+            <div id="albums-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
         </div>
-        <div id="songsContainer" class="ui-widget ui-widget-content ui-corner-left"></div>
+        <div id="songs-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
         <div id="sidebar">
             <script type="text/javascript" src="http://jqueryui.com/themeroller/themeswitchertool/"></script>
             <div id="switcher"></div>
-            
             <div id="bitrate"></div>
             <span id="amount">320</span>kbps
-<!--            <select name="bitrate" id="bitrate">-->
-<!--                <option value="320">320kbps</option>-->
-<!--                <option value="256">256kbps</option>-->
-<!--                <option value="192">192kbps</option>-->
-<!--                <option value="160">160kbps</option>-->
-<!--                <option value="128">128kbps</option>-->
-<!--                <option value="96">96kbps</option>-->
-<!--                <option value="64">64kbps</option>-->
-<!--            </select>-->
         </div>
-        <div id="footer">
-<!--            <div id="footer-widget" class="ui-widget ui-widget-content ui-corner-all">-->
-<!--                <label for="repeat-button">Repeat</label>-->
-<!--                <input id="repeat-button" type="checkbox"></input>-->
-<!--                <label for="shuffle-button">Shuffle</label>-->
-<!--                <input id="shuffle-button" type="checkbox"></input>-->
-<!--            </div>-->
-        </div>
-        <div id="player"></div>
+        <div id="footer"></div>
+        <div id="jplayer"></div>
     </body>
 </html>
