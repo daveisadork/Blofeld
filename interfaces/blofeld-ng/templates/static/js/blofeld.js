@@ -129,8 +129,8 @@ var stopPlayback = function () {
 
 var playNextSong = function () {
     if (playingCurrently !== null) {
-        if ($('#repeat-button:checked').val() != null) {
-            if ($('#shuffle-button:checked').val() != null) {
+        if ($('#repeat-button').is(':checked')) {
+            if ($('#shuffle-button').is(':checked')) {
                 if (playlist.length === 0) {
                     $('.song').each(function (index) {
                         playlist.push($(this).attr('id'));
@@ -147,7 +147,7 @@ var playNextSong = function () {
             }
         } else if (playlist.length === 0) {
             stopPlayback();
-        } else if ($('#shuffle-button:checked').val() != null) {
+        } else if ($('#shuffle-button').is(':checked')) {
             randomTrack = Math.floor(Math.random() * playlist.length);
             playSong(randomTrack);
             playlist.splice(randomTrack, 1);
@@ -276,7 +276,7 @@ $(document).ready(function () {
     $("#now-playing").hide();
     $("#progress-bar").hide();
     $('#songs .song').live("dblclick", function () {
-        if ($('#shuffle-button:checked').val() != null) {
+        if ($('#shuffle-button').is(':checked')) {
             playlist = [];
             $('.song').each(function (index) {
                 playlist.push($(this).attr('id'));
@@ -347,7 +347,7 @@ $(document).ready(function () {
         },
         text: false
     }).click(function () {
-        if ($('#shuffle-button:checked').val() == null) {
+        if (!$('#shuffle-button').is(':checked')) {
             playlist = [];
             $('.song').each(function (index) {
                 playlist.push($(this).attr('id'));
