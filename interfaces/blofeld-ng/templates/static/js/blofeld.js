@@ -17,7 +17,7 @@ var playSong = function (songIndex) {
     var song = playlist[songIndex];
     playingCurrently = songIndex;
     $("#jplayer").jPlayer('setFile', 'get_song?format=mp3&songid=' + song + '&bitrate=' + parseInt(bitrate, 10), 'get_song?format=ogg&songid=' + song + '&bitrate=' + parseInt(bitrate, 10)).jPlayer("play");
-    $('#cover-art').html('<img id="cover-img" "src="get_cover?size=32&songid=' + song + '" width="32" height="32">');
+    $('#cover-art').html('<img id="cover-img" src="get_cover?size=32&songid=' + song + '" width="32" height="32">');
     $('#cover_link').hide();
     $('#now-playing-title').html($('#' + song + ' .title').html());
     $('#now-playing-artist').html($('#' + song + ' .artist').html());
