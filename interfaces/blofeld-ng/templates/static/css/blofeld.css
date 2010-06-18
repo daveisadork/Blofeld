@@ -65,8 +65,8 @@ body {
     padding: 0;
 }
 
-#bitrate {
-    width: 100px;
+#bitrate-container {
+    padding: 0 12px;
 }
 
 #progress-bar {
@@ -93,6 +93,18 @@ body {
     width: 32px;
     height: 32px;
     background: url('../images/sprite.png') -224px 0 no-repeat;
+}
+
+.cover-img {
+    position: absolute;
+}
+
+.cover-img.active {
+    z-index: 100;
+}
+
+.cover-img.inactive {
+    z-index: 99;
 }
 
 #now-playing-text {

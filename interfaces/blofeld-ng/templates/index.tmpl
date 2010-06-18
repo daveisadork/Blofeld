@@ -10,6 +10,7 @@
         <script type="text/javascript" src="./static/js/jquery.jplayer.min.js"></script>
         <script type="text/javascript" src="./static/js/jquery-ui-1.8.2.custom.min.js"></script>
         <script type="text/javascript" src="./static/js/blofeld.js"></script>
+        <script type="text/javascript" src="http://jqueryui.com/themeroller/themeswitchertool/"></script>
         <link type="image/x-icon" rel="shortcut icon" href="./static/images/favicon.ico">
     </head>
     <body class="ui-state-default">
@@ -35,7 +36,10 @@
                     <tbody>
                         <tr>
                             <td>
-                                <div  id="cover-art"></div>
+                                <div  id="cover-art">
+                                    <img class="cover-img active" src="" width="32" height="32">
+                                    <img class="cover-img inactive" src="" width="32" height="32">
+                                </div>
                                 </td>
                             <td id="now-playing-text">
                                 <span id="now-playing-title"></span><br><span class="ui-state-disabled">by</span> <span id="now-playing-artist"></span> <span class="ui-state-disabled">from</span> <span id="now-playing-album"></span>
@@ -59,15 +63,36 @@
             <div id="albums-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
         </div>
         <div id="songs-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
-        <div id="sidebar">
-            <script type="text/javascript" src="http://jqueryui.com/themeroller/themeswitchertool/"></script>
-            <div id="switcher"></div>
-            <div id="bitrate">
-                <div id="bitrate-slider"></div>
+        <div id="sidebar" class="table-container ui-widget ui-widget-content ui-corner-left">
+            <div class="scrolling-container">
+                <table id="options">
+                    <thead class="ui-widget-header">
+                        <tr>
+                            <th class="ui-corner-all">Options</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ui-corner-all" id="bitrate-container">
+                                <div id="bitrate-slider"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ui-corner-all">
+                                <span id="amount">320</span>kbps
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ui-corner-all">
+                                <div id="switcher"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <span id="amount">320</span>kbps
         </div>
-        <div id="footer"></div>
+        <div id="footer">
+        </div>
         <div id="jplayer"></div>
     </body>
 </html>
