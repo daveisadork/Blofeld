@@ -422,6 +422,9 @@ $(document).ready(function () {
             $("#amount").html(bitrate);
         }
     });
-    $('.splash-screen').fadeOut();
+    setTimeout(function () {
+        $('#splash-background').fadeOut(1000);
+        setTimeout($('#splash-text').fadeOut(3000), 1500);
+    }, 2000);
 });
 
