@@ -205,3 +205,7 @@ td, th {
 #sidebar-toggler {
     background: red;
 }
+
+#jplayer {
+    background-color: inherit;
+}
