@@ -102,7 +102,7 @@ class Library:
                         result.append(song['value'])
         if query:
             # Clean up the search string
-            query = utils.clean_text(query)
+            query = utils.clean_text(query).split(' ')
             # Figure out whether we already have some songs we need to filter
             # or if we need to grab them all from the database.
             if not (albums or artists):
@@ -112,7 +112,11 @@ class Library:
                     # album and title fields and cleaning them up.
                     search_field = utils.clean_text(";".join([song['key'][0],
                                               song['key'][1], song['key'][3]]))
-                    if query in search_field:
+                    match = True
+                    for term in query:
+                        if term not in search_field:
+                            match = False
+                    if match:
                         result.append(song['value'])
             elif result:
                 temp_result = []
@@ -121,7 +125,11 @@ class Library:
                 for song in result:
                     search_field = utils.clean_text(";".join([song['artist'],
                                                 song['album'], song['title']]))
-                    if query in search_field:
+                    match = True
+                    for term in query:
+                        if term not in search_field:
+                            match = False
+                    if match:
                         temp_result.append(song)
                 # Replace the existing results with the filtered ones.
                 result = temp_result
@@ -143,7 +151,7 @@ class Library:
                 result.append({'id': album['value'], 'title': album['key']})
         if query and artists:
             # Clean up the search term 
-            query = utils.clean_text(query)
+            query = utils.clean_text(query).split(' ')
             for artist in artists:
                 # Get all the albums from the database using the search view
                 for album in self.db.view('albums/search', key=artist):
@@ -152,18 +160,17 @@ class Library:
                             'id': album['value']['album_hash'],
                             'title': album['value']['album']
                             }
-                    # Clean up the search field and see if our search term is
-                    # in it.
-                    if query in utils.clean_text(album['value']['search_string']):
-                        # Make sure this album is not already in the results
-                        # list so we don't end up with duplicates and make sure
-                        # the album is by an artist the client specified. Then
-                        # append it to the results list.
-                        if entry not in result:
-                            result.append(entry)
+                    if entry in result:
+                        continue
+                    match = True
+                    for term in query:
+                        if term not in utils.clean_text(album['value']['search_string']):
+                            match = False
+                    if match:
+                        result.append(entry)
         if query and not artists:
             # Clean up the search term 
-            query = utils.clean_text(query)
+            query = utils.clean_text(query).split(' ')
             # Get all the albums from the database using the search view
             for album in self.db.view('albums/search'):
                 # Create an object that we can append to the results list
@@ -174,9 +181,12 @@ class Library:
                 # Clean up the search field and see if our search term is
                 # in it. If it is, make sure it's not a duplicate result
                 # and then append it to the results list.
-                if query in utils.clean_text(album['value']['search_string']):
-                    if entry not in result:
-                        result.append(entry)
+                match = True
+                for term in query:
+                    if term not in utils.clean_text(album['value']['search_string']):
+                        match = False
+                if match:
+                    result.append(entry)
         if artists and not query:
             # Client asked for albums by a specific artist(s), so get only
             # those albums from the database.
@@ -205,7 +215,7 @@ class Library:
         result = []
         if query:
             # Clean up the search term
-            query = utils.clean_text(query)
+            query = utils.clean_text(query).split(' ')
             # Get all the artists from the database using the search view,
             # the key of which is a list consisting of [artist, album, title].
             # This is done so that the results will be alphabetized by artist
@@ -216,12 +226,14 @@ class Library:
                     'id': artist['value'],
                     'name': artist['key'][0]
                     }
-                # Create a search field consisting of artist;album;title
+                if entry in result:
+                    continue
                 search_field =  utils.clean_text(';'.join(artist['key']))
-                # Make sure our search term is in the search field and this
-                # artist won't be a duplicate result and then add it to the
-                # list.
-                if query in search_field and entry not in result:
+                match = True
+                for term in query:
+                    if term not in search_field:
+                        match = False
+                if match:
                     result.append(entry)
         else:
             # Get all the artists from the database and append them to the
