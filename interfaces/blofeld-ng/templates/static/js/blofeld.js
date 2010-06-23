@@ -336,6 +336,8 @@ $(document).ready(function () {
         listSongs(selectedArtists, selectedAlbums, $('#search-box').val());
     });
     $('#artists .artist').live("mousedown", function (event) {
+        selectedArtists = [];
+        selectedAlbums = [];
         if (event.ctrlKey) {
             $(this).toggleClass('ui-state-default');
         } else if (event.shiftKey) {
@@ -439,7 +441,9 @@ $(document).ready(function () {
     });
     setTimeout(function () {
         $('#splash-background').fadeOut(1000);
-        setTimeout($('#splash-text').fadeOut(3000), 1500);
+        setTimeout(function () {
+            $('#splash-text').fadeOut(3000);
+        }, 1500);
     }, 2000);
 });
 
