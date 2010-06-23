@@ -321,22 +321,30 @@ $(document).ready(function () {
             selectedArtists.push($(this).attr('id'));
         });
         selectedAlbums = [];
-        if (!event.ctrlKey) {
+        if (event.ctrlKey) {
+            $(this).toggleClass('ui-state-default');
+        } else if (event.shiftKey) {
+            $(this).addClass('ui-state-default');
+            $('.album.ui-state-default').first().nextUntil('#' + $('.album.ui-state-default').last().attr('id')).addClass('ui-state-default');
+        } else {
             $('.album.ui-state-default').removeClass('ui-state-default');
+            $(this).addClass('ui-state-default');
         }
-        $(this).toggleClass('ui-state-default');
-        
         $('.album.ui-state-default').each(function () {
             selectedAlbums.push($(this).attr('id'));
         });
         listSongs(selectedArtists, selectedAlbums, $('#search-box').val());
     });
     $('#artists .artist').live("mousedown", function (event) {
-        selectedArtists = [];
-        if (!event.ctrlKey) {
+        if (event.ctrlKey) {
+            $(this).toggleClass('ui-state-default');
+        } else if (event.shiftKey) {
+            $(this).addClass('ui-state-default');
+            $('.artist.ui-state-default').first().nextUntil('#' + $('.artist.ui-state-default').last().attr('id')).addClass('ui-state-default');
+        } else {
             $('.artist.ui-state-default').removeClass('ui-state-default');
+            $(this).addClass('ui-state-default');
         }
-        $(this).toggleClass('ui-state-default');
         $('.artist.ui-state-default').each(function () {
             selectedArtists.push($(this).attr('id'));
         });
