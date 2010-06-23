@@ -178,6 +178,8 @@ class Library:
                     'id': album['value']['album_hash'],
                     'title': album['value']['album']
                     }
+                if entry in result:
+                    continue
                 # Clean up the search field and see if our search term is
                 # in it. If it is, make sure it's not a duplicate result
                 # and then append it to the results list.
