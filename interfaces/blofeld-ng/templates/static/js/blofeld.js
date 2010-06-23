@@ -13,26 +13,22 @@ var randomTrack = null;
 var playerState = 'stopped';
 
 var showCover = function (song) {
-    var offset = $('#cover-art').offset()
+    var offset = $('#cover-art').offset();
     $('.cover-img').toggleClass('active inactive');
     $('img.active').attr({
         'src': 'get_cover?size=32&songid=' + song,
         'top': offset.top,
         'left': offset.left
+    })
+    .load(function () {
+        $('img.active').fadeIn(1000, function () {
+            $('img.inactive').hide();
         })
-        .load(function () {
-            $('img.active').fadeIn(1000, function () {
-                $('img.inactive').hide()
-            })
         .error(function () {
             $('img.inactive').fadeOut(1000);
         });
     });
-    
-    //$('#cover-art').html('<img id="cover-img" src="get_cover?size=32&songid=' + song + '" width="32" height="32">');
-//    $('.cover-img.active').hide();
-    
-}
+};
 
 var playSong = function (songIndex) {
     $("#progress-bar").slider("disable");
@@ -313,7 +309,7 @@ $(document).ready(function () {
             $(this).toggleClass('ui-state-default');
         } else if (event.shiftKey) {
             $(this).addClass('ui-state-default');
-            $('.song.ui-state-default').first().nextUntil('#' + $('.song.ui-state-default').last().attr('id')).addClass('ui-state-default')
+            $('.song.ui-state-default').first().nextUntil('#' + $('.song.ui-state-default').last().attr('id')).addClass('ui-state-default');
         } else {
             $('.song.ui-state-default').removeClass('ui-state-default');
             $(this).addClass('ui-state-default');
