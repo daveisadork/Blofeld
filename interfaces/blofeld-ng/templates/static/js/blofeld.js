@@ -28,6 +28,7 @@ var showCover = function (song) {
             $('img.inactive').fadeOut(1000);
         });
     });
+    
 };
 
 var playSong = function (songIndex) {
@@ -443,6 +444,36 @@ $(document).ready(function () {
         window.location.href = 'download?songs=' + downloadList.join(',');
     });
     $(".ui-layout-toggler").button();
+    $("#cover-art-dialog img").hide()
+    $("#cover-art-dialog").dialog({
+        autoOpen: false,
+        resizable: false,
+        open: function (event, ui) {
+            size = Math.floor($(document).height() * 0.85);
+            $('#cover-art-dialog div').width(size).height(size);
+            $('#cover-art-dialog img').attr({
+                src: 'get_cover?songid=' + activeSong + '&size=' + size,
+                width: size,
+                height: size
+            }).load(function () {
+                $("#cover-art-dialog span").hide();
+                $("#cover-art-dialog img").fadeIn(1000);
+            });
+            $('#cover-art-dialog').dialog({
+                width: 'auto',
+                height: 'auto',
+                position: 'top',
+                title: $('#' + activeSong + ' .artist').html() + ' - ' + $('#' + activeSong + ' .album').html()
+            });
+        },
+        close: function (event, ui) {
+            $('#cover-art-dialog img').hide();
+            $('#cover-art-dialog span').show();
+        }
+    });
+    $("#cover-art > img").click(function () {
+        $("#cover-art-dialog").dialog('open');
+    });
     setTimeout(function () {
         $('#splash-background').fadeOut(1000);
         setTimeout(function () {

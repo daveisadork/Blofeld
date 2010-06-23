@@ -93,6 +93,7 @@ body {
     width: 32px;
     height: 32px;
     background: url('../images/sprite.png') -224px 0 no-repeat;
+    cursor: pointer;
 }
 
 .cover-img {
@@ -215,3 +216,10 @@ td, th {
 #browser-resizer:active {
     cursor: w-resize;
 }
+
+#cover-art-dialog div {
+    text-align: center;
+    vertical-align: middle;
+}
+
+
