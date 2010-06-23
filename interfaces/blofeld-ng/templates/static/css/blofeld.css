@@ -147,7 +147,7 @@ body {
 }
 
 .scrolling-container {
-    overflow-y: scroll;
+    overflow-y: auto;
     overflow-x: hidden;
     text-align: center;
     padding: 3px 3px 0 3px;
@@ -195,29 +195,23 @@ td, th {
 }
 
 #sidebar {
-    padding: 0 6px 2px 0;
+    padding: 0 6px 5px 0;
 }
 
 #sidebar-widget {
-    padding: 3px;
+    padding: 0 6px 3px 0;
+    height: 100%;
 }
 
-#sidebar-toggler {
-    background: red;
+.ui-layout-toggler {
+    overflow: hidden;
+    text-align: center;
 }
 
-#jplayer, #browser {
+#jplayer, #browser, .ui-layout-resizer {
     background-color: inherit;
 }
 
-.ui-layout-resizer {
-    background-color: inherit;
-    z-index: 100;
-}
-
-.ui-layout-resizer-dragging {
-    filter:alpha(opacity=50);
-    -moz-opacity:0.5;
-    -khtml-opacity: 0.5;
-    opacity: 0.5;
+#browser-resizer:active {
+    cursor: w-resize;
 }

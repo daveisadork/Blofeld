@@ -257,15 +257,18 @@ $(document).ready(function () {
         north__paneSelector:    "#header",
         north__resizable:       false,
         north__size:            'auto',
+        north__closable:        false,
         south__paneSelector:    "#footer",
         south__closable:        true,
         south__resizable:       false,
         south__initClosed:      true,
         south__size:            'auto',
         east__paneSelector:     '#sidebar',
-        east__closable:         true,
+        east__slidable:         false,
         east__initClosed:       true,
-        west__paneSelector:     "#browser"
+        west__paneSelector:     "#browser",
+        west__closable:         false,
+        west__slidable:         false
     });
     
     browserLayout = $('#browser').layout({
@@ -439,6 +442,7 @@ $(document).ready(function () {
         });
         window.location.href = 'download?songs=' + downloadList.join(',');
     });
+    $(".ui-layout-toggler").button();
     setTimeout(function () {
         $('#splash-background').fadeOut(1000);
         setTimeout(function () {
