@@ -426,6 +426,17 @@ $(document).ready(function () {
             $("#amount").html(bitrate);
         }
     });
+    $('#download-button').button({
+        icons: {
+            primary: 'ui-icon-link'
+        }
+    }).click(function () {
+        var downloadList = [];
+        $(".song").each(function () {
+            downloadList.push($(this).attr('id'));
+        });
+        window.location.href = 'download?songs=' + downloadList.join(',');
+    });
     setTimeout(function () {
         $('#splash-background').fadeOut(1000);
         setTimeout($('#splash-text').fadeOut(3000), 1500);
