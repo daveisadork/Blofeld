@@ -1,16 +1,16 @@
-                    <div class="scrollingContainer">
-                        <table id="albums">
-                            <thead>
-                                <tr>
-                                    <th>Albums</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                <div class="scrolling-container">
+                    <table id="albums">
+                        <thead class="ui-widget-header ui-corner-all">
+                            <tr class="ui-corner-all">
+                                <th class="ui-corner-all">Albums</th>
+                            </tr>
+                        </thead>
+                        <tbody>
 #for $album in $albums
-                                <tr class="album" id="$album['id']">
-                                    <td>$album['title']</td>
-                                </tr>
+                            <tr class="album" id="$album['id']">
+                                <td class="ui-corner-all">$album['title']</td>
+                            </tr>
 #end for
-                            </tbody>
-                        </table>
-                    </div>
+                        </tbody>
+                    </table>
+                </div>

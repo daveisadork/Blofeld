@@ -3,59 +3,109 @@
     <head>
         <title>Blofeld</title>
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-        <script type="text/javascript" src="./static/javascripts/jquery-1.4.2.min.js"></script>
-        <script type="text/javascript" src="./static/javascripts/jquery.jplayer.min.js"></script>
-        <script type="text/javascript" src="./static/javascripts/jquery.lightbox-0.5.mod.js"></script>
-        <script type="text/javascript" src="./static/javascripts/blofeld.js"></script>
-        <link rel="stylesheet" href="./static/stylesheets/blofeld.css" type="text/css">
-        <link rel="shortcut icon" type="image/x-icon" href="./static/images/favicon.ico">
+        <link type="text/css" rel="stylesheet" href="./static/css/main.css">
+        <link type="text/css" rel="stylesheet" href="http://jqueryui.com/themes/base/jquery.ui.all.css" />
+        <script type="text/javascript" src="./static/js/jquery-1.4.2.min.js"></script>
+        <script type="text/javascript" src="./static/js/jquery.layout.min-1.2.0.js"></script>
+        <script type="text/javascript" src="./static/js/jquery.jplayer.min.js"></script>
+        <script type="text/javascript" src="./static/js/jquery-ui-1.8.2.custom.min.js"></script>
+        <script type="text/javascript" src="./static/js/blofeld.js"></script>
+        <script type="text/javascript" src="http://jqueryui.com/themeroller/themeswitchertool/"></script>
+        <link type="image/x-icon" rel="shortcut icon" href="./static/images/favicon.ico">
     </head>
-    <body>
+    <body class="ui-state-default">
+        <div id="background-color"></div>
+        <div id="splash-background" class="splash-screen"></div>
+        <div id="splash-text" class="splash-screen"></div>
         <div id="header">
-            <div><h1>Blofeld</h1></div>
-            <div id="player_container">
-                <ul id="controls">
-                    <li id="skip_back" >back</li>
-                    <li id="play">play</li>
-                    <li id="pause">pause</li>
-                    <li id="skip_forward">forward</li>
-                </ul>
-                <div id="progress">
-                    <div id="progress_bar">
-                        <div id="load_progress">
-                            <div id="play_head"></div>
-                        </div>
-                    </div>
-                    <div id="play_status"></div>
+            <div id="header-widget" class="ui-widget ui-widget-content ui-corner-all">
+                <div id="controls">
+                    <button id="previous-button" >Previous</button>
+                    <button id="play-button">Play</button>
+                    <button id="pause-button">Pause</button>
+                    <button id="next-button">Next</button>
+                    <label for="repeat-button">Repeat</label>
+                    <input id="repeat-button" type="checkbox">
+                    <label for="shuffle-button">Shuffle</label>
+                    <input id="shuffle-button" type="checkbox">
                 </div>
-                <div id="now_playing">
-                    <div id="cover_art"></div>
-                    <span id="np_title"></span><br>by <span id="np_artist"></span> from <span id="np_album"></span>
+                <div>
+                    <div id="progress-bar"></div>
                 </div>
-            </div>
-            <div id="find">
-                <form name="find" action="javascript:find()" autocomplete="off">
-                    <div id="search_icon"></div>
-                    <div id="clear_search"></div>
-                    <input type="text" name="query" id="query">
-                </form>
+                <table id="now-playing">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div id="cover-art">
+                                    <img class="cover-img active" src="" width="32" height="32">
+                                    <img class="cover-img inactive" src="" width="32" height="32">
+                                </div>
+                                </td>
+                            <td id="now-playing-text">
+                                <span id="now-playing-title"></span><br><span class="ui-state-disabled">by</span> <span id="now-playing-artist"></span> <span class="ui-state-disabled">from</span> <span id="now-playing-album"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="spacer"></div>
+                <div id="search" class="ui-widget ui-widget-content ui-state-default ui-corner-all">
+                    <form action="javascript:find()" autocomplete="off">
+                        <label for="search-box">
+                            <div id="clear-search" class="ui-icon ui-icon-circle-close"></div>
+                        </label>
+                        <input type="text" id="search-box" class="ui-corner-all">
+                    </form>
+                </div>
             </div>
         </div>
-        <table id="browser">
-            <tr>
-                <td id="artistsContainer">
-
-                </td>
-                <td rowspan="2" id="songsContainer">
-
-                </td>
-            </tr>
-            <tr>
-                <td id="albumsContainer">
-
-                </td>
-            </tr>
-        </table>
-        <div id="player"></div>
+        <div id="browser">
+            <div id="artists-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
+            <div id="albums-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
+        </div>
+        <div id="songs-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
+        <div id="sidebar" class="table-container">
+            <div id="sidebar-widget" class="ui-widget ui-widget-content ui-corner-left">
+                <div class="scrolling-container">
+                    <table id="options">
+                        <thead class="ui-widget-header">
+                            <tr>
+                                <th class="ui-corner-all">Options</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="ui-corner-all" id="bitrate-container">
+                                    <div id="bitrate-slider"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ui-corner-all">
+                                    <span id="amount">320</span>kbps
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ui-corner-all">
+                                    <button id="download-button">Download</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ui-corner-all">
+                                    <div id="switcher"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div id="footer">
+        </div>
+        <div id="jplayer"></div>
+        <div id="cover-art-dialog">
+            <div class="cover-art-dialog-wrapper">
+                <span id="cover-art-loading-text">Loading</span>
+                <img src="">
+            </div>
+        </div>
     </body>
 </html>

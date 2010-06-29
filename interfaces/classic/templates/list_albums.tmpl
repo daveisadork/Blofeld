@@ -1,0 +1,16 @@
+                    <div class="scrollingContainer">
+                        <table id="albums">
+                            <thead>
+                                <tr>
+                                    <th>Albums</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+#for $album in $albums
+                                <tr class="album" id="$album['id']">
+                                    <td>$album['title']</td>
+                                </tr>
+#end for
+                            </tbody>
+                        </table>
+                    </div>
