@@ -251,6 +251,7 @@ var find = function () {
 };
 
 $(document).ready(function () {
+    $(document).pngFix();
     $('#switcher').themeswitcher();
     mainLayout = $('body').layout({
         center__paneSelector:   "#songs-container",
