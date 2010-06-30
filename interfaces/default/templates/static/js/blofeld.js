@@ -228,6 +228,7 @@ var setupPlayer = function () {
             stopPlayback();
         }
     });
+    $.jPlayer.timeFormat.padMin = false;
 };
 
 var disableSelection = function (target) {
