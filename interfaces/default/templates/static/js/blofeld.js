@@ -43,7 +43,7 @@ var playSong = function (songIndex) {
     $('.now-playing').removeClass('now-playing');
     $('#' + song).addClass('now-playing');
     $('.now-playing > .status > .status-icon, .status > .ui-icon').addClass('ui-icon ui-icon-volume-on');
-    $("#now-playing, #progress-bar").show();
+    $("#now-playing, #progress-bar, #play-time").show();
     activeSong = song;
     playerState = 'playing';
     showCover(song);
@@ -139,8 +139,7 @@ var stopPlayback = function () {
     activeSong = null;
     playingCurrently = null;
     $("#jplayer").jPlayer("stop");
-    $("#now-playing").hide();
-    $("#progress-bar").hide();
+    $("#now-playing, #progress-bar, #play-time").hide();
     $('.now-playing > .status > .status-icon, .status > .ui-icon').removeClass('ui-icon ui-icon-volume-on ui-icon-volume-off');
     $('.now-playing').removeClass('now-playing');
     playerState = 'stopped';
@@ -202,6 +201,8 @@ var setupPlayer = function () {
             $('#progress-bar').slider("disable");
         }
         $('#progress-bar').progressbar('option', 'value', global_loadPercent).slider('option', 'value', parseInt(playedPercentAbsolute, 10));
+        $('#play-time-current').html($.jPlayer.convertTime(playedTime));
+        $('#play-time-total').html($.jPlayer.convertTime(totalTime));
 //        var myPlayedTime = new Date(playedTime);
 //        var ptMin = (myPlayedTime.getUTCMinutes() < 10) ? "0" + myPlayedTime.getUTCMinutes() : myPlayedTime.getUTCMinutes();
 //        var ptSec = (myPlayedTime.getUTCSeconds() < 10) ? "0" + myPlayedTime.getUTCSeconds() : myPlayedTime.getUTCSeconds();
@@ -286,7 +287,7 @@ $(document).ready(function () {
     disableSelection(document.getElementById("browser"));
     disableSelection(document.getElementById("songs-container"));
     disableSelection(document.getElementById("controls"));
-    disableSelection(document.getElementById("progress-bar"));
+    disableSelection(document.getElementById("progress"));
     disableSelection(document.getElementById("sidebar"));
 
     listArtists();
@@ -297,9 +298,7 @@ $(document).ready(function () {
         $('#search-box').val('');
         find();
     });
-    $("#now-playing").hide();
-    $("#progress-bar").hide();
-    $(".cover-img").hide();
+    $("#now-playing, #progress-bar, #play-time, .cover-img").hide();
     $('#songs .song').live("dblclick", function () {
         if ($('#shuffle-button').is(':checked')) {
             playlist = [];

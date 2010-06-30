@@ -69,13 +69,19 @@ body {
     padding: 0 12px;
 }
 
+#progress {
+    line-height: normal;
+    font-size: 0.87em;
+}
+
 #progress-bar {
     width: 100px;
+    margin: 2px 0 2px 0;
 }
 
 #now-playing {
     display: inline-block;
-    margin: 0 0 0 3px;
+    margin: 0;
     height: 32px;
     width: auto;
     overflow: hidden;
@@ -222,4 +228,6 @@ td, th {
     vertical-align: middle;
 }
 
-
+#play-time-total {
+    float: right;
+}
