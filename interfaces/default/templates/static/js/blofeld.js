@@ -475,10 +475,10 @@ $(document).ready(function () {
         $("#cover-art-dialog").dialog('open');
     });
     setTimeout(function () {
-        $('#splash-background').fadeOut(1000);
+        $('#splash-background').fadeOut(1250);
         setTimeout(function () {
             $('#splash-text').fadeOut(3000);
-        }, 1500);
+        }, 1000);
     }, 2000);
 });
 
