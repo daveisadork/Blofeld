@@ -19,10 +19,7 @@ import os
 import sys
 import urllib
 import urllib2
-try:
-    import cjson as json
-except:
-    import json
+import anyjson
 import thread
 import hashlib
 from random import shuffle
@@ -65,7 +62,7 @@ class WebInterface:
         albums = self.library.albums(artists, query)
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
-            return json.encode({'albums': albums})
+            return anyjson.serialize({'albums': albums})
         elif output == 'html':
             template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_albums.tmpl'))
             template.albums = albums
@@ -79,7 +76,7 @@ class WebInterface:
         artists = self.library.artists(query)
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
-            return json.encode({'artists': artists})
+            return anyjson.serialize({'artists': artists})
         elif output == 'html':
             template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_artists.tmpl'))
             template.artists = artists
@@ -107,7 +104,7 @@ class WebInterface:
             songs = songs[start:end]
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
-            return json.encode({'songs': songs})
+            return anyjson.serialize({'songs': songs})
         elif output == 'html':
             template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_songs.tmpl'))
             template.songs = songs
@@ -329,7 +326,7 @@ class WebInterface:
         except:
             limit = len(song_list)
         cherrypy.response.headers['Content-Type'] = 'application/json'
-        return json.encode(song_list[:limit])
+        return anyjson.serialize(song_list[:limit])
 
     @cherrypy.expose
     def shutdown(self):
