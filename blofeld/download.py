@@ -17,6 +17,7 @@
 
 import os
 import zipfile
+import hashlib
 
 from blofeld.log import logger
 from blofeld.config import cfg
@@ -30,7 +31,8 @@ def create_archive(songs):
         cover = (find_cover(song), os.path.join(os.path.dirname(song['location']), 'Cover.jpg').replace(cfg['MUSIC_PATH'], ''))
         if cover not in files:
             files.append(cover)
-    path = '/tmp/download.zip'
+    path = '/tmp/%s.zip' % hashlib.sha1(str(songs).encode('utf-8')).hexdigest()
+    logger.debug("Creating archive at %s" % path)
     archive = zipfile.ZipFile(path, 'w', zipfile.ZIP_STORED)
     for item in files:
         archive.write(item[0], item[1])
