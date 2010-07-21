@@ -1,0 +1,4 @@
+include Blofeld.py
+recursive-include views *
+recursive-include interfaces *
+

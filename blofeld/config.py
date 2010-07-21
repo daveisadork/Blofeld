@@ -27,27 +27,32 @@ __all__ = ['cfg']
 
 class Config(dict):
 
-    def __init__(self, installed=False, system=False):
+    def __init__(self, installed=False, system=False, program_dir=None):
         dict.__init__(self)
-        self['PROGRAM_DIR'] = os.path.abspath(os.path.join(os.path.dirname(__file__),
+        if program_dir:
+            self['PROGRAM_DIR'] = program_dir
+        else:
+            self['PROGRAM_DIR'] = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                       os.pardir))
+        self['ASSETS_DIR'] = self['PROGRAM_DIR']
         if system:
             self['CONFIG_DIR'] = '/etc/blofeld'
             self['LOG_DIR'] = '/var/log/blofeld'
             self['CACHE_DIR'] = '/var/cache/blofeld'
-            self['ASSETS_DIR'] = '/usr/share/blofeld'
         elif installed:
             self['CONFIG_DIR'] = os.path.join(os.path.expanduser("~"), '.blofeld')
             self['LOG_DIR'] = os.path.join(self['CONFIG_DIR'], 'log')
             self['CACHE_DIR'] = os.path.join(self['CONFIG_DIR'], 'cache')
-            self['ASSETS_DIR'] = '/usr/share/blofeld'
         else:
             self['CONFIG_DIR'] = self['PROGRAM_DIR']
             self['LOG_DIR'] = os.path.join(self['PROGRAM_DIR'], 'log')
             self['CACHE_DIR'] = os.path.join(self['PROGRAM_DIR'], 'cache')
-            self['ASSETS_DIR'] = self['PROGRAM_DIR']
+
 
     def load_config(self, path=None):
+        if not os.path.isdir(self['CONFIG_DIR']):
+            os.mkdir(self['CONFIG_DIR'])
+            
         if path:
             if not os.path.exists(path):
                 raise Exception("Configuration file does not exist!")
