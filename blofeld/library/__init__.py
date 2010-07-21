@@ -43,7 +43,7 @@ class Library:
         # Get a reference to our database
         self.db = self._server.get_or_create_db("blofeld")
         # Load our database views from the filesystem
-        loader = FileSystemDocsLoader(os.path.join(cfg['PROGRAM_DIR'],
+        loader = FileSystemDocsLoader(os.path.join(cfg['ASSETS_DIR'],
                                       'views/_design'))
         try:
             loader.sync(self.db, verbose=True)

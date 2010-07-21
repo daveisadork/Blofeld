@@ -20,37 +20,39 @@ import sys
 
 import ConfigParser
 
-try:
-    import cjson as json
-except:
-    import json
+import anyjson
 
 
 __all__ = ['cfg']
 
 class Config(dict):
 
-    def __init__(self, installed=False, system=False):
+    def __init__(self, installed=False, system=False, program_dir=None):
         dict.__init__(self)
-        self['PROGRAM_DIR'] = os.path.abspath(os.path.join(os.path.dirname(__file__),
+        if program_dir:
+            self['PROGRAM_DIR'] = program_dir
+        else:
+            self['PROGRAM_DIR'] = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                       os.pardir))
+        self['ASSETS_DIR'] = self['PROGRAM_DIR']
         if system:
             self['CONFIG_DIR'] = '/etc/blofeld'
             self['LOG_DIR'] = '/var/log/blofeld'
             self['CACHE_DIR'] = '/var/cache/blofeld'
-            self['ASSETS_DIR'] = '/usr/share/blofeld'
         elif installed:
             self['CONFIG_DIR'] = os.path.join(os.path.expanduser("~"), '.blofeld')
             self['LOG_DIR'] = os.path.join(self['CONFIG_DIR'], 'log')
             self['CACHE_DIR'] = os.path.join(self['CONFIG_DIR'], 'cache')
-            self['ASSETS_DIR'] = '/usr/share/blofeld'
         else:
             self['CONFIG_DIR'] = self['PROGRAM_DIR']
             self['LOG_DIR'] = os.path.join(self['PROGRAM_DIR'], 'log')
             self['CACHE_DIR'] = os.path.join(self['PROGRAM_DIR'], 'cache')
-            self['ASSETS_DIR'] = self['PROGRAM_DIR']
+
 
     def load_config(self, path=None):
+        if not os.path.isdir(self['CONFIG_DIR']):
+            os.mkdir(self['CONFIG_DIR'])
+            
         if path:
             if not os.path.exists(path):
                 raise Exception("Configuration file does not exist!")
@@ -76,11 +78,11 @@ class Config(dict):
             self._cfg.set('server', 'port', '8083')
             self._cfg.add_section('security')
             self._cfg.set('security', 'require_login', 'false')
-            self._cfg.set('security', 'users', json.encode({
+            self._cfg.set('security', 'users', anyjson.serialize({
                 'admin': 'password',
                 'user': 'password'
                 }))
-            self._cfg.set('security', 'groups', json.encode({
+            self._cfg.set('security', 'groups', anyjson.serialize({
                 'admin': ['admin'],
                 'download': ['admin', 'user']
             }))
@@ -104,8 +106,8 @@ class Config(dict):
             raise Exception("Music path does not exist!")
 
         self['REQUIRE_LOGIN'] = self._cfg.getboolean('security', 'require_login')
-        self['USERS'] = json.decode(self._cfg.get('security', 'users'))
-        self['GROUPS'] = json.decode(self._cfg.get('security', 'groups'))
+        self['USERS'] = anyjson.deserialize(self._cfg.get('security', 'users'))
+        self['GROUPS'] = anyjson.deserialize(self._cfg.get('security', 'groups'))
         self['COUCHDB_URL'] = self._cfg.get('database', 'couchdb_url')
         self['HOSTNAME'] = self._cfg.get('server', 'host')
         self['PORT'] = self._cfg.getint('server', 'port')
