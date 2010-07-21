@@ -2,11 +2,27 @@
 
 from distutils.core import setup
 from distutils.command.install_scripts import install_scripts
+
+
 import sys
 import os
 
 
-assets = [(os.path.join('share', 'blofeld'), ['Blofeld.py'])]
+class InstallScripts(install_scripts):
+    def run(self):
+        install_cmd = self.get_finalized_command('install')
+        script = \
+"""#!/bin/sh
+
+export BLOFELD_INSTALLED=true
+exec python %s $@
+""" % os.path.join('usr', 'share', 'blofeld', 'Blofeld.py')
+
+        with open('scripts/blofeld', 'w') as startup_script:
+            startup_script.write(script)
+        install_scripts.run(self)
+
+assets = [(os.path.join(getattr(install_cmd, 'install_lib'), 'blofeld'), ['Blofeld.py'])]
 
 for path in ['views', 'interfaces']:
     for base, dirs, files in os.walk(path):
@@ -28,7 +44,8 @@ setup(name = 'blofeld',
     platforms = ['POSIX'],
     packages = ['blofeld', 'blofeld.library', 'blofeld.utils'],
     data_files = assets,
-    scripts = ['scripts/blofeld']
+    scripts = ['scripts/blofeld'],
+    cmdclass = {'install_scripts': InstallScripts}
     )
 
 
