@@ -22,7 +22,7 @@ exec python %s $@
             startup_script.write(script)
         install_scripts.run(self)
 
-assets = [(os.path.join(getattr(install_cmd, 'install_lib'), 'blofeld'), ['Blofeld.py'])]
+assets = [(os.path.join('share', 'blofeld'), ['Blofeld.py'])]
 
 for path in ['views', 'interfaces']:
     for base, dirs, files in os.walk(path):
