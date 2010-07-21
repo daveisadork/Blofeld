@@ -6,13 +6,7 @@ import sys
 import os
 
 
-#class InstallScripts(install_scripts):
-#    def run(self):
-#        os.symlink(os.path.join(prefix, 'share', 'blofeld', 'Blofeld.py'),
-#        os.path.join(install_scripts, 'blofeld'))
-#        install_scripts.run(self)
-
-extra_files = [(os.path.join('share', 'blofeld'), ['Blofeld.py'])]
+assets = [(os.path.join('share', 'blofeld'), ['Blofeld.py'])]
 
 for path in ['views', 'interfaces']:
     for base, dirs, files in os.walk(path):
@@ -20,7 +14,7 @@ for path in ['views', 'interfaces']:
             file_list = []
             for filename in files:
                 file_list.append(os.path.join(base, filename))
-            extra_files.append((os.path.join('share', 'blofeld', base), file_list))
+            assets.append((os.path.join('share', 'blofeld', base), file_list))
 
 setup(name = 'blofeld',
     version = '0.2',
@@ -33,9 +27,8 @@ setup(name = 'blofeld',
 """This is a music server that does automatic on-the-fly transcoding, has a themeable web interface, cover art support and much more.""",
     platforms = ['POSIX'],
     packages = ['blofeld', 'blofeld.library', 'blofeld.utils'],
-    data_files = extra_files,
-    scripts = ['scripts/blofeld'],
-#    cmdclass={'install_scripts': InstallScripts}
+    data_files = assets,
+    scripts = ['scripts/blofeld']
     )
 
 
