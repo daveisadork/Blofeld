@@ -67,8 +67,6 @@ class Config(dict):
         if not os.path.isdir(self['LOG_DIR']):
             os.mkdir(self['LOG_DIR'])
 
-        from blofeld.log import logger
-
         self._cfg = ConfigParser.SafeConfigParser()
 
         # Load the configuration file, or create one with the defaults.
@@ -102,7 +100,6 @@ class Config(dict):
 
         self['MUSIC_PATH'] = self._cfg.get('database', 'path')
         if not os.path.isdir(self['MUSIC_PATH']):
-            logger.critical("Music path does not exist!")
             raise Exception("Music path does not exist!")
 
         self['REQUIRE_LOGIN'] = self._cfg.getboolean('security', 'require_login')
