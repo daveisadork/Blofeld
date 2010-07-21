@@ -16,7 +16,7 @@ class InstallScripts(install_scripts):
 
 export BLOFELD_INSTALLED=true
 exec python %s $@
-""" % os.path.join('usr', 'share', 'blofeld', 'Blofeld.py')
+""" % os.path.join(getattr(install_cmd, 'install_lib'), 'blofeld', 'Blofeld.py')
 
         with open('scripts/blofeld', 'w') as startup_script:
             startup_script.write(script)
