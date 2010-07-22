@@ -1,0 +1,58 @@
+Blofeld Installation
+====================
+
+Dependencies
+------------
+
+Before installing Blofeld, you need to have these libraries and applications:
+
+ * Python 2.5 or newer
+   http://python.org
+
+ * CherryPy 3 
+   http://www.cherrypy.org
+
+ * Cheetah
+   http://www.cheetahtemplate.org
+
+ * Python Imaging Library
+   http://www.pythonware.com/products/pil/
+
+ * Mutagen 1.17 or newer
+   http://code.google.com/p/mutagen/
+
+ * Couchdbkit
+   http://couchdbkit.org
+
+ * GStreamer with Python bindings
+   http://gstreamer.freedesktop.org
+   http://gstreamer.freedesktop.org/modules/gst-python.html
+
+ * CouchDB
+   http://couchdb.apache.org
+
+
+Installation
+------------
+
+After installing the dependencies, you can install Blofeld by running:
+
+  sudo python setup.py install
+
+This will automatically install all required Python modules. To start Blofeld
+now you can use:
+
+  blofeld
+
+Once Blofeld is running, point your web browser to http://localhost:8083/ to
+access the web interface.
+
+
+Running From the Source Tree
+----------------------------
+
+If you want to run Blofeld from the source directory without installing, you
+just need to run:
+
+  python Blofeld.py
+
