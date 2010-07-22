@@ -1,4 +1,7 @@
 include Blofeld.py
+include README
+include INSTALL
+include COPYING
 recursive-include views *
 recursive-include interfaces *
 
