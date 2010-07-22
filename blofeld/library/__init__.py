@@ -23,11 +23,38 @@ import os
 
 from couchdbkit import *
 from couchdbkit.loaders import FileSystemDocsLoader
+import anyjson
 
 from blofeld.config import cfg
 from blofeld.library.filesystem import load_music_from_dir
 import blofeld.utils as utils
 from blofeld.log import logger
+
+
+class BlofeldCache(dict):
+    def __init__(self, db):
+        self.db = db
+        self.version = self.db.info()['update_seq']
+
+    def view(self, view_name, obj=None, wrapper=None, **params):
+        key = anyjson.serialize({
+            'view_name': view_name,
+            'obj': obj,
+            'wrapper': wrapper,
+            'params': params
+            })
+        if not self.has_key(key):
+            self[key] = {
+                'version': 0,
+                'view': self.db.view(view_name, obj, wrapper, **params)
+                }
+        self.version = self.db.info()['update_seq']
+        if self[key]['version'] < self.version:
+            self[key]['version'] = self.version
+            self[key]['view'].fetch()
+        else:
+            logger.debug("Successful cache hit for %s" % key)
+        return self[key]['view']
 
 
 class Library:
@@ -50,6 +77,7 @@ class Library:
         except:
             pass
         self.updating = threading.Lock()
+        self.cache = BlofeldCache(self.db)
 
     def update(self, verbose=False):
         """Figures out which backend to load and then updates the database"""
@@ -72,12 +100,12 @@ class Library:
         # If the client didn't supply any arguments, we just get all the songs
         # from the database
         if not query and not artists and not albums:
-            for song in self.db.view('songs/all'):
+            for song in self.cache.view('songs/all'):
                 result.append(song['value'])
         if artists:
             # The client only wants songs by a specific artist(s)
             for artist in artists:
-                for song in self.db.view('songs/by_artist_id', key=artist):
+                for song in self.cache.view('songs/by_artist_id', key=artist):
                     result.append(song['value'])
         if albums:
             # The client only wants songs from a specific album(s). We need
@@ -98,7 +126,7 @@ class Library:
             elif not artists:
                 # Grab the songs from the specified album(s) from the database
                 for album in albums:
-                    for song in self.db.view('songs/by_album_id', key=album):
+                    for song in self.cache.view('songs/by_album_id', key=album):
                         result.append(song['value'])
         if query:
             # Clean up the search string
@@ -107,7 +135,7 @@ class Library:
             # or if we need to grab them all from the database.
             if not (albums or artists):
                 # Get all the songs from the database.
-                for song in self.db.view('songs/all'):
+                for song in self.cache.view('songs/all'):
                     # Create a searchable string by joining together the artist,
                     # album and title fields and cleaning them up.
                     search_field = utils.clean_text(";".join([song['key'][0],
@@ -147,14 +175,14 @@ class Library:
         # If the client didn't give any arguments, get all the artists from the
         # database and append them to our results list.
         if not artists and not query:
-            for album in self.db.view('albums/all', group="true"):
+            for album in self.cache.view('albums/all', group="true"):
                 result.append({'id': album['value'], 'title': album['key']})
         if query and artists:
             # Clean up the search term 
             query = utils.clean_text(query).split(' ')
             for artist in artists:
                 # Get all the albums from the database using the search view
-                for album in self.db.view('albums/search', key=artist):
+                for album in self.cache.view('albums/search', key=artist):
                     # Create an object that we can append to the results list
                     entry = {
                             'id': album['value']['album_hash'],
@@ -172,7 +200,7 @@ class Library:
             # Clean up the search term 
             query = utils.clean_text(query).split(' ')
             # Get all the albums from the database using the search view
-            for album in self.db.view('albums/search'):
+            for album in self.cache.view('albums/search'):
                 # Create an object that we can append to the results list
                 entry = {
                     'id': album['value']['album_hash'],
@@ -193,7 +221,7 @@ class Library:
             # Client asked for albums by a specific artist(s), so get only
             # those albums from the database.
             for artist_hash in artists:
-                for album in self.db.view('albums/by_artist_id',
+                for album in self.cache.view('albums/by_artist_id',
                                             key=artist_hash):
                     # Create an object to append to our results list
                     entry = {
@@ -222,7 +250,7 @@ class Library:
             # the key of which is a list consisting of [artist, album, title].
             # This is done so that the results will be alphabetized by artist
             # name and also so we have those fields to search.
-            for artist in self.db.view('artists/search'):
+            for artist in self.cache.view('artists/search'):
                 # Create an object to append to our results
                 entry = {
                     'id': artist['value'],
@@ -240,7 +268,7 @@ class Library:
         else:
             # Get all the artists from the database and append them to the
             # results list.
-            for artist in self.db.view('artists/all', group="true"):
+            for artist in self.cache.view('artists/all', group="true"):
                 entry = {
                     'id': artist['value'],
                     'name': artist['key']
