@@ -87,7 +87,7 @@ class WebInterface:
     @cherrypy.expose
     def list_songs(self, artists=None ,albums=None, start=None, length=None,
                    query=None, list_all=False, archive=False, output='json'):
-        logger.debug("%s (%s)\tlist_songs(artists=%s, albums=%s, start=%s, length=%s, query=%s, list_all=%s, archive=%s output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, artists, albums, start, length, query, list_all, archive, output, cherrypy.request.headers))
+        logger.debug("%s (%s)\tlist_songs(artists=%s, albums=%s, start=%s, length=%s, query=%s, list_all=%s, archive=%s, output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, artists, albums, start, length, query, list_all, archive, output, cherrypy.request.headers))
         if not list_all and not artists and not albums and not query and not archive:
             songs = []
         else:
@@ -333,6 +333,11 @@ class WebInterface:
             limit = len(song_list)
         cherrypy.response.headers['Content-Type'] = 'application/json'
         return anyjson.serialize(song_list[:limit])
+
+    @cherrypy.expose
+    def suggest(self, term=None):
+        result = self.library.songs(suggest=True, query=term)
+        return anyjson.serialize(result[:5])
 
     @cherrypy.expose
     def shutdown(self):
