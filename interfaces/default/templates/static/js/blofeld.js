@@ -1,6 +1,8 @@
 var mainLayout, browserLayout;
 var global_loadPercent = 0;
-var loadingImage = '<div class="scrolling-container"><table id="artists"><thead class="ui-widget-header"><th class="ui-corner-all"><center>Loading...</center></th></tr></thead></table></div>';
+var loadingSongs = '<div class="scrolling-container"><table id="songs"><thead class="ui-widget-header"><th class="ui-corner-all"><center>Loading...</center></th></tr></thead></table></div>';
+var loadingArtists = '<div class="scrolling-container"><table id="artists"><tbody><tr class="artist ui-state-default" id="all-artists"><td class="ui-corner-all">All Artists (<span id="artist-count">Loading</span>)</td></tr></tbody></div>';
+var loadingAlbums = '<div class="scrolling-container"><table id="albums"><tbody><tr class="album ui-state-default" id="all-albums"><td class="ui-corner-all">All Albums (<span id="album-count">Loading</span>)</td></tr></tbody></div>';
 var playlist = [];
 var selectedAlbums = [];
 var selectedArtists = [];
