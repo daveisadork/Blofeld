@@ -59,7 +59,7 @@ var listArtists = function (query) {
     if (query) {
         options.query = query;
     }
-    $("#artists-container").html(loadingImage);
+    $("#artists-container").html(loadingArtists);
     ajaxQueue.artists = $.ajax({
         url: 'list_artists',
         data: options, 
@@ -82,7 +82,7 @@ var listAlbums = function (artists, query) {
     if (artists) {
         options.artists = artists.join(',');
     }
-    $("#albums-container").html(loadingImage);
+    $("#albums-container").html(loadingAlbums);
     ajaxQueue.albums = $.ajax({
         url: 'list_albums', 
         data: options,
@@ -111,7 +111,7 @@ var listSongs = function (artists, albums, query, play) {
     if (albums) {
         options.albums = albums.join(',');
     }
-    $("#songs-container").html(loadingImage);
+    $("#songs-container").html(loadingSongs);
     ajaxQueue.songs = $.ajax({
         url: 'list_songs',
         data: options, 
