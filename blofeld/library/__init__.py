@@ -91,12 +91,22 @@ class Library:
         logger.info("Updated library in %0.2f seconds." % finish_time)
         self.updating.release()
 
-    def songs(self, artists=None, albums=None, query=None):
+    def songs(self, artists=None, albums=None, query=None, suggest=None):
         '''Returns a list of songs as dictionary objects.'''
         logger.debug("Generating song list.")
         start_time = time()
         # Create a list to hold songs we're going to return to the client
         result = []
+        if suggest:
+            if query:
+                query = utils.clean_text(query)
+                for song in self.cache.view('search/suggestion', group="true"):
+                    if utils.clean_text(song['key']).startswith(query):
+                        result.append(song['key'])
+            else:
+                for song in self.cache.view('search/suggestion', group="true"):
+                    result.append(song['key'])
+            return result
         # If the client didn't supply any arguments, we just get all the songs
         # from the database
         if not query and not artists and not albums:

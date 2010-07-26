@@ -487,6 +487,9 @@ $(document).ready(function () {
     $("#cover-art > img").click(function () {
         $("#cover-art-dialog").dialog('open');
     });
+    $("#search-box").autocomplete({
+        source: 'suggest'
+    });
     setTimeout(function () {
         $('#splash-background').fadeOut(1000);
         setTimeout(function () {
