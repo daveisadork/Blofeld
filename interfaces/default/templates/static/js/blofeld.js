@@ -63,6 +63,7 @@ var listArtists = function (query) {
         data: options, 
         success: function (response) {
             $("#artists-container").html(response);
+            $("#artist-count").html($(".artist").not("#all-artists").size());
             ajaxQueue.artists = null;
         }
     });
@@ -85,6 +86,7 @@ var listAlbums = function (artists, query) {
         data: options,
         success: function (response) {
             $("#albums-container").html(response);
+            $("#album-count").html($(".album").not("#all-albums").size());
             ajaxQueue.albums = null;
         }
     });
@@ -325,7 +327,11 @@ $(document).ready(function () {
             selectedArtists.push($(this).attr('id'));
         });
         selectedAlbums = [];
-        if (event.ctrlKey) {
+        if ($(this).attr('id') == "all-albums") {
+            $('.album.ui-state-default').removeClass('ui-state-default');
+            $(this).addClass('ui-state-default');
+            listSongs(selectedArtists, null, $('#search-box').val());
+        } else if (event.ctrlKey) {
             $(this).toggleClass('ui-state-default');
         } else if (event.shiftKey) {
             $(this).addClass('ui-state-default');
@@ -334,7 +340,7 @@ $(document).ready(function () {
             $('.album.ui-state-default').removeClass('ui-state-default');
             $(this).addClass('ui-state-default');
         }
-        $('.album.ui-state-default').each(function () {
+        $('.album.ui-state-default').not("#all-albums").each(function () {
             selectedAlbums.push($(this).attr('id'));
         });
         listSongs(selectedArtists, selectedAlbums, $('#search-box').val());
@@ -342,7 +348,12 @@ $(document).ready(function () {
     $('#artists .artist').live("mousedown", function (event) {
         selectedArtists = [];
         selectedAlbums = [];
-        if (event.ctrlKey) {
+        if ($(this).attr('id') == "all-artists") {
+            $('.artist.ui-state-default').removeClass('ui-state-default');
+            $(this).addClass('ui-state-default');
+            listAlbums(selectedArtists, $('#search-box').val());
+            listSongs(selectedArtists, null, $('#search-box').val());
+        } else if (event.ctrlKey) {
             $(this).toggleClass('ui-state-default');
         } else if (event.shiftKey) {
             $(this).addClass('ui-state-default');
@@ -351,7 +362,7 @@ $(document).ready(function () {
             $('.artist.ui-state-default').removeClass('ui-state-default');
             $(this).addClass('ui-state-default');
         }
-        $('.artist.ui-state-default').each(function () {
+        $('.artist.ui-state-default').not("#all-artists").each(function () {
             selectedArtists.push($(this).attr('id'));
         });
         listAlbums(selectedArtists, $('#search-box').val());
