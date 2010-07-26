@@ -63,7 +63,7 @@ var listArtists = function (query) {
         data: options, 
         success: function (response) {
             $("#artists-container").html(response);
-            $("#artist-count").html($(".artist").not("#all-artists").size());
+            $("#artist-count").html($("#artists .artist").not("#all-artists").size());
             ajaxQueue.artists = null;
         }
     });
@@ -86,7 +86,7 @@ var listAlbums = function (artists, query) {
         data: options,
         success: function (response) {
             $("#albums-container").html(response);
-            $("#album-count").html($(".album").not("#all-albums").size());
+            $("#album-count").html($("#albums .album").not("#all-albums").size());
             ajaxQueue.albums = null;
         }
     });
