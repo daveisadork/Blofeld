@@ -1,11 +1,14 @@
                 <div class="scrolling-container">
                     <table id="artists">
-                        <thead class="ui-widget-header">
-                            <tr>
-                                <th class="ui-corner-all">Artists</th>
-                            </tr>
-                        </thead>
+<!--                        <thead class="ui-widget-header">-->
+<!--                            <tr>-->
+<!--                                <th class="ui-corner-all">Artists</th>-->
+<!--                            </tr>-->
+<!--                        </thead>-->
                         <tbody>
+                            <tr class="artist ui-state-default" id="all-artists">
+                                <td class="ui-corner-all">All Artists (<span id="artist-count"></span>)</td>
+                            </tr>
 #for $artist in $artists
                             <tr class="artist" id="$artist['id']">
                                 <td class="ui-corner-all">$artist['name']</td>
