@@ -323,7 +323,7 @@ $(document).ready(function () {
     });
     $('#albums .album').live("mousedown", function (event) {
         selectedArtists = [];
-        $('.artist.ui-state-default').each(function () {
+        $('.artist.ui-state-default').not("#all-artists").each(function () {
             selectedArtists.push($(this).attr('id'));
         });
         selectedAlbums = [];
