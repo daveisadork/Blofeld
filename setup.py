@@ -33,7 +33,7 @@ for path in ['views', 'interfaces']:
             assets.append((os.path.join('share', 'blofeld', base), file_list))
 
 setup(name = 'blofeld',
-    version = '0.2.2',
+    version = '0.2.3',
     description = 'Web-based Music Server',
     author = 'Dave Hayes',
     author_email = 'dwhayes@gmail.com',
