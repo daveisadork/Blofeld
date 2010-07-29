@@ -48,7 +48,8 @@ def find_cover(song):
             return img_path
 
     # Try to get embedded cover art
-    metadata = mutagen.File(song['location'])
+    song_location = unicode(song['location'])
+    metadata = mutagen.File(song_location)
     for tag, value in metadata.iteritems():
         if tag in ['coverart', 'WM/Picture', 'APIC:', 'covr']:
             try:
