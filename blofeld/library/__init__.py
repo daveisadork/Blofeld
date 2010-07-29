@@ -103,6 +103,8 @@ class Library:
                 for song in self.cache.view('search/suggestion', group="true"):
                     if utils.clean_text(song['key']).startswith(query):
                         result.append(song['key'])
+                        if len(result) == 10:
+                            break
             else:
                 for song in self.cache.view('search/suggestion', group="true"):
                     result.append(song['key'])

@@ -338,7 +338,7 @@ class WebInterface:
     def suggest(self, term=None):
         logger.debug("%s (%s)\tsuggest(term=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, term, cherrypy.request.headers))
         result = self.library.songs(suggest=True, query=term)
-        return anyjson.serialize(result[:5])
+        return anyjson.serialize(result)
 
     @cherrypy.expose
     def shutdown(self):
