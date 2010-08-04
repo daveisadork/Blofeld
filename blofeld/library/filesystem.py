@@ -128,7 +128,7 @@ def add_items_to_db(couchdb, scanning, db_queue, db_lock):
             logger.debug("Added %d songs to the database, %d of which already existed." % (len(add), len(remove)))
     # Compact the database so it doesn't get too huge. Really only needed
     # if we've added a bunch of files, maybe we should check for that.
-    couchdb.compact()
+    couchdb.res.post("/_compact", headers={"Content-Type": "application/json"})
     # Release the lock on the database so the main process knows we're finished
     db_lock.release()
 
@@ -151,6 +151,8 @@ def process_read_queue(read_queue, db_queue, working, start_time, records):
         # database queue.
         db_queue.put(pool.map(read_song, args_list))
         logger.debug("Processed %d items in %0.2f seconds" % (queue_size - read_queue.qsize(), time() - start_time))
+    pool.close()
+    pool.join()
     # Let the other processes know we're finished.
     working.clear()
 
