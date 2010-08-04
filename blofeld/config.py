@@ -88,6 +88,8 @@ class Config(dict):
             self._cfg.set('database', 'path',
                      os.path.join(os.path.expanduser("~"), "Music"))
             self._cfg.set('database', 'couchdb_url', 'http://localhost:5984')
+            self._cfg.set('database', 'couchdb_user', '')
+            self._cfg.set('database', 'couchdb_password', '')
             self._cfg.add_section('interface')
             self._cfg.set('interface', 'theme', 'default')
             with open(self['CONFIG_FILE'], 'w') as conf_file:
@@ -106,6 +108,8 @@ class Config(dict):
         self['USERS'] = anyjson.deserialize(self._cfg.get('security', 'users'))
         self['GROUPS'] = anyjson.deserialize(self._cfg.get('security', 'groups'))
         self['COUCHDB_URL'] = self._cfg.get('database', 'couchdb_url')
+        self['COUCHDB_USER'] = self._cfg.get('database', 'couchdb_user')
+        self['COUCHDB_PASSWORD'] = self._cfg.get('database', 'couchdb_password')
         self['HOSTNAME'] = self._cfg.get('server', 'host')
         self['PORT'] = self._cfg.getint('server', 'port')
         self['THEME_DIR'] = os.path.join(self['ASSETS_DIR'], 'interfaces',

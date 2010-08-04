@@ -19,10 +19,12 @@
 from operator import itemgetter, attrgetter
 from time import time
 import threading
+import urlparse
 import os
 
 from couchdbkit import *
 from couchdbkit.loaders import FileSystemDocsLoader
+from restkit import BasicAuth
 import anyjson
 
 from blofeld.config import cfg
@@ -63,10 +65,13 @@ class Library:
     their metadata into the database. It also handles making calls to the
     database.
     """
-    def __init__(self, db_url=cfg['COUCHDB_URL']):
+    def __init__(self, db_url=cfg['COUCHDB_URL'],
+                  db_username=cfg['COUCHDB_USER'],
+                  db_password=cfg['COUCHDB_PASSWORD']):
         """Sets up the database connection and starts loading songs."""
         # Initiate a connection to the database server
-        self._server = Server(db_url)
+        auth = BasicAuth(db_username, db_password)
+        self._server = Server(db_url, filters=[auth])
         # Get a reference to our database
         self.db = self._server.get_or_create_db("blofeld")
         # Load our database views from the filesystem
