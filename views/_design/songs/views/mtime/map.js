@@ -1,5 +1,8 @@
 function (doc) {
     if (doc.type == 'song') {
-        emit(doc.location, doc.mtime);
+        emit(doc.location, {
+            'mtime': doc.mtime,
+            '_rev': doc._rev
+        });
     }
 }

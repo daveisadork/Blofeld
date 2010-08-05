@@ -61,13 +61,16 @@ def load_music_from_dir(music_path, couchdb):
                 # whether it has been modified since the last time we scanned
                 # it.
                 try:
-                    record_mtime = records[id]
+                    record_mtime = records[id]['mtime']
                 except:
                     record_mtime = None
                 if mtime != record_mtime:
+                    try:
+                        revision = records[id]['_rev']
+                    except:
+                        revision = None
                     # Add the song to the queue to be read
-                    read_queue.put((location, id, mtime, extension,
-                                    id in records))
+                    read_queue.put((location, id, mtime, extension, revision))
                 else:
                     unchanged += 1
     logger.debug("Queued %d songs for reading." % read_queue.qsize())
@@ -108,27 +111,24 @@ def add_items_to_db(couchdb, scanning, db_queue, db_lock):
             while db_queue.qsize() > 0:
                 # Grab all the items out of the database queue
                 songs.extend(db_queue.get())
-            remove = []
-            add = []
+            updated = 0
+            new = []
             for song in songs:
-                if song[0] is None:
+                if song is None:
                     # There must've been a problem reading this file so we'll
                     # remove it from the list
                     del song
                 else:
                     # Get the metadata ready to send to the database
-                    add.append(song[0])
-                    if song[1] is True:
-                        # This song already exists in the database so we need
-                        # to remove it before we add the updated data.
-                        remove.append(couchdb[song[0]['_id']])
+                    new.append(song)
+                    if "_rev" in song:
+                        updated += 1
             # Make our changes to the database
-            couchdb.bulk_delete(remove)
-            couchdb.bulk_save(add)
-            logger.debug("Added %d songs to the database, %d of which already existed." % (len(add), len(remove)))
+            couchdb.bulk_save(new)
+            logger.debug("Added %d songs to the database, %d of which already existed." % (len(new), updated))
     # Compact the database so it doesn't get too huge. Really only needed
     # if we've added a bunch of files, maybe we should check for that.
-    couchdb.res.post("/_compact", headers={"Content-Type": "application/json"})
+    couchdb.compact()
     # Release the lock on the database so the main process knows we're finished
     db_lock.release()
 
@@ -161,12 +161,12 @@ def read_song(args):
     # Figure out which function we need to use to read the tags from this file
     # and then call it.
     if args[3] == 'wma':
-        song = read_wma(args[0], args[1], args[2])
+        song = read_wma(args[0], args[1], args[2], args[4])
     else:
-        song = read_metadata(args[0], args[1], args[2])
+        song = read_metadata(args[0], args[1], args[2], args[4])
     # Return a tuple with the song metadata and whether this item was already
     # in the database.
-    return (song, args[4])
+    return song
 
 
 def remove_missing_files(music_path, couchdb, records):
@@ -203,7 +203,7 @@ def remove_missing_files(music_path, couchdb, records):
     return songs
 
 
-def read_metadata(location, id, mtime):
+def read_metadata(location, id, mtime, revision):
     """Uses Mutagen to read the metadata of a file and returns it as a dict"""
     # Try to open the file
     try:
@@ -218,6 +218,8 @@ def read_metadata(location, id, mtime):
     song['location'] = location
     song['type'] = 'song'
     song['mtime'] = mtime
+    if revision:
+        song['_rev'] = revision
     # Try to set the length of the song in seconds, the bitrate in bps and the
     # mimetype of the file.
     try: song['length'] = metadata.info.length
@@ -267,7 +269,7 @@ def read_metadata(location, id, mtime):
     return song
 
 
-def read_wma(location, id, mtime):
+def read_wma(location, id, mtime, revision):
     """Uses Mutagen to read the metadata of a WMA file and returns it as a
     dict. WMA files need special treatment because unlike MP3 and MP4, Mutagen
     doesn't offer an 'easy' interface to get metadata from WMA files. So, where
@@ -288,6 +290,8 @@ def read_wma(location, id, mtime):
     song['location'] = location
     song['type'] = 'song'
     song['mtime'] = mtime
+    if revision:
+        song['_rev'] = revision
     # Try to set the length of the song in seconds, the bitrate in bps and the
     # mimetype of the file.
     try: song['length'] = metadata.info.length
