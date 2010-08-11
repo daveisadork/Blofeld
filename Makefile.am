@@ -5,11 +5,7 @@ blofelddocdir = ${prefix}/doc/blofeld
 blofelddoc_DATA = \
 	README\
 	COPYING\
-	AUTHORS\
-	ChangeLog\
 	INSTALL\
-	NEWS
-
 
 EXTRA_DIST = $(blofelddoc_DATA)
 
