@@ -1,4 +1,4 @@
-dist_bin_SCRIPTS = blofeld
+bin_SCRIPTS = blofeld
 CLEANFILES = $(bin_SCRIPTS)
 EXTRA_DIST = blofeld.in
 
