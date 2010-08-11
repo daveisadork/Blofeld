@@ -5,7 +5,7 @@
 import sys, string, re, os
  
 # Execute git log with the desired command line options.
-fin = os.popen('git log --summary --stat --no-merges --date=short eb0a68166a0b08c369a1acd8ebbde6e939d30d67..', 'r')
+fin = os.popen('git log --summary --stat --no-merges --date=short', 'r')
 # Create a ChangeLog file in the current directory.
 fout = sys.stdout
  
