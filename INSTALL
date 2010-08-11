@@ -35,9 +35,10 @@ Before installing Blofeld, you need to have these libraries and applications:
 Installation
 ------------
 
-After installing the dependencies, you can install Blofeld by running:
+After installing the dependencies, you can install Blofeld by running the
+following as root:
 
-  sudo python setup.py install
+  ./configure && make && make install
 
 This will automatically install all required Python modules. To start Blofeld
 now you can use:
