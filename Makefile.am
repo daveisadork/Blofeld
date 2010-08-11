@@ -5,7 +5,7 @@ blofelddocdir = ${prefix}/doc/blofeld
 blofelddoc_DATA = \
 	README\
 	COPYING\
-	INSTALL\
+	INSTALL
 
 EXTRA_DIST = $(blofelddoc_DATA)
 
