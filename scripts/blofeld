@@ -1,4 +1,4 @@
 #!/bin/sh
 
 export BLOFELD_INSTALLED=true
-exec python $(dirname $0)/../share/blofeld/Blofeld.py $@
+exec /usr/bin/python /home/dave/Desktop/test/share/blofeld/Blofeld.py $@
