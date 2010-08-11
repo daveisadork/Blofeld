@@ -1,0 +1,4 @@
+#!/bin/sh
+
+export BLOFELD_INSTALLED=true
+exec @PYTHON@ @pkgdatadir@/Blofeld.py $@
