@@ -5,7 +5,11 @@ blofelddocdir = ${prefix}/doc/blofeld
 blofelddoc_DATA = \
 	README\
 	COPYING\
-	INSTALL
+	AUTHORS\
+	ChangeLog\
+	INSTALL\
+	NEWS
+
 
 EXTRA_DIST = $(blofelddoc_DATA)
 
@@ -15,9 +19,6 @@ SUBDIRS = \
 
 Blofeld_PYTHON = \
 	Blofeld.py
-
-Blofelddir = \
-	$(pkgdatadir)
 
 # Remove doc directory on uninstall
 uninstall-local:
