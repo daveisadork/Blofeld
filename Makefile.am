@@ -17,6 +17,9 @@ SUBDIRS = \
 	scripts\
 	blofeld
 
+Blofelddir = \
+	$(pkgdatadir)
+
 Blofeld_PYTHON = \
 	Blofeld.py
 
