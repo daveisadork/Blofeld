@@ -189,7 +189,7 @@ td, th {
     width: 4em;
 }
 
-.scrolling-container tr {
+tr.artist, tr.album, tr.song {
     height: 2em;
 }
 
