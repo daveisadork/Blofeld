@@ -303,7 +303,7 @@ $(document).ready(function () {
         find();
     });
     $("#now-playing, #progress-bar, #play-time, .cover-img").hide();
-    $('#songs .song').live("dblclick", function () {
+    $('tr.song').live("dblclick", function () {
         if ($('#shuffle-button').is(':checked')) {
             playlist = [];
             $('.song').each(function (index) {
@@ -312,7 +312,7 @@ $(document).ready(function () {
         }
         playSong($.inArray($(this).attr('id'), playlist));
     });
-    $('#songs .song').live("mousedown", function (event) {
+    $('tr.song').live("mousedown", function (event) {
         if (event.ctrlKey) {
             $(this).toggleClass('ui-state-default');
         } else if (event.shiftKey) {
@@ -323,7 +323,7 @@ $(document).ready(function () {
             $(this).addClass('ui-state-default');
         }
     });
-    $('#albums .album').live("mousedown", function (event) {
+    $('tr.album').live("mousedown", function (event) {
         selectedArtists = [];
         $('.artist.ui-state-default').not("#all-artists").each(function () {
             selectedArtists.push($(this).attr('id'));
@@ -347,7 +347,7 @@ $(document).ready(function () {
         });
         listSongs(selectedArtists, selectedAlbums, $('#search-box').val());
     });
-    $('#artists .artist').live("mousedown", function (event) {
+    $('tr.artist').live("mousedown", function (event) {
         selectedArtists = [];
         selectedAlbums = [];
         if ($(this).attr('id') == "all-artists") {
