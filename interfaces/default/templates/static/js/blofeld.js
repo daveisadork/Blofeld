@@ -490,7 +490,9 @@ $(document).ready(function () {
     $("#search-box").autocomplete({
         source: 'suggest',
         select: function (event, ui) {
+            $("#search-box").val(ui.item.value);
             find();
+            return false;
         }
     });
     setTimeout(function () {
