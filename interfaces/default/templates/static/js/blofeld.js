@@ -451,7 +451,7 @@ $(document).ready(function () {
         }
     }).click(function () {
         var downloadList = [];
-        $(".song").each(function () {
+        $("tbody .song").each(function () {
             downloadList.push($(this).attr('id'));
         });
         window.location.href = 'download?songs=' + downloadList.join(',');
