@@ -488,7 +488,10 @@ $(document).ready(function () {
         $("#cover-art-dialog").dialog('open');
     });
     $("#search-box").autocomplete({
-        source: 'suggest'
+        source: 'suggest',
+        select: function (event, ui) {
+            find();
+        }
     });
     setTimeout(function () {
         $('#splash-background').fadeOut(1250);
