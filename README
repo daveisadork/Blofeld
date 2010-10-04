@@ -20,10 +20,10 @@ PPA I have set up. You can add it by running the following at a terminal:
 
     sudo add-apt-repository ppa:dwhayes/ppa
 
-Then just updated your sources and install blofeld;
+Then just update your sources and install blofeld:
 
-    sudo aptitude update
-    sudo aptitude install blofeld
+    sudo apt-get update
+    sudo apt-get install blofeld
 
 Currently, the PPA packages install Blofeld as a system wide service. A config
 file will be created automatically and placed at /etc/blofeld/blofeld.cfg
