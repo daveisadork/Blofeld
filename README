@@ -39,6 +39,7 @@ listening to music. Hopefully.
 
 There's a very basic plugin for Rhythmbox which can add a Blofeld server
 as a source. It can be found at http://github.com/daveisadork/blofeld-rhythmbox 
+or you can just install it from the PPA mentioned above.
 
 There's also a pretty useful JSON API that I don't feel like documenting right
 now.
