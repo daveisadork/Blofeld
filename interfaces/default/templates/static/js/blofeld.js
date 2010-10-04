@@ -3,33 +3,67 @@ var global_loadPercent = 0;
 var loadingSongs = '<div class="scrolling-container"><table id="songs"><thead class="ui-widget-header"><th class="ui-corner-all"><center>Loading...</center></th></tr></thead></table></div>';
 var loadingArtists = '<div class="scrolling-container"><table id="artists"><tbody><tr class="artist ui-state-default" id="all-artists"><td class="ui-corner-all">All Artists (<span id="artist-count">Loading</span>)</td></tr></tbody></div>';
 var loadingAlbums = '<div class="scrolling-container"><table id="albums"><tbody><tr class="album ui-state-default" id="all-albums"><td class="ui-corner-all">All Albums (<span id="album-count">Loading</span>)</td></tr></tbody></div>';
+var state = {
+    selectedAlbums: [],
+    selectedArtists: [],
+    activeSong: null
+};
 var playlist = [];
-var selectedAlbums = [];
-var selectedArtists = [];
 var playingCurrently = null;
-var activeSong = null;
 var ajaxQueue = {'artists': null, 'albums': null, 'songs': null};
 var bitrates = [48, 64, 96, 128, 160, 192, 256, 320];
 var bitrate = 320;
 var randomTrack = null;
 var playerState = 'stopped';
-var state = [];
+
+function PageQuery(q) {
+    if(q.length > 1) this.q = q.substring(1, q.length);
+    else this.q = null;
+    this.keyValuePairs = new Array();
+    if(q) {
+        for(var i=0; i < this.q.split("&").length; i++) {
+            this.keyValuePairs[i] = this.q.split("&")[i];
+        }
+    }
+    this.getKeyValuePairs = function() { return this.keyValuePairs; }
+    this.getValue = function(s) {
+        for(var j=0; j < this.keyValuePairs.length; j++) {
+            if(this.keyValuePairs[j].split("=")[0] == s)
+                return this.keyValuePairs[j].split("=")[1];
+            }
+        return false;
+    }
+    this.getParameters = function() {
+        var a = new Array(this.getLength());
+        for(var j=0; j < this.keyValuePairs.length; j++) {
+            a[j] = this.keyValuePairs[j].split("=")[0];
+        }
+        return a;
+    }
+    this.getLength = function() { return this.keyValuePairs.length; } 
+}
+
+
+
+
 
 var trackState = function () {
-    state = [];
-    if ($('#search-box').val()) {
-        state.push('search=' + $('#search-box').val());
+    var stateArray = [];
+
+
+    if ($('#search-box').val() !== '') {
+        stateArray.push('query=' + $('#search-box').val());
     }
-    if (selectedArtists.length > 0) {
-        state.push('artists=' + selectedArtists.join(','));
+    if (state.selectedArtists.length > 0) {
+        stateArray.push('artists=' + state.selectedArtists.join(','));
     }
-    if (selectedAlbums.length > 0) {
-        state.push('albums=' + selectedAlbums.join(','));
+    if (state.selectedAlbums.length > 0) {
+        stateArray.push('albums=' + state.selectedAlbums.join(','));
     }
     if (playerState === 'playing') {
-        state.push('song=' + activeSong);
+        stateArray.push('song=' + state.activeSong);
     }
-    window.location.href = '#' + state.join('/');
+    window.location.href = '#?' + stateArray.join('&')
 };
 
 var showCover = function (song) {
@@ -50,7 +84,7 @@ var showCover = function (song) {
     });
     size = Math.floor($(document).height() * 0.85);
     $('#cover-art-dialog img').attr({
-        src: 'get_cover?songid=' + activeSong + '&size=' + size
+        src: 'get_cover?songid=' + state.activeSong + '&size=' + size
     });
     
 };
@@ -68,10 +102,10 @@ var playSong = function (songIndex) {
     $('#' + song).addClass('now-playing');
     $('.now-playing > .status > .status-icon, .status > .ui-icon').addClass('ui-icon ui-icon-volume-on');
     $("#now-playing, #progress-bar, #play-time").show();
-    activeSong = song;
+    state.activeSong = song;
     playerState = 'playing';
-    showCover(song);
     trackState();
+    showCover(song);
 };
 
 var listArtists = function (query) {
@@ -90,9 +124,16 @@ var listArtists = function (query) {
             $("#artists-container").html(response);
             $("#artist-count").html($("#artists .artist").not("#all-artists").size());
             ajaxQueue.artists = null;
+            state.selectedArtists.forEach(function (artistHash) {
+                $('#' + artistHash).addClass('ui-state-default');
+            });
+            state.selectedArtists = [];
+            $('.artist.ui-state-default').not("#all-artists").each(function () {
+                state.selectedArtists.push($(this).attr('id'));
+            });
+            trackState();
         }
     });
-    trackState();
 };
 
 var listAlbums = function (artists, query) {
@@ -114,9 +155,16 @@ var listAlbums = function (artists, query) {
             $("#albums-container").html(response);
             $("#album-count").html($("#albums .album").not("#all-albums").size());
             ajaxQueue.albums = null;
+            state.selectedAlbums.forEach(function (albumHash) {
+                $('#' + albumHash).addClass('ui-state-default');
+            });
+            state.selectedAlbums = [];
+            $('.album.ui-state-default').not("#all-albums").each(function () {
+                state.selectedAlbums.push($(this).attr('id'));
+            });
+            trackState();
         }
     });
-    trackState();
 };
 
 var listSongs = function (artists, albums, query, play) {
@@ -148,31 +196,34 @@ var listSongs = function (artists, albums, query, play) {
                 playlist.push($(this).attr('id'));
             });
             if (playingCurrently !== null) {
-                playingCurrently = $.inArray(activeSong, playlist);
+                playingCurrently = $.inArray(state.activeSong, playlist);
             }
-            $('#' + activeSong).addClass('now-playing');
+            $('#' + state.activeSong).addClass('now-playing');
             if ($('#jplayer').jPlayer("getData", "diag.isPlaying")) {
                 $('.now-playing > .status > .status-icon').addClass('ui-icon ui-icon-volume-on');
             } else {
                 $('.now-playing > .status > .status-icon').addClass('ui-icon ui-icon-volume-off');
             }
             if (play) {
-                playSong(0);
+                setTimeout(function() {
+                    playSong($.inArray(play, playlist));
+                }, 3000);
             }
             $(".song").draggable({ helper: 'clone' });
+            trackState();
         }
     });
-    trackState();
 };
 
 var stopPlayback = function () {
-    activeSong = null;
+    state.activeSong = null;
     playingCurrently = null;
     $("#jplayer").jPlayer("stop");
     $("#now-playing, #progress-bar, #play-time").hide();
     $('.now-playing > .status > .status-icon, .status > .ui-icon').removeClass('ui-icon ui-icon-volume-on ui-icon-volume-off');
     $('.now-playing').removeClass('now-playing');
     playerState = 'stopped';
+    trackState();
 };
 
 var playNextSong = function () {
@@ -183,7 +234,7 @@ var playNextSong = function () {
                     $('.song').each(function (index) {
                         playlist.push($(this).attr('id'));
                     });
-                    playingCurrently = $.inArray(activeSong, playlist);
+                    playingCurrently = $.inArray(state.activeSong, playlist);
                 }
                 randomTrack = Math.floor(Math.random() * playlist.length);
                 playSong(randomTrack);
@@ -277,14 +328,14 @@ var disableSelection = function (target) {
 };
 
 var find = function () {
-    listSongs(null, null, $('#search-box').val());
-    listAlbums(null, $('#search-box').val());
     listArtists($('#search-box').val());
-    trackState();
+    listAlbums(state.selectedArtists, $('#search-box').val());
+    listSongs(state.selectedArtists, state.selectedAlbums, $('#search-box').val());
 };
 
 $(document).ready(function () {
     $('#switcher').themeswitcher();
+    setupPlayer();
     mainLayout = $('body').layout({
         center__paneSelector:   "#songs-container",
         west__onresize:         "browserLayout.resizeAll",
@@ -314,16 +365,34 @@ $(document).ready(function () {
         north__closable:        false
     });
 
-    setupPlayer();
     disableSelection(document.getElementById("browser"));
     disableSelection(document.getElementById("songs-container"));
     disableSelection(document.getElementById("controls"));
     disableSelection(document.getElementById("progress"));
     disableSelection(document.getElementById("sidebar"));
 
-    listArtists();
-    listAlbums();
-    listSongs();
+    queryString = window.location.hash.substring(1);
+
+    if (queryString !== '?') {
+        var page = new PageQuery(queryString);
+        var query = page.getValue('query');
+        var artists = page.getValue('artists');
+        var albums = page.getValue('albums');
+        var song = page.getValue('song');
+
+        if (query) {
+            $('#search-box').val(query);
+        }
+        if (artists) {
+            state.selectedArtists = artists.split(',');
+        }
+        listArtists($('#search-box').val());
+        if (albums) {
+            state.selectedAlbums = albums.split(',');
+        }
+        listAlbums(state.selectedArtists, $('#search-box').val());
+        listSongs(state.selectedArtists, state.selectedAlbums, $('#search-box').val(), song);
+    }
 
     $('#clear-search').click(function () {
         $('#search-box').val('');
@@ -351,15 +420,15 @@ $(document).ready(function () {
         }
     });
     $('tr.album').live("mousedown", function (event) {
-        selectedArtists = [];
+        state.selectedArtists = [];
         $('.artist.ui-state-default').not("#all-artists").each(function () {
-            selectedArtists.push($(this).attr('id'));
+            state.selectedArtists.push($(this).attr('id'));
         });
-        selectedAlbums = [];
+        state.selectedAlbums = [];
         if ($(this).attr('id') == "all-albums") {
             $('.album.ui-state-default').removeClass('ui-state-default');
             $(this).addClass('ui-state-default');
-            listSongs(selectedArtists, null, $('#search-box').val());
+            listSongs(state.selectedArtists, null, $('#search-box').val());
         } else if (event.ctrlKey) {
             $(this).toggleClass('ui-state-default');
         } else if (event.shiftKey) {
@@ -370,18 +439,18 @@ $(document).ready(function () {
             $(this).addClass('ui-state-default');
         }
         $('.album.ui-state-default').not("#all-albums").each(function () {
-            selectedAlbums.push($(this).attr('id'));
+            state.selectedAlbums.push($(this).attr('id'));
         });
-        listSongs(selectedArtists, selectedAlbums, $('#search-box').val());
+        listSongs(state.selectedArtists, state.selectedAlbums, $('#search-box').val());
     });
     $('tr.artist').live("mousedown", function (event) {
-        selectedArtists = [];
-        selectedAlbums = [];
+        state.selectedArtists = [];
+        state.selectedAlbums = [];
         if ($(this).attr('id') == "all-artists") {
             $('.artist.ui-state-default').removeClass('ui-state-default');
             $(this).addClass('ui-state-default');
-            listAlbums(selectedArtists, $('#search-box').val());
-            listSongs(selectedArtists, null, $('#search-box').val());
+            listAlbums(state.selectedArtists, $('#search-box').val());
+            listSongs(state.selectedArtists, null, $('#search-box').val());
         } else if (event.ctrlKey) {
             $(this).toggleClass('ui-state-default');
         } else if (event.shiftKey) {
@@ -392,10 +461,10 @@ $(document).ready(function () {
             $(this).addClass('ui-state-default');
         }
         $('.artist.ui-state-default').not("#all-artists").each(function () {
-            selectedArtists.push($(this).attr('id'));
+            state.selectedArtists.push($(this).attr('id'));
         });
-        listAlbums(selectedArtists, $('#search-box').val());
-        listSongs(selectedArtists, null, $('#search-box').val());
+        listAlbums(state.selectedArtists, $('#search-box').val());
+        listSongs(state.selectedArtists, null, $('#search-box').val());
     });
     $("#previous-button").button({
         icons: {
@@ -431,7 +500,7 @@ $(document).ready(function () {
             $('.song').each(function (index) {
                 playlist.push($(this).attr('id'));
             });
-            playingCurrently = $.inArray(activeSong, playlist);
+            playingCurrently = $.inArray(state.activeSong, playlist);
         }
     });
     $("#play-button").button({
@@ -510,7 +579,7 @@ $(document).ready(function () {
     setTimeout(function () {
         $('#splash-background').fadeOut(1250);
         setTimeout(function () {
-            $('#splash-text').fadeOut(3000);
+            $('#splash-text').fadeOut(2000);
         }, 1000);
     }, 2000);
     
