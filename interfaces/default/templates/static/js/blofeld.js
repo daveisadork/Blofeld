@@ -338,6 +338,7 @@ var disableSelection = function (target) {
 };
 
 var find = function () {
+    $('#search-box').autocomplete("close");
     listArtists($('#search-box').val());
     listAlbums(state.selectedArtists, $('#search-box').val());
     listSongs(state.selectedArtists, state.selectedAlbums, $('#search-box').val());
