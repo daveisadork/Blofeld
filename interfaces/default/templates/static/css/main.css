@@ -223,9 +223,10 @@ tr.artist, tr.album, tr.song {
     cursor: w-resize;
 }
 
-#cover-art-dialog div {
-    text-align: center;
-    vertical-align: middle;
+#cover-art-dialog {
+    margin: 0;
+    padding: 1em;
+    overflow: hidden;
 }
 
 #play-time-total {
