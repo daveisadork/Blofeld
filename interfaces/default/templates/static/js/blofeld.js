@@ -131,6 +131,7 @@ var listArtists = function (query) {
             $('.artist.ui-state-default').not("#all-artists").each(function () {
                 state.selectedArtists.push($(this).attr('id'));
             });
+            $('#artists-container div').scrollTop($('.artist.ui-state-default').first().offset().top)
             trackState();
         }
     });
@@ -162,6 +163,7 @@ var listAlbums = function (artists, query) {
             $('.album.ui-state-default').not("#all-albums").each(function () {
                 state.selectedAlbums.push($(this).attr('id'));
             });
+            $('#albums-container div').scrollTop($('.album.ui-state-default').first().offset().top)
             trackState();
         }
     });
