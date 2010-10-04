@@ -124,14 +124,18 @@ var listArtists = function (query) {
             $("#artists-container").html(response);
             $("#artist-count").html($("#artists .artist").not("#all-artists").size());
             ajaxQueue.artists = null;
-            state.selectedArtists.forEach(function (artistHash) {
-                $('#' + artistHash).addClass('ui-state-default');
-            });
+            if (state.selectedArtists.length > 0) {
+                $("#all-artists").removeClass('ui-state-default');
+                state.selectedArtists.forEach(function (artistHash) {
+                    $('#' + artistHash).addClass('ui-state-default');
+                });
+            }
             state.selectedArtists = [];
             $('.artist.ui-state-default').not("#all-artists").each(function () {
                 state.selectedArtists.push($(this).attr('id'));
             });
-            $('#artists-container div').scrollTop($('.artist.ui-state-default').first().offset().top)
+            var offset = $('.artist.ui-state-default').first().position().top - $('#artists-container').height() / 2;
+            $('#artists-container div').scrollTop(offset);
             trackState();
         }
     });
@@ -156,14 +160,19 @@ var listAlbums = function (artists, query) {
             $("#albums-container").html(response);
             $("#album-count").html($("#albums .album").not("#all-albums").size());
             ajaxQueue.albums = null;
-            state.selectedAlbums.forEach(function (albumHash) {
-                $('#' + albumHash).addClass('ui-state-default');
-            });
+            if (state.selectedAlbums.length > 0) {
+                $("#all-albums").removeClass('ui-state-default');
+                state.selectedAlbums.forEach(function (albumHash) {
+                    $('#' + albumHash).addClass('ui-state-default');
+                });
+            }
             state.selectedAlbums = [];
             $('.album.ui-state-default').not("#all-albums").each(function () {
                 state.selectedAlbums.push($(this).attr('id'));
             });
-            $('#albums-container div').scrollTop($('.album.ui-state-default').first().offset().top)
+            var offset = $('.album.ui-state-default').first().position().top - $('#albums-container').height() / 2;
+            alert(offset);
+            $('#albums-container div').scrollTop(offset);
             trackState();
         }
     });
@@ -394,6 +403,10 @@ $(document).ready(function () {
         }
         listAlbums(state.selectedArtists, $('#search-box').val());
         listSongs(state.selectedArtists, state.selectedAlbums, $('#search-box').val(), song);
+    } else {
+        listArtists($('#search-box').val());
+        listAlbums(state.selectedArtists, $('#search-box').val());
+        listSongs(state.selectedArtists, state.selectedAlbums, $('#search-box').val());
     }
 
     $('#clear-search').click(function () {
