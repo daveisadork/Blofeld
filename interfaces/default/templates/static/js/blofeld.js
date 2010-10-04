@@ -171,7 +171,6 @@ var listAlbums = function (artists, query) {
                 state.selectedAlbums.push($(this).attr('id'));
             });
             var offset = $('.album.ui-state-default').first().position().top - $('#albums-container').height() / 2;
-            alert(offset);
             $('#albums-container div').scrollTop(offset);
             trackState();
         }
