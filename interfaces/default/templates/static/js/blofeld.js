@@ -609,7 +609,6 @@ $(document).ready(function () {
         }
     });
     $.address.change(function (event) {
-        alert(event.value)
         if (event.parameters.song == undefined) {
             var song = null;
         } else {
