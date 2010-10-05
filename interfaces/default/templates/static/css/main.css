@@ -193,7 +193,7 @@ td, th {
     width: 4em;
 }
 
-tr.artist, tr.album, tr.song {
+tr.artist, tr.album, tr.song, thead > tr {
     height: 2em;
 }
 
@@ -235,4 +235,8 @@ tr.artist, tr.album, tr.song {
 
 #play-time-total {
     float: right;
+}
+
+.option {
+    margin: 3px;
 }

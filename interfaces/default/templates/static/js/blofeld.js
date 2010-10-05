@@ -18,25 +18,6 @@ var bitrate = 320;
 var randomTrack = null;
 var playerState = 'stopped';
 
-//var trackState = function () {
-//    var stateArray = [];
-
-
-//    if ($('#search-box').val() !== '') {
-//        stateArray.push('query=' + $('#search-box').val());
-//    }
-//    if (state.selectedArtists.length > 0) {
-//        stateArray.push('artists=' + state.selectedArtists.join(','));
-//    }
-//    if (state.selectedAlbums.length > 0) {
-//        stateArray.push('albums=' + state.selectedAlbums.join(','));
-//    }
-//    if (playerState === 'playing') {
-//        stateArray.push('song=' + state.activeSong);
-//    }
-//    window.location.href = '#?' + stateArray.join('&')
-//};
-
 var showCover = function (song) {
     var offset = $('#cover-art').offset();
     $('.cover-img').toggleClass('active inactive');
@@ -147,7 +128,6 @@ var listAlbums = function (artists, query) {
             $("#albums-container").html(response);
             $("#album-count").html($("#albums .album").not("#all-albums").size());
             ajaxQueue.albums = null;
-//            alert(state.selectedAlbums.length)
             if (state.selectedAlbums.length > 0) {
                 $("#all-albums").removeClass('ui-state-default');
                 state.selectedAlbums.forEach(function (albumHash) {
@@ -158,7 +138,6 @@ var listAlbums = function (artists, query) {
             $('.album.ui-state-default').not("#all-albums").each(function () {
                 selectedAlbums.push($(this).attr('id'));
             });
-//            state.selectedAlbums = selectedAlbums;
             if (selectedAlbums.length > 0) {
                 $.address.parameter('albums', selectedAlbums);
             } else {
@@ -172,7 +151,6 @@ var listAlbums = function (artists, query) {
             state.selectedArtists = selectedArtists;
             var offset = $('.album.ui-state-default').first().position().top - $('#albums-container').height() / 2;
             $('#albums-container div').scrollTop(offset);
-//            listSongs(artists, selectedAlbums, $('#search-box').val());
             $('#albums-container').removeClass("ui-state-disabled");
         }
     });
@@ -297,13 +275,6 @@ var setupPlayer = function () {
         $('#progress-bar').progressbar('option', 'value', global_loadPercent).slider('option', 'value', parseInt(playedPercentAbsolute, 10));
         $('#play-time-current').html($.jPlayer.convertTime(playedTime));
         $('#play-time-total').html($.jPlayer.convertTime(totalTime));
-//        var myPlayedTime = new Date(playedTime);
-//        var ptMin = (myPlayedTime.getUTCMinutes() < 10) ? "0" + myPlayedTime.getUTCMinutes() : myPlayedTime.getUTCMinutes();
-//        var ptSec = (myPlayedTime.getUTCSeconds() < 10) ? "0" + myPlayedTime.getUTCSeconds() : myPlayedTime.getUTCSeconds();
-//        var myTotalTime = new Date(totalTime);
-//        var ttMin = (myTotalTime.getUTCMinutes() < 10) ? "0" + myTotalTime.getUTCMinutes() : myTotalTime.getUTCMinutes();
-//        var ttSec = (myTotalTime.getUTCSeconds() < 10) ? "0" + myTotalTime.getUTCSeconds() : myTotalTime.getUTCSeconds();
-//        $('#play_head').text(ptMin+":"+ptSec+" of "+ttMin+":"+ttSec);
     })
     .jPlayer("onSoundComplete", function () {
         playNextSong();
@@ -343,9 +314,6 @@ var disableSelection = function (target) {
 var find = function () {
     $.address.parameter('query', $('#search-box').val());
     $('#search-box').autocomplete("close");
-//    listArtists($('#search-box').val());
-//    listAlbums(state.selectedArtists, $('#search-box').val());
-//    listSongs(state.selectedArtists, state.selectedAlbums, $('#search-box').val());
 };
 
 Array.prototype.compare = function(testArr) {
@@ -421,17 +389,12 @@ $(document).ready(function () {
         state.selectedArtists = artists;
         state.selectedAlbums = albums;
         $('#search-box').val(query);
-//        listArtists(query, artists);
         listAlbums(artists, query);
-//        listSongs(artists, albums, query, song);
     });
 
     $('#clear-search').click(function () {
         $('#search-box').val('');
         $.address.parameter('query', null)
-//        listArtists(null, state.selectedArtists);
-//        listAlbums(state.selectedArtists, null);
-//        listSongs(state.selectedArtists, state.selectedAlbums, null);
     });
     $("#now-playing, #progress-bar, #play-time, .cover-img").hide();
     $('tr.song').live("dblclick", function () {
@@ -443,7 +406,7 @@ $(document).ready(function () {
         }
         playSong($.inArray($(this).attr('id'), playlist));
     });
-    $('tr.song').live("mousedown", function (event) {
+    $('tbody > tr.song').live("mousedown", function (event) {
         if (event.ctrlKey) {
             $(this).toggleClass('ui-state-default');
         } else if (event.shiftKey) {
@@ -459,7 +422,6 @@ $(document).ready(function () {
         if ($(this).attr('id') == "all-albums") {
             $('.album.ui-state-default').removeClass('ui-state-default');
             $(this).addClass('ui-state-default');
-//            listSongs(state.selectedArtists, null, $('#search-box').val());
         } else if (event.ctrlKey) {
             $(this).toggleClass('ui-state-default');
         } else if (event.shiftKey) {
@@ -477,7 +439,6 @@ $(document).ready(function () {
         } else {
             $.address.parameter('albums', null);
         }
-//        listSongs(state.selectedArtists, state.selectedAlbums, $('#search-box').val());
     });
     $('tr.artist').live("mousedown", function (event) {
         var selectedArtists = [];
@@ -501,8 +462,6 @@ $(document).ready(function () {
         } else {
             $.address.parameter('artists', null);
         }
-//        listAlbums(state.selectedArtists, $('#search-box').val());
-//        listSongs(state.selectedArtists, null, $('#search-box').val());
     });
     $("#previous-button").button({
         icons: {
@@ -579,7 +538,7 @@ $(document).ready(function () {
             $("#amount").html(bitrate);
         }
     });
-    $('#download-button > button').button({
+    $('#download-button').button({
         icons: {
             primary: 'ui-icon-link'
         }
