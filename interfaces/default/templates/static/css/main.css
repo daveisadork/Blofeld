@@ -157,9 +157,13 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     text-align: center;
-    padding: 3px 3px 0 3px;
+    padding: 3px 3px 0px 3px;
     height: 100%;
     width: 100%;
+}
+
+#albums, #artists {
+    margin-bottom: 3px;
 }
 
 img, table, td, th, tr, thead {
