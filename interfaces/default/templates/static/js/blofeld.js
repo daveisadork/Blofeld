@@ -93,14 +93,14 @@ var listArtists = function (query) {
             $("#artists-container").html(response);
             $("#artist-count").html($("#artists .artist").not("#all-artists").size());
             ajaxQueue.artists = null;
-//            if (state.selectedArtists.length > 0) {
-//                $("#all-artists").removeClass('ui-state-default');
-//                state.selectedArtists.forEach(function (artistHash) {
-//                    $('#' + artistHash).addClass('ui-state-default');
-//                });
-//            } else {
-//                $('#all-artists').addClass('ui-state-default');
-//            }
+            if (state.selectedArtists.length > 0) {
+                $(".artist").removeClass('ui-state-default');
+                state.selectedArtists.forEach(function (artistHash) {
+                    $('#' + artistHash).addClass('ui-state-default');
+                });
+            } else {
+                $('#all-artists').addClass('ui-state-default');
+            }
             var selectedArtists = [];
             $('.artist.ui-state-default').not("#all-artists").each(function () {
                 selectedArtists.push($(this).attr('id'));
