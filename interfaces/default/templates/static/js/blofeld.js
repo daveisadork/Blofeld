@@ -634,10 +634,13 @@ $(document).ready(function () {
         }
         var artistsChanged = !artists.compare(state.selectedArtists);
         var albumsChanged = !albums.compare(state.selectedAlbums);
-        if (artistsChanged || query !== state.previousSearch) {
+        if (artists.length > 0 || query === state.previousSearch) {
             state.selectedArtists = artists;
             listAlbums(artists, query);
-        } 
+        } else {
+            state.selectedArtists = artists;
+            listAlbums(null, query);
+        }
         if (albums.length > 0 || query !== state.previousSearch) {
             state.selectedArtists = artists;
             state.selectedAlbums = albums;
