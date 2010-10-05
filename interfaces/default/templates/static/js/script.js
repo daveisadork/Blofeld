@@ -1,3 +1,7 @@
+/* Author: Dave Hayes
+
+*/
+
 var mainLayout, browserLayout;
 var global_loadPercent = 0;
 var loadingSongs = '<div class="scrolling-container"><table id="songs"><thead class="ui-widget-header ui-corner-all"><tr class="song"><th class="status ui-corner-left"></th><th class="track-number">#</th><th class="title">Title</th><th class="artist">Artist</th><th class="album">Album</th><th class="genre">Genre</th><th class="year">Year</th><th class="time ui-corner-right">Time</th></tr></thead><tbody><tr class="song" id="Loading"><td class="status ui-corner-left" colspan="8"><div class="loading">Loading...</div></td></tr></tbody></table></div>';
@@ -149,9 +153,12 @@ var listAlbums = function (artists, query) {
                 selectedArtists.push($(this).attr('id'));
             });
             state.selectedArtists = selectedArtists;
-            var offset = $('.album.ui-state-default').first().position().top - $('#albums-container').height() / 2;
-            $('#albums-container div').scrollTop(offset);
-            $('#albums-container').removeClass("ui-state-disabled");
+            var position = offset = $('.album.ui-state-default').first().position();
+            if (position) {
+                var offset = position.top - $('#albums-container').height() / 2;
+                $('#albums-container div').scrollTop(offset);
+                $('#albums-container').removeClass("ui-state-disabled");
+            }
         }
     });
 };
@@ -389,7 +396,6 @@ $(document).ready(function () {
         state.selectedArtists = artists;
         state.selectedAlbums = albums;
         $('#search-box').val(query);
-        listAlbums(artists, query);
     });
 
     $('#clear-search').click(function () {
@@ -659,4 +665,25 @@ $(document).ready(function () {
     }, 2000);
     
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
