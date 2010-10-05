@@ -6,7 +6,9 @@ var loadingAlbums = '<div class="scrolling-container"><table id="albums"><tbody>
 var state = {
     selectedAlbums: [],
     selectedArtists: [],
-    activeSong: null
+    activeSong: null,
+    currentSearch: null,
+    previousSong: null,
 };
 var playlist = [];
 var playingCurrently = null;
@@ -72,8 +74,8 @@ var playSong = function (songIndex) {
     $('.now-playing > .status > .status-icon, .status > .ui-icon').addClass('ui-icon ui-icon-volume-on');
     $("#now-playing, #progress-bar, #play-time").show();
     state.activeSong = song;
-    playerState = 'playing';
     $.address.parameter('song', song);
+    playerState = 'playing';
     showCover(song);
 };
 
@@ -108,7 +110,15 @@ var listArtists = function (query, highlight) {
             $('.artist.ui-state-default').not("#all-artists").each(function () {
                 selectedArtists.push($(this).attr('id'));
             });
+            if (selectedArtists.length === 0) {
+                $('#all-artists').addClass('ui-state-default');
+            }
             state.selectedArtists = selectedArtists;
+            if (state.selectedArtists.length > 0) {
+                $.address.parameter('artists', state.selectedArtists);
+            } else {
+                $.address.parameter('artists', null);
+            }
             var offset = $('.artist.ui-state-default').first().position().top - $('#artists-container').height() / 2;
             $('#artists-container div').scrollTop(offset);
         }
@@ -145,10 +155,11 @@ var listAlbums = function (artists, query) {
             $('.album.ui-state-default').not("#all-albums").each(function () {
                 selectedAlbums.push($(this).attr('id'));
             });
-            state.selectedAlbums = selectedAlbums;
-            if (state.selectedAlbums.length > 0) {
-                $.address.parameter('albums', state.selectedAlbums);
+//            state.selectedAlbums = selectedAlbums;
+            if (selectedAlbums.length > 0) {
+                $.address.parameter('albums', selectedAlbums);
             } else {
+                $("#all-albums").addClass('ui-state-default');
                 $.address.parameter('albums', null);
             }
             selectedArtists = [];
@@ -158,6 +169,7 @@ var listAlbums = function (artists, query) {
             state.selectedArtists = selectedArtists;
             var offset = $('.album.ui-state-default').first().position().top - $('#albums-container').height() / 2;
             $('#albums-container div').scrollTop(offset);
+//            listSongs(artists, selectedAlbums, $('#search-box').val());
         }
     });
 };
@@ -325,9 +337,9 @@ var disableSelection = function (target) {
 var find = function () {
     $.address.parameter('query', $('#search-box').val());
     $('#search-box').autocomplete("close");
-    listArtists($('#search-box').val());
-    listAlbums(state.selectedArtists, $('#search-box').val());
-    listSongs(state.selectedArtists, state.selectedAlbums, $('#search-box').val());
+//    listArtists($('#search-box').val());
+//    listAlbums(state.selectedArtists, $('#search-box').val());
+//    listSongs(state.selectedArtists, state.selectedAlbums, $('#search-box').val());
 };
 
 Array.prototype.compare = function(testArr) {
@@ -403,14 +415,17 @@ $(document).ready(function () {
         state.selectedArtists = artists;
         state.selectedAlbums = albums;
         $('#search-box').val(query);
-        listArtists(query, artists);
-        listAlbums(artists, query);
-        listSongs(artists, albums, query, song);
+//        listArtists(query, artists);
+//        listAlbums(artists, query);
+//        listSongs(artists, albums, query, song);
     });
 
     $('#clear-search').click(function () {
         $('#search-box').val('');
-        find();
+        $.address.parameter('query', null)
+//        listArtists(null, state.selectedArtists);
+//        listAlbums(state.selectedArtists, null);
+//        listSongs(state.selectedArtists, state.selectedAlbums, null);
     });
     $("#now-playing, #progress-bar, #play-time, .cover-img").hide();
     $('tr.song').live("dblclick", function () {
@@ -594,6 +609,17 @@ $(document).ready(function () {
         }
     });
     $.address.change(function (event) {
+        alert(event.value)
+        if (event.parameters.song == undefined) {
+            var song = null;
+        } else {
+            var song = event.parameters.song;
+        }
+        if (event.parameters.query == undefined) {
+            var query = '';
+        } else {
+            var query = event.parameters.query;
+        }
         if (event.parameters.artists == undefined) {
             var artists = [];
         } else {
@@ -604,17 +630,32 @@ $(document).ready(function () {
         } else {
             var albums = event.parameters.albums.split(',');
         }
-        if (!artists.compare(state.selectedArtists)) {
+        if (query !== state.previousSearch) {
+            listArtists(query, artists);
+        }
+        var artistsChanged = !artists.compare(state.selectedArtists);
+        var albumsChanged = !albums.compare(state.selectedAlbums);
+        if (artistsChanged || query !== state.previousSearch) {
             state.selectedArtists = artists;
-            listAlbums(artists, $('#search-box').val());
-            listSongs(artists, null, $('#search-box').val());
-        } else if (!albums.compare(state.selectedAlbums)) {
+            listAlbums(artists, query);
+        } 
+        if (albums.length > 0 || query !== state.previousSearch) {
             state.selectedArtists = artists;
             state.selectedAlbums = albums;
-            listSongs(artists, albums, $('#search-box').val());
+            listSongs(artists, albums, query);
+        } else if (albums.length === 0 || artistsChanged || query !== state.previousSearch) {
+            state.selectedArtists = artists;
+            state.selectedAlbums = albums;
+            listSongs(artists, null, query);
         }
+        state.previousSearch = $('#search-box').val()
     });
     $.address.externalChange(function (event) {
+        if (event.parameters.query == undefined) {
+            var query = '';
+        } else {
+            var query = event.parameters.query;
+        }
         if (event.parameters.artists == undefined) {
             var artists = [];
         } else {
