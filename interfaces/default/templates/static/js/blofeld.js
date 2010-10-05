@@ -77,7 +77,7 @@ var playSong = function (songIndex) {
     showCover(song);
 };
 
-var listArtists = function (query) {
+var listArtists = function (query, highlight) {
     if (ajaxQueue.artists) {
         ajaxQueue.artists.abort();
     }
@@ -93,6 +93,9 @@ var listArtists = function (query) {
             $("#artists-container").html(response);
             $("#artist-count").html($("#artists .artist").not("#all-artists").size());
             ajaxQueue.artists = null;
+            if (highlight) {
+                state.selectedArtists = highlight;
+            }
             if (state.selectedArtists.length > 0) {
                 $(".artist").removeClass('ui-state-default');
                 state.selectedArtists.forEach(function (artistHash) {
@@ -195,13 +198,14 @@ var listSongs = function (artists, albums, query, play) {
                 $('.now-playing > .status > .status-icon').addClass('ui-icon ui-icon-volume-on');
             } else {
                 $('.now-playing > .status > .status-icon').addClass('ui-icon ui-icon-volume-off');
+                $.address.parameter('song', null);
             }
             if (play) {
                 setTimeout(function() {
                     playSong($.inArray(play, playlist));
                 }, 3000);
             }
-            $(".song").draggable({ helper: 'clone' });
+            //$(".song").draggable({ helper: 'clone' });
         }
     });
 };
@@ -214,6 +218,7 @@ var stopPlayback = function () {
     $('.now-playing > .status > .status-icon, .status > .ui-icon').removeClass('ui-icon ui-icon-volume-on ui-icon-volume-off');
     $('.now-playing').removeClass('now-playing');
     playerState = 'stopped';
+    $.address.parameter('song', null);
 };
 
 var playNextSong = function () {
@@ -398,7 +403,7 @@ $(document).ready(function () {
         state.selectedArtists = artists;
         state.selectedAlbums = albums;
         $('#search-box').val(query);
-        listArtists(query);
+        listArtists(query, artists);
         listAlbums(artists, query);
         listSongs(artists, albums, query, song);
     });
@@ -604,6 +609,7 @@ $(document).ready(function () {
             listAlbums(artists, $('#search-box').val());
             listSongs(artists, null, $('#search-box').val());
         } else if (!albums.compare(state.selectedAlbums)) {
+            state.selectedArtists = artists;
             state.selectedAlbums = albums;
             listSongs(artists, albums, $('#search-box').val());
         }
