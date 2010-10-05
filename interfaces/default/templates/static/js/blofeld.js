@@ -1,6 +1,6 @@
 var mainLayout, browserLayout;
 var global_loadPercent = 0;
-var loadingSongs = '<div class="scrolling-container"><table id="songs"><thead class="ui-widget-header"><th class="ui-corner-all"><center>Loading...</center></th></tr></thead></table></div>';
+var loadingSongs = '<div class="scrolling-container"><table id="songs"><thead class="ui-widget-header ui-corner-all"><tr class="song"><th class="status ui-corner-left"></th><th class="track-number">#</th><th class="title">Title</th><th class="artist">Artist</th><th class="album">Album</th><th class="genre">Genre</th><th class="year">Year</th><th class="time ui-corner-right">Time</th></tr></thead><tbody><tr class="song" id="Loading"><td class="status ui-corner-left" colspan="8"><div class="loading">Loading...</div></td></tr></tbody></table></div>';
 var loadingArtists = '<div class="scrolling-container"><table id="artists"><tbody><tr class="artist ui-state-default" id="all-artists"><td class="ui-corner-all">All Artists (<span id="artist-count">Loading</span>)</td></tr></tbody></div>';
 var loadingAlbums = '<div class="scrolling-container"><table id="albums"><tbody><tr class="album ui-state-default" id="all-albums"><td class="ui-corner-all">All Albums (<span id="album-count">Loading</span>)</td></tr></tbody></div>';
 var state = {
@@ -87,7 +87,8 @@ var listArtists = function (query, highlight) {
     if (query) {
         options.query = query;
     }
-    $("#artists-container").html(loadingArtists);
+//    $("#artists-container").html(loadingArtists);
+    $("#artists-container").addClass('ui-state-disabled');
     ajaxQueue.artists = $.ajax({
         url: 'list_artists',
         data: options, 
@@ -121,6 +122,7 @@ var listArtists = function (query, highlight) {
             }
             var offset = $('.artist.ui-state-default').first().position().top - $('#artists-container').height() / 2;
             $('#artists-container div').scrollTop(offset);
+            $("#artists-container").removeClass('ui-state-disabled');
         }
     });
 };
@@ -136,7 +138,8 @@ var listAlbums = function (artists, query) {
     if (artists) {
         options.artists = artists.join(',');
     }
-    $("#albums-container").html(loadingAlbums);
+//    $("#albums-container").html(loadingAlbums);
+    $('#albums-container').addClass("ui-state-disabled");
     ajaxQueue.albums = $.ajax({
         url: 'list_albums', 
         data: options,
@@ -170,6 +173,7 @@ var listAlbums = function (artists, query) {
             var offset = $('.album.ui-state-default').first().position().top - $('#albums-container').height() / 2;
             $('#albums-container div').scrollTop(offset);
 //            listSongs(artists, selectedAlbums, $('#search-box').val());
+            $('#albums-container').removeClass("ui-state-disabled");
         }
     });
 };
@@ -191,7 +195,8 @@ var listSongs = function (artists, albums, query, play) {
     if (albums) {
         options.albums = albums.join(',');
     }
-    $("#songs-container").html(loadingSongs);
+//    $("#songs-container").html(loadingSongs);
+    $("#songs-container").addClass('ui-state-disabled');
     ajaxQueue.songs = $.ajax({
         url: 'list_songs',
         data: options, 
@@ -218,6 +223,7 @@ var listSongs = function (artists, albums, query, play) {
                 }, 3000);
             }
             //$(".song").draggable({ helper: 'clone' });
+            $("#songs-container").removeClass('ui-state-disabled');
         }
     });
 };
@@ -416,7 +422,7 @@ $(document).ready(function () {
         state.selectedAlbums = albums;
         $('#search-box').val(query);
 //        listArtists(query, artists);
-//        listAlbums(artists, query);
+        listAlbums(artists, query);
 //        listSongs(artists, albums, query, song);
     });
 
@@ -573,7 +579,7 @@ $(document).ready(function () {
             $("#amount").html(bitrate);
         }
     });
-    $('#download-button').button({
+    $('#download-button > button').button({
         icons: {
             primary: 'ui-icon-link'
         }
@@ -629,23 +635,24 @@ $(document).ready(function () {
         } else {
             var albums = event.parameters.albums.split(',');
         }
-        if (query !== state.previousSearch) {
-            listArtists(query, artists);
-        }
         var artistsChanged = !artists.compare(state.selectedArtists);
         var albumsChanged = !albums.compare(state.selectedAlbums);
-        if (artists.length > 0 || query === state.previousSearch) {
+        var queryChanged = query !== state.previousSearch;
+        if (queryChanged) {
+            listArtists(query, artists);
+        }
+        if ((artistsChanged && artists.length > 0 && !queryChanged) || (queryChanged && query === '')) {
             state.selectedArtists = artists;
             listAlbums(artists, query);
-        } else {
+        } else if ((artistsChanged && artists.length === 0 && !queryChanged) || (queryChanged && query !== '')) {
             state.selectedArtists = artists;
             listAlbums(null, query);
         }
-        if (albums.length > 0 || query !== state.previousSearch) {
+        if (((albumsChanged || artistsChanged) && albums.length > 0) || query !== state.previousSearch) {
             state.selectedArtists = artists;
             state.selectedAlbums = albums;
             listSongs(artists, albums, query);
-        } else if (albums.length === 0 || artistsChanged || query !== state.previousSearch) {
+        } else if (((albumsChanged || artistsChanged) && albums.length === 0) || query !== state.previousSearch) {
             state.selectedArtists = artists;
             state.selectedAlbums = albums;
             listSongs(artists, null, query);
