@@ -48,7 +48,7 @@ body {
 }
 
 #header-widget {
-    padding: 3px 0 3px 0;
+    padding: 3px 0 3px 3px;
     vertical-align: middle;
     clear: right;
     margin: 0;
@@ -138,8 +138,7 @@ body {
 #search {
     float: right;
     position: relative;
-    top: 1px;
-    margin: 7px 0;
+    margin: 0 0 10px 0;
     padding: 3px;
 }
 
@@ -149,8 +148,8 @@ body {
 }
 
 #search-box {
-    height: 16px;
-    padding-left: 4px;
+    height: 1.67em;
+    padding: 0 4px;
     margin: 0;
 }
 
