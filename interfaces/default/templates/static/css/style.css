@@ -283,7 +283,6 @@ body {
 #progress {
     line-height: normal;
     font-size: 0.87em;
-    padding-top: 3px;
 }
 
 #progress-bar {
@@ -346,19 +345,38 @@ body {
 #search {
     float: right;
     position: relative;
-    margin: 0 0 10px 0;
-    padding: 3px;
+    margin: 0 0 2px 0;
+    padding: 0px;
+    height: 30px;
+    overflow: hidden;
+    display: table;
+}
+
+#search > form {
+    display: table-cell;
+    vertical-align: middle;
+    line-height: 28px;
+}
+
+#search-wrapper {
+    display: table-cell;
+    vertical-align: middle;
 }
 
 #clear-search {
-    float: right;
-    margin: 3px 0 0 3px;
+    position: relative;
+    top: 1px;
+    right: 2px;
+    height: 24px;
+    width: 24px;
+    border: none;
 }
 
 #search-box {
+    display: inline-block;
     height: 1.67em;
     padding: 0 4px;
-    margin: 0;
+    margin: 0 0 0 2px;
 }
 
 .table-container {

@@ -398,7 +398,12 @@ $(document).ready(function () {
         $('#search-box').val(query);
     });
 
-    $('#clear-search').click(function () {
+    $('#clear-search').button({
+        icons: {
+            primary: 'ui-icon-circle-close'
+        },
+        text: false
+    }).click(function () {
         $('#search-box').val('');
         $.address.parameter('query', null)
     });
