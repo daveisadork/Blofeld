@@ -319,8 +319,8 @@ var disableSelection = function (target) {
 };
 
 var find = function () {
-    $.address.parameter('query', $('#search-box').val());
     $('#search-box').autocomplete("close");
+    $.address.parameter('query', $('#search-box').val());
 };
 
 Array.prototype.compare = function(testArr) {
@@ -372,31 +372,31 @@ $(document).ready(function () {
     disableSelection(document.getElementById("progress"));
     disableSelection(document.getElementById("sidebar"));
 
-    $.address.init(function (event) {
-        if (event.parameters.query == undefined) {
-            var query = '';
-        } else {
-            var query = event.parameters.query;
-        }
-        if (event.parameters.artists == undefined) {
-            var artists = [];
-        } else {
-            var artists = event.parameters.artists.split(',');
-        }
-        if (event.parameters.albums == undefined) {
-            var albums = [];
-        } else {
-            var albums = event.parameters.albums.split(',');
-        }
-        if (event.parameters.song == undefined) {
-            var song = false;
-        } else {
-            var song = event.parameters.song;
-        }
-        state.selectedArtists = artists;
-        state.selectedAlbums = albums;
-        $('#search-box').val(query);
-    });
+//    $.address.init(function (event) {
+//        if (event.parameters.query == undefined) {
+//            var query = '';
+//        } else {
+//            var query = event.parameters.query;
+//        }
+//        if (event.parameters.artists == undefined) {
+//            var artists = [];
+//        } else {
+//            var artists = event.parameters.artists.split(',');
+//        }
+//        if (event.parameters.albums == undefined) {
+//            var albums = [];
+//        } else {
+//            var albums = event.parameters.albums.split(',');
+//        }
+//        if (event.parameters.song == undefined) {
+//            var song = false;
+//        } else {
+//            var song = event.parameters.song;
+//        }
+//        state.selectedArtists = artists;
+//        state.selectedAlbums = albums;
+//        $('#search-box').val(query);
+//    });
 
     $('#clear-search').button({
         icons: {
@@ -607,7 +607,7 @@ $(document).ready(function () {
         }
         var artistsChanged = !artists.compare(state.selectedArtists);
         var albumsChanged = !albums.compare(state.selectedAlbums);
-        var queryChanged = query !== state.previousSearch;
+        var queryChanged = (query !== state.previousSearch);
         if (queryChanged) {
             listArtists(query, artists);
         }

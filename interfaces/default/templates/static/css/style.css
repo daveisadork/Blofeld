@@ -356,39 +356,48 @@ body {
 #search {
     float: right;
     position: relative;
-    margin: 0 0 2px 0;
-    padding: 0px;
-    height: 30px;
+    margin: 0;
+    padding: 3px;
+    height: 24px;
     overflow: hidden;
     display: table;
 }
 
-#search > form {
-    display: table-cell;
-    vertical-align: middle;
-    line-height: 28px;
-}
-
 #search-wrapper {
     display: table-cell;
-    vertical-align: middle;
+    margin: 0;
+    padding: 0;
+    height: 24px;
 }
 
-#clear-search {
-    position: relative;
-    top: 1px;
-    right: 2px;
+#search-wrapper > form {
+    display: table-cell;
+    margin: 0;
+    padding: 0;
+    vertical-align: middle;
+    line-height: 18px;
     height: 24px;
-    width: 24px;
-    border: none;
 }
 
 #search-box {
     display: inline-block;
-    height: 1.67em;
+    height: 21px;
+    border: 1px inset;
     padding: 0 4px;
-    margin: 0 0 0 2px;
+    margin: 0 3px 0 0;
 }
+
+#clear-search {
+    display: inline-block;
+    float: right;
+    height: 24px;
+    width: 24px;
+    border: none;
+    margin: 0;
+
+}
+
+
 
 .table-container {
     padding: 0 6px 3px 0;
