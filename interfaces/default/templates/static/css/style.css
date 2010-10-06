@@ -374,17 +374,15 @@ body {
     display: table-cell;
     margin: 0;
     padding: 0;
-    vertical-align: middle;
-    line-height: 18px;
     height: 24px;
 }
 
 #search-box {
     display: inline-block;
-    height: 21px;
-    border: 1px inset;
+    height: 20px;
+    width: 148px;
     padding: 0 4px;
-    margin: 0 3px 0 0;
+    margin: 1px 3px 0 0;
 }
 
 #clear-search {
@@ -397,7 +395,17 @@ body {
 
 }
 
+ul.ui-autocomplete {
+    border-width: 0px 1px 1px;
+    width: 142px;
+}
 
+ul.ui-autocomplete a {
+    width: auto;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
 
 .table-container {
     padding: 0 6px 3px 0;

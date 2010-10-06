@@ -319,8 +319,8 @@ var disableSelection = function (target) {
 };
 
 var find = function () {
-    $('#search-box').autocomplete("close");
     $.address.parameter('query', $('#search-box').val());
+    $('#search-box').autocomplete("close");
 };
 
 Array.prototype.compare = function(testArr) {
@@ -582,7 +582,14 @@ $(document).ready(function () {
             $("#search-box").val(ui.item.value);
             find();
             return false;
-        }
+        },
+        open: function (event, ui) {
+            $("#search-box").removeClass('ui-corner-bl ui-corner-br')
+            $("ul.ui-autocomplete").removeClass('ui-corner-all').addClass('ui-corner-bl ui-corner-br')
+        },
+        close: function (event, ui) {
+            $("#search-box").addClass('ui-corner-bl ui-corner-br')
+        },
     });
     $.address.change(function (event) {
         if (event.parameters.song == undefined) {
