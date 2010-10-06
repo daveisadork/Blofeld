@@ -12,7 +12,7 @@ var state = {
     selectedArtists: [],
     activeSong: null,
     currentSearch: null,
-    previousSong: null,
+    previousSong: null
 };
 var playlist = [];
 var playingCurrently = null;
@@ -335,7 +335,7 @@ Array.prototype.compare = function(testArr) {
 }
 
 $(document).ready(function () {
-    $('#switcher').themeswitcher();
+    if (!!$.switcher) $('#switcher').themeswitcher();
     setupPlayer();
     mainLayout = $('body').layout({
         center__paneSelector:   "#songs-container",
