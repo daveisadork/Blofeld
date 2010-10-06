@@ -335,7 +335,7 @@ Array.prototype.compare = function(testArr) {
 }
 
 $(document).ready(function () {
-    if (!!$.switcher) $('#switcher').themeswitcher();
+    if (!!$('#switcher').themeswitcher) $('#switcher').themeswitcher();
     setupPlayer();
     mainLayout = $('body').layout({
         center__paneSelector:   "#songs-container",
