@@ -36,7 +36,6 @@
     <!-- All JavaScript at the bottom, except for Modernizr which enables HTML5 elements & feature detects -->
     <script src="static/js/modernizr-1.5.min.js"></script>
 
-
 </head>
 
 <body class="ui-state-default">
@@ -130,21 +129,26 @@
     <!-- Javascript at the bottom for fast page loading -->
 
     <!-- Grab Google CDN's jQuery. fall back to local if necessary -->
-    <!-- Grab Google CDN's jQuery. fall back to local if necessary -->
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
     <script>!window.jQuery && document.write(unescape('%3Cscript src="static/js/jquery-1.4.2.min.js"%3E%3C/script%3E'))</script>
     <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js"></script>
-    <script>!$.button && document.write('%3Cscript src="static/js/jquery-ui-1.8.5.custom.min.js"%3E%3C/script%3E')</script>
+    <script>!$.ui && document.write(unescape('%3Cscript src="static/js/jquery-ui-1.8.5.custom.min.js"%3E%3C/script%3E'))</script>
 
+    <!-- jQueryUI Theme Switcher -->
+    <script src="http://jqueryui.com/themeroller/themeswitchertool/"></script>
 
+    <!-- Try to detect IE8 Compatibility Mode and notify the user they need to
+    change their settings because that will render this site in a horribly 
+    broken manner -->
+    <!--[if IE ]>
+    <script src="static/js/detectie8compat.js"></script>
+    <![endif]-->
     <script src="static/js/plugins.js?v=1"></script>
     <script src="static/js/jquery.layout.min-1.2.0.js"></script>
     <script src="static/js/jquery.jplayer.min.js"></script>
     <script src="static/js/jquery.address-1.3.min.js"></script>
     <script src="static/js/script.js?v=1"></script>
 
-    <!-- jQueryUI Theme Switcher -->
-    <script src="http://jqueryui.com/themeroller/themeswitchertool/"></script>
 
     <!--[if lt IE 7 ]>
         <script src="js/dd_belatedpng.js"></script>
