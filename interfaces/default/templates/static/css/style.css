@@ -206,6 +206,7 @@ button {  width: auto; overflow: visible; }
 html, html body {
     height: 100%;
     margin: 0;
+    overflow: hidden;
 }
 
 body {
@@ -282,10 +283,12 @@ body {
 #progress {
     line-height: normal;
     font-size: 0.87em;
+    padding-top: 3px;
 }
 
 #progress-bar {
     width: 100px;
+    height: 0.8em;
     margin: 2px 0 2px 0;
 }
 
@@ -375,14 +378,10 @@ body {
     margin-bottom: 3px;
 }
 
-img, table, td, th, tr, thead {
-    border: none;
-}
-
 table {
     table-layout: fixed;
+    border-collapse: inherit;
     width: 100%;
-    border-spacing: 0;
 }
 
 td, th {
@@ -450,7 +449,9 @@ tr.artist, tr.album, tr.song, thead > tr {
     margin: 6px 3px 6px 3px;
 }
 
-
+tr.ui-state-default {
+    border: none;
+}
 
 
 
