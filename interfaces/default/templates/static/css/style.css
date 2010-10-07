@@ -270,6 +270,7 @@ body {
     clear: right;
     margin: 0;
     line-height: 0px;
+    white-space: nowrap;
 }
 
 #header-widget > div {
@@ -339,6 +340,14 @@ body {
 
 #now-playing-text {
     line-height: normal;
+    width: auto;
+}
+
+#now-playing-text * {
+    width: auto;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 #now-playing-title {
