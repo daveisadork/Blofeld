@@ -585,13 +585,13 @@ $(document).ready(function () {
         },
         open: function (event, ui) {
             $("ul.ui-autocomplete").removeClass('ui-corner-all').addClass('ui-corner-bottom');
-            $("#search-box").removeClass('ui-corner-bottom').keypress(function (event) {
-                if (event.which === 13) find();
-            }).focus();
+            $("#search-box").removeClass('ui-corner-bottom');
         },
         close: function (event, ui) {
             $("#search-box").addClass('ui-corner-bottom');
         }
+    }).keydown(function (event) {
+        if (event.which === 13) find();
     });
     $.address.change(function (event) {
         if (event.parameters.song == undefined) {
