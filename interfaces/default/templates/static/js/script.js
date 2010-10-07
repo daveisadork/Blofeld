@@ -2,6 +2,7 @@
 
 */
 
+"use strict";
 var mainLayout, browserLayout;
 var global_loadPercent = 0;
 var loadingSongs = '<div class="scrolling-container"><table id="songs"><thead class="ui-widget-header ui-corner-all"><tr class="song"><th class="status ui-corner-left"></th><th class="track-number">#</th><th class="title">Title</th><th class="artist">Artist</th><th class="album">Album</th><th class="genre">Genre</th><th class="year">Year</th><th class="time ui-corner-right">Time</th></tr></thead><tbody><tr class="song" id="Loading"><td class="status ui-corner-left" colspan="8"><div class="loading">Loading...</div></td></tr></tbody></table></div>';
@@ -29,7 +30,8 @@ var playerFormats = [];
 var playerType = null;
 
 var showCover = function (song) {
-    var offset = $('#cover-art').offset();
+    var offset = $('#cover-art').offset(),
+        size = Math.floor($(document).height() * 0.85);
     $('.cover-img').toggleClass('active inactive');
     $('img.active').attr({
         'src': 'get_cover?size=32&songid=' + song,
@@ -42,7 +44,6 @@ var showCover = function (song) {
             $('img.inactive').fadeOut(1000);
         });
     });
-    var size = Math.floor($(document).height() * 0.85);
     $('#cover-art-dialog img').attr({
         src: 'get_cover?songid=' + state.activeSong + '&size=' + size
     });
@@ -50,9 +51,10 @@ var showCover = function (song) {
 };
 
 var playSong = function (songIndex) {
+    var song = playlist[songIndex],
+        songUrl;
     $("#progress-bar").slider("disable");
-    var song = playlist[songIndex];
-    var songUrl = 'get_song?format=' + playerFormats.join(',') + '&songid=' + song + '&bitrate=' + parseInt(bitrate, 10);
+    songUrl = 'get_song?format=' + playerFormats.join(',') + '&songid=' + song + '&bitrate=' + parseInt(bitrate, 10);
     playingCurrently = songIndex;
     $("#jplayer").jPlayer('setFile', songUrl, songUrl).jPlayer("play");
     $('#now-playing-title').html($('#' + song + ' .title').html());
@@ -75,12 +77,12 @@ var playSong = function (songIndex) {
 };
 
 var listArtists = function (query, highlight) {
+    var offset, options = {
+        'output': 'html'
+    };
     if (ajaxQueue.artists) {
         ajaxQueue.artists.abort();
     }
-    var options = {
-        'output': 'html'
-    };
     if (query) {
         options.query = query;
     }
@@ -117,7 +119,7 @@ var listArtists = function (query, highlight) {
             } else {
                 $.address.parameter('artists', null);
             }
-            var offset = $('.artist.ui-state-default').first().position().top - $('#artists-container').height() / 2;
+            offset = $('.artist.ui-state-default').first().position().top - $('#artists-container').height() / 2;
             $('#artists-container div').scrollTop(offset);
             $("#artists-container").removeClass('ui-state-disabled');
         }
@@ -125,12 +127,12 @@ var listArtists = function (query, highlight) {
 };
 
 var listAlbums = function (artists, query) {
-    if (ajaxQueue.albums) {
-        ajaxQueue.albums.abort();
-    }
     var options = {
         'output': 'html'
     };
+    if (ajaxQueue.albums) {
+        ajaxQueue.albums.abort();
+    }
     if (query) {
         options.query = query;
     }
@@ -143,6 +145,9 @@ var listAlbums = function (artists, query) {
         url: 'list_albums',
         data: options,
         success: function (response) {
+            var selectedAlbums = [],
+                selectedArtists = [],
+                position, offset;
             $("#albums-container").html(response);
             $("#album-count").html($("#albums .album").not("#all-albums").size());
             ajaxQueue.albums = null;
@@ -152,7 +157,6 @@ var listAlbums = function (artists, query) {
                     $('#' + albumHash).addClass('ui-state-default');
                 });
             }
-            var selectedAlbums = [];
             $('.album.ui-state-default').not("#all-albums").each(function () {
                 selectedAlbums.push($(this).attr('id'));
             });
@@ -162,14 +166,13 @@ var listAlbums = function (artists, query) {
                 $("#all-albums").addClass('ui-state-default');
                 $.address.parameter('albums', null);
             }
-            var selectedArtists = [];
             $('.artist.ui-state-default').not("#all-artists").each(function () {
                 selectedArtists.push($(this).attr('id'));
             });
             state.selectedArtists = selectedArtists;
-            var position = $('.album.ui-state-default').first().position();
+            position = $('.album.ui-state-default').first().position();
             if (position) {
-                var offset = position.top - $('#albums-container').height() / 2;
+                offset = position.top - $('#albums-container').height() / 2;
                 $('#albums-container div').scrollTop(offset);
                 $('#albums-container').removeClass("ui-state-disabled");
             }
@@ -178,12 +181,12 @@ var listAlbums = function (artists, query) {
 };
 
 var listSongs = function (artists, albums, query, play) {
-    if (ajaxQueue.songs) {
-        ajaxQueue.songs.abort();
-    }
     var options = {
         'output': 'html'
     };
+    if (ajaxQueue.songs) {
+        ajaxQueue.songs.abort();
+    }
     if (query) {
         options.query = query;
     }
@@ -312,15 +315,16 @@ var setupPlayer = function () {
     });
     $.jPlayer.timeFormat.padMin = false;
     if ($('#jplayer').jPlayer("getData", "html5") && !$('#jplayer').jPlayer("getData", "usingFlash")) {
-        $('#jplayer').jPlayer("getData", "canPlayOGG") && playerFormats.push('ogg');
-        $('#jplayer').jPlayer("getData", "canPlayMP3") && playerFormats.push('mp3');
+        if ($('#jplayer').jPlayer("getData", "canPlayOGG")) {
+            playerFormats.push('ogg');
+        }
+        if ($('#jplayer').jPlayer("getData", "canPlayMP3")) {
+            playerFormats.push('mp3');
+        }
+        playerType = 'HTML5';
     } else {
         playerFormats.push('mp3');
-    }
-    if ($('#jplayer').jPlayer("getData", "usingFlash")) {
         playerType = 'Flash';
-    } else {
-        playerType = 'HTML5';
     }
     $("#player-type").html(playerType);
 };
@@ -349,7 +353,7 @@ Array.prototype.compare = function (testArr) {
     if (this.length !== testArr.length) {
         return false;
     }
-    for (var i = 0; i < testArr.length; i++) {
+    for (var i = 0; i < testArr.length; i = i + 1) {
         if (this[i].compare) {
             if (!this[i].compare(testArr[i])) {
                 return false;
@@ -363,7 +367,7 @@ Array.prototype.compare = function (testArr) {
 };
 
 $(document).ready(function () {
-    if (!!$('#switcher').themeswitcher) {
+    if ( !! $('#switcher').themeswitcher) {
         $('#switcher').themeswitcher();
     }
     setupPlayer();
@@ -403,25 +407,21 @@ $(document).ready(function () {
     disableSelection(document.getElementById("sidebar"));
 
     $.address.init(function (event) {
-        if (event.parameters.query == undefined) {
-            var query = '';
-        } else {
-            var query = event.parameters.query;
+        var song = null,
+            query = '',
+            artists = [],
+            albums = [];
+        if ( !! event.parameters.song) {
+            song = event.parameters.song;
         }
-        if (event.parameters.artists == undefined) {
-            var artists = [];
-        } else {
-            var artists = event.parameters.artists.split(',');
+        if ( !! event.parameters.query) {
+            query = event.parameters.query;
         }
-        if (event.parameters.albums == undefined) {
-            var albums = [];
-        } else {
-            var albums = event.parameters.albums.split(',');
+        if ( !! event.parameters.artists) {
+            artists = event.parameters.artists.split(',');
         }
-        if (event.parameters.song == undefined) {
-            var song = false;
-        } else {
-            var song = event.parameters.song;
+        if ( !! event.parameters.albums) {
+            albums = event.parameters.albums.split(',');
         }
         //        state.selectedArtists = artists;
         //        state.selectedAlbums = albums;
@@ -461,7 +461,7 @@ $(document).ready(function () {
     });
     $('tr.album').live("mousedown", function (event) {
         var selectedAlbums = [];
-        if ($(this).attr('id') == "all-albums") {
+        if ($(this).attr('id') === "all-albums") {
             $('.album.ui-state-default').removeClass('ui-state-default');
             $(this).addClass('ui-state-default');
         } else if (event.ctrlKey) {
@@ -484,7 +484,7 @@ $(document).ready(function () {
     });
     $('tr.artist').live("mousedown", function (event) {
         var selectedArtists = [];
-        if ($(this).attr('id') == "all-artists") {
+        if ($(this).attr('id') === "all-artists") {
             $('.artist.ui-state-default').removeClass('ui-state-default');
             $(this).addClass('ui-state-default');
         } else if (event.ctrlKey) {
@@ -627,30 +627,27 @@ $(document).ready(function () {
         }
     });
     $.address.change(function (event) {
-        if (event.parameters.song == undefined) {
-            var song = null;
-        } else {
-            var song = event.parameters.song;
+        var song = null,
+            query = '',
+            artists = [],
+            albums = [],
+            artistsChanged, albumsChanged, queryChanged, songChanged;
+        if ( !! event.parameters.song) {
+            song = event.parameters.song;
         }
-        if (event.parameters.query == undefined) {
-            var query = '';
-        } else {
-            var query = event.parameters.query;
+        if ( !! event.parameters.query) {
+            query = event.parameters.query;
         }
-        if (event.parameters.artists == undefined) {
-            var artists = [];
-        } else {
-            var artists = event.parameters.artists.split(',');
+        if ( !! event.parameters.artists) {
+            artists = event.parameters.artists.split(',');
         }
-        if (event.parameters.albums == undefined) {
-            var albums = [];
-        } else {
-            var albums = event.parameters.albums.split(',');
+        if ( !! event.parameters.albums) {
+            albums = event.parameters.albums.split(',');
         }
-        var artistsChanged = !artists.compare(state.selectedArtists);
-        var albumsChanged = !albums.compare(state.selectedAlbums);
-        var queryChanged = (query !== state.currentSearch);
-        var songChanged = (song !== state.activeSong);
+        artistsChanged = !artists.compare(state.selectedArtists);
+        albumsChanged = !albums.compare(state.selectedAlbums);
+        queryChanged = (query !== state.currentSearch);
+        songChanged = (song !== state.activeSong);
         if (songChanged) {
             state.activeSong = song;
             if (!artistsChanged && !albumsChanged && !queryChanged) {
@@ -661,10 +658,10 @@ $(document).ready(function () {
             state.currentSearch = query;
             listArtists(query, artists);
         }
-        if ((artistsChanged && artists.length > 0 && !queryChanged) || (queryChanged && query === '')) {
+        if ((artistsChanged && artists.length > 0 && !queryChanged) || (queryChanged && !query)) {
             state.selectedArtists = artists;
             listAlbums(artists, query);
-        } else if ((artistsChanged && artists.length === 0 && !queryChanged) || (queryChanged && query !== '')) {
+        } else if ((artistsChanged && artists.length === 0 && !queryChanged) || (queryChanged && query)) {
             state.selectedArtists = artists;
             listAlbums(null, query);
         }
@@ -679,20 +676,21 @@ $(document).ready(function () {
         }
     });
     $.address.externalChange(function (event) {
-        if (event.parameters.query == undefined) {
-            var query = '';
-        } else {
-            var query = event.parameters.query;
+        var song = null,
+            query = '',
+            artists = [],
+            albums = [];
+        if ( !! event.parameters.song) {
+            song = event.parameters.song;
         }
-        if (event.parameters.artists == undefined) {
-            var artists = [];
-        } else {
-            var artists = event.parameters.artists.split(',');
+        if ( !! event.parameters.query) {
+            query = event.parameters.query;
         }
-        if (event.parameters.albums == undefined) {
-            var albums = [];
-        } else {
-            var albums = event.parameters.albums.split(',');
+        if ( !! event.parameters.artists) {
+            artists = event.parameters.artists.split(',');
+        }
+        if ( !! event.parameters.albums) {
+            albums = event.parameters.albums.split(',');
         }
         $(".artist").removeClass('ui-state-default');
         if (artists.length > 0) {
