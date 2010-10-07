@@ -273,7 +273,7 @@ var setupPlayer = function () {
         },
         graphicsFix: true,
         swfPath: "static/images",
-        nativeSupport: true,
+        nativeSupport: $("#html5-audio").is(":checked"),
         customCssIds: true,
         oggSupport: true
     })
