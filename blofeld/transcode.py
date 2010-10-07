@@ -25,7 +25,6 @@ import gst
 from blofeld.log import logger
 
 def transcode_process(conn, path, format='mp3', bitrate=False):
-    start_time = time.time()
     # If we were passed a bitrate argument, make sure it's actually a number
     try:
         bitrate = int(bitrate)
@@ -71,32 +70,34 @@ def transcode_process(conn, path, format='mp3', bitrate=False):
             else:
                 break
     except:
-        logger.warn("User canceled the request during transcoding.")
+        logger.warn("Some type of error occured during transcoding.")
     finally:
         conn.send(False)
         conn.close()
         # I think this is supposed to free the memory used by the transcoder
         transcoder.set_state(gst.STATE_NULL)
-        logger.debug("Transcoded %s in %0.2f seconds." % (path, time.time() - start_time))
 
 def transcode(path, format='mp3', bitrate=False):
-    parent_conn, child_conn = Pipe()
-    process = Process(target=transcode_process, args=(child_conn, path, format, bitrate))
-    process.start()
     try:
+        start_time = time.time()
+        parent_conn, child_conn = Pipe()
+        process = Process(target=transcode_process, args=(child_conn, path, format, bitrate))
+        process.start()
         while True:
             data = parent_conn.recv()
             if not data:
                 break
             yield data
-    except:
+        yield None
+    except GeneratorExit:
         process.terminate()
-        logger.debug("Some type of error occured while communicating with the transcoder process.")
+        logger.debug("User canceled the request during transcoding.")
+    except:
+        logger.warn("Some type of error occured during transcoding.")
     finally:
-        logger.debug("Closing connection to the transcoder process and joining it.")
         parent_conn.close()
         process.join()
-        yield None
+        logger.debug("Transcoded %s in %0.2f seconds." % (path, time.time() - start_time))
 
 # These are the transcoding pipelines we can use. I should probably add more
 pipeline = {
