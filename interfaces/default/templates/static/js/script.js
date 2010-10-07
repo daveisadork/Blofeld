@@ -21,6 +21,8 @@ var bitrates = [48, 64, 96, 128, 160, 192, 256, 320];
 var bitrate = 320;
 var randomTrack = null;
 var playerState = 'stopped';
+var playerFormats = [];
+var playerType = null;
 
 var showCover = function (song) {
     var offset = $('#cover-art').offset();
@@ -48,8 +50,9 @@ var showCover = function (song) {
 var playSong = function (songIndex) {
     $("#progress-bar").slider("disable");
     var song = playlist[songIndex];
+    var songUrl = 'get_song?format=' + playerFormats.join(',') + '&songid=' + song + '&bitrate=' + parseInt(bitrate, 10);
     playingCurrently = songIndex;
-    $("#jplayer").jPlayer('setFile', 'get_song?format=mp3&songid=' + song + '&bitrate=' + parseInt(bitrate, 10), 'get_song?format=ogg&songid=' + song + '&bitrate=' + parseInt(bitrate, 10)).jPlayer("play");
+    $("#jplayer").jPlayer('setFile', songUrl, songUrl).jPlayer("play");
     $('#now-playing-title').html($('#' + song + ' .title').html());
     $('#now-playing-artist').html($('#' + song + ' .artist').html());
     $('#now-playing-album').html($('#' + song + ' .album').html());
@@ -61,6 +64,12 @@ var playSong = function (songIndex) {
     $.address.parameter('song', song);
     playerState = 'playing';
     showCover(song);
+    if ($('#jplayer').jPlayer("getData", "usingFlash")) {
+        playerType = 'Flash';
+    } else {
+        playerType = 'HTML5';
+    }
+    $("player-type").html(playerType);
 };
 
 var listArtists = function (query, highlight) {
@@ -262,10 +271,11 @@ var setupPlayer = function () {
         ready: function () {
             return;
         },
+        graphicsFix: true,
         swfPath: "static/images",
-        nativeSupport: false,
-        customCssIds: true
-        //oggSupport: true
+        nativeSupport: true,
+        customCssIds: true,
+        oggSupport: true
     })
     .jPlayer("cssId", "play", "play-button")
     .jPlayer("cssId", "pause", "pause-button")
@@ -300,6 +310,18 @@ var setupPlayer = function () {
         }
     });
     $.jPlayer.timeFormat.padMin = false;
+    if ($('#jplayer').jPlayer("getData", "html5")) {
+        $('#jplayer').jPlayer("getData", "canPlayOGG") && playerFormats.push('ogg');
+        $('#jplayer').jPlayer("getData", "canPlayMP3") && playerFormats.push('mp3');
+    } else {
+        playerFormats.push('mp3');
+    }
+    if ($('#jplayer').jPlayer("getData", "usingFlash")) {
+        playerType = 'Flash';
+    } else {
+        playerType = 'HTML5';
+    }
+    $("#player-type").html(playerType);
 };
 
 var disableSelection = function (target) {

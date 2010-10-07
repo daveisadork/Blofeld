@@ -492,7 +492,7 @@ tr.artist, tr.album, tr.song, thead > tr {
 }
 
 .option {
-    margin: 6px 3px 6px 3px;
+    margin: 12px 3px;
 }
 
 tr.ui-state-default {
