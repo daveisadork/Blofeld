@@ -1,10 +1,8 @@
 /* Author: Dave Hayes
 
 */
-
 "use strict";
-var mainLayout, browserLayout,
-    loadingSongs = '<div class="scrolling-container"><table id="songs"><thead class="ui-widget-header ui-corner-all"><tr class="song"><th class="status ui-corner-left"></th><th class="track-number">#</th><th class="title">Title</th><th class="artist">Artist</th><th class="album">Album</th><th class="genre">Genre</th><th class="year">Year</th><th class="time ui-corner-right">Time</th></tr></thead><tbody><tr class="song" id="Loading"><td class="status ui-corner-left" colspan="8"><div class="loading">Loading...</div></td></tr></tbody></table></div>',
+var mainLayout, browserLayout, loadingSongs = '<div class="scrolling-container"><table id="songs"><thead class="ui-widget-header ui-corner-all"><tr class="song"><th class="status ui-corner-left"></th><th class="track-number">#</th><th class="title">Title</th><th class="artist">Artist</th><th class="album">Album</th><th class="genre">Genre</th><th class="year">Year</th><th class="time ui-corner-right">Time</th></tr></thead><tbody><tr class="song" id="Loading"><td class="status ui-corner-left" colspan="8"><div class="loading">Loading...</div></td></tr></tbody></table></div>',
     loadingArtists = '<div class="scrolling-container"><table id="artists"><tbody><tr class="artist ui-state-default" id="all-artists"><td class="ui-corner-all">All Artists (<span id="artist-count">Loading</span>)</td></tr></tbody></div>',
     loadingAlbums = '<div class="scrolling-container"><table id="albums"><tbody><tr class="album ui-state-default" id="all-albums"><td class="ui-corner-all">All Albums (<span id="album-count">Loading</span>)</td></tr></tbody></div>',
     playlist = [],
@@ -47,7 +45,6 @@ var showCover = function (song) {
     $('#cover-art-dialog img').attr({
         src: 'get_cover?songid=' + state.activeSong + '&size=' + size
     });
-
 };
 
 var playSong = function (songIndex) {
@@ -390,7 +387,6 @@ $(document).ready(function () {
         west__closable: false,
         west__slidable: false
     });
-
     browserLayout = $('#browser').layout({
         minSize: 100,
         center__paneSelector: "#albums-container",
@@ -399,13 +395,11 @@ $(document).ready(function () {
         north__resizable: true,
         north__closable: false
     });
-
     disableSelection(document.getElementById("browser"));
     disableSelection(document.getElementById("songs-container"));
     disableSelection(document.getElementById("controls"));
     disableSelection(document.getElementById("progress"));
     disableSelection(document.getElementById("sidebar"));
-
     $.address.init(function (event) {
         var song = null,
             query = '',
@@ -428,7 +422,6 @@ $(document).ready(function () {
         //        state.currentSearch = query;
         $('#search-box').val(query);
     });
-
     $('#clear-search').button({
         icons: {
             primary: 'ui-icon-circle-close'
@@ -511,7 +504,6 @@ $(document).ready(function () {
         },
         text: false
     });
-
     $("#progress-bar").progressbar().slider({
         max: 100,
         animate: true,
@@ -596,7 +588,6 @@ $(document).ready(function () {
         autoOpen: false,
         resizable: false,
         open: function (event, ui) {
-
             $('#cover-art-dialog').dialog({
                 width: 'auto',
                 position: 'center',
@@ -715,5 +706,4 @@ $(document).ready(function () {
             $('#splash-text').fadeOut(2000);
         }, 1000);
     }, 2000);
-
 });
