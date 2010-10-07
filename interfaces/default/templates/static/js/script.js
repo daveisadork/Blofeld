@@ -58,7 +58,6 @@ var playSong = function (songIndex) {
     $('#' + song).addClass('now-playing');
     $('.now-playing > .status > .status-icon, .status > .ui-icon').addClass('ui-icon ui-icon-volume-on');
     $("#now-playing, #progress-bar, #play-time").show();
-    state.activeSong = song;
     $.address.parameter('song', song);
     playerState = 'playing';
     showCover(song);
@@ -319,8 +318,8 @@ var disableSelection = function (target) {
 };
 
 var find = function () {
-    $.address.parameter('query', $('#search-box').val());
     $('#search-box').autocomplete("close");
+    $.address.parameter('query', $('#search-box').val());
 };
 
 Array.prototype.compare = function(testArr) {
@@ -372,31 +371,32 @@ $(document).ready(function () {
     disableSelection(document.getElementById("progress"));
     disableSelection(document.getElementById("sidebar"));
 
-//    $.address.init(function (event) {
-//        if (event.parameters.query == undefined) {
-//            var query = '';
-//        } else {
-//            var query = event.parameters.query;
-//        }
-//        if (event.parameters.artists == undefined) {
-//            var artists = [];
-//        } else {
-//            var artists = event.parameters.artists.split(',');
-//        }
-//        if (event.parameters.albums == undefined) {
-//            var albums = [];
-//        } else {
-//            var albums = event.parameters.albums.split(',');
-//        }
-//        if (event.parameters.song == undefined) {
-//            var song = false;
-//        } else {
-//            var song = event.parameters.song;
-//        }
+    $.address.init(function (event) {
+        if (event.parameters.query == undefined) {
+            var query = '';
+        } else {
+            var query = event.parameters.query;
+        }
+        if (event.parameters.artists == undefined) {
+            var artists = [];
+        } else {
+            var artists = event.parameters.artists.split(',');
+        }
+        if (event.parameters.albums == undefined) {
+            var albums = [];
+        } else {
+            var albums = event.parameters.albums.split(',');
+        }
+        if (event.parameters.song == undefined) {
+            var song = false;
+        } else {
+            var song = event.parameters.song;
+        }
 //        state.selectedArtists = artists;
 //        state.selectedAlbums = albums;
-//        $('#search-box').val(query);
-//    });
+//        state.currentSearch = query;
+        $('#search-box').val(query);
+    });
 
     $('#clear-search').button({
         icons: {
@@ -584,12 +584,14 @@ $(document).ready(function () {
             return false;
         },
         open: function (event, ui) {
-            $("#search-box").removeClass('ui-corner-bl ui-corner-br')
-            $("ul.ui-autocomplete").removeClass('ui-corner-all').addClass('ui-corner-bl ui-corner-br')
+            $("ul.ui-autocomplete").removeClass('ui-corner-all').addClass('ui-corner-bottom');
+            $("#search-box").removeClass('ui-corner-bottom').keypress(function (event) {
+                if (event.which === 13) find();
+            }).focus();
         },
         close: function (event, ui) {
-            $("#search-box").addClass('ui-corner-bl ui-corner-br')
-        },
+            $("#search-box").addClass('ui-corner-bottom');
+        }
     });
     $.address.change(function (event) {
         if (event.parameters.song == undefined) {
@@ -614,8 +616,14 @@ $(document).ready(function () {
         }
         var artistsChanged = !artists.compare(state.selectedArtists);
         var albumsChanged = !albums.compare(state.selectedAlbums);
-        var queryChanged = (query !== state.previousSearch);
+        var queryChanged = (query !== state.currentSearch);
+        var songChanged = (song !== state.activeSong);
+        if (songChanged) {
+            state.activeSong = song;
+            if (!artistsChanged && !albumsChanged && !queryChanged) return;
+        }
         if (queryChanged) {
+            state.currentSearch = query;
             listArtists(query, artists);
         }
         if ((artistsChanged && artists.length > 0 && !queryChanged) || (queryChanged && query === '')) {
@@ -629,12 +637,11 @@ $(document).ready(function () {
             state.selectedArtists = artists;
             state.selectedAlbums = albums;
             listSongs(artists, albums, query);
-        } else if (((albumsChanged || artistsChanged) && albums.length === 0) || query !== state.previousSearch) {
+        } else if (((albumsChanged || artistsChanged) && albums.length === 0) || queryChanged) {
             state.selectedArtists = artists;
             state.selectedAlbums = albums;
             listSongs(artists, null, query);
         }
-        state.previousSearch = $('#search-box').val()
     });
     $.address.externalChange(function (event) {
         if (event.parameters.query == undefined) {
