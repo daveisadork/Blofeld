@@ -3,31 +3,31 @@
 */
 
 "use strict";
-var mainLayout, browserLayout;
-var global_loadPercent = 0;
-var loadingSongs = '<div class="scrolling-container"><table id="songs"><thead class="ui-widget-header ui-corner-all"><tr class="song"><th class="status ui-corner-left"></th><th class="track-number">#</th><th class="title">Title</th><th class="artist">Artist</th><th class="album">Album</th><th class="genre">Genre</th><th class="year">Year</th><th class="time ui-corner-right">Time</th></tr></thead><tbody><tr class="song" id="Loading"><td class="status ui-corner-left" colspan="8"><div class="loading">Loading...</div></td></tr></tbody></table></div>';
-var loadingArtists = '<div class="scrolling-container"><table id="artists"><tbody><tr class="artist ui-state-default" id="all-artists"><td class="ui-corner-all">All Artists (<span id="artist-count">Loading</span>)</td></tr></tbody></div>';
-var loadingAlbums = '<div class="scrolling-container"><table id="albums"><tbody><tr class="album ui-state-default" id="all-albums"><td class="ui-corner-all">All Albums (<span id="album-count">Loading</span>)</td></tr></tbody></div>';
-var state = {
-    selectedAlbums: [],
-    selectedArtists: [],
-    activeSong: null,
-    currentSearch: null,
-    previousSong: null
-};
-var playlist = [];
-var playingCurrently = null;
-var ajaxQueue = {
-    'artists': null,
-    'albums': null,
-    'songs': null
-};
-var bitrates = [48, 64, 96, 128, 160, 192, 256, 320];
-var bitrate = 320;
-var randomTrack = null;
-var playerState = 'stopped';
-var playerFormats = [];
-var playerType = null;
+var mainLayout, browserLayout,
+    loadingSongs = '<div class="scrolling-container"><table id="songs"><thead class="ui-widget-header ui-corner-all"><tr class="song"><th class="status ui-corner-left"></th><th class="track-number">#</th><th class="title">Title</th><th class="artist">Artist</th><th class="album">Album</th><th class="genre">Genre</th><th class="year">Year</th><th class="time ui-corner-right">Time</th></tr></thead><tbody><tr class="song" id="Loading"><td class="status ui-corner-left" colspan="8"><div class="loading">Loading...</div></td></tr></tbody></table></div>',
+    loadingArtists = '<div class="scrolling-container"><table id="artists"><tbody><tr class="artist ui-state-default" id="all-artists"><td class="ui-corner-all">All Artists (<span id="artist-count">Loading</span>)</td></tr></tbody></div>',
+    loadingAlbums = '<div class="scrolling-container"><table id="albums"><tbody><tr class="album ui-state-default" id="all-albums"><td class="ui-corner-all">All Albums (<span id="album-count">Loading</span>)</td></tr></tbody></div>',
+    playlist = [],
+    global_loadPercent = 0,
+    playingCurrently = null,
+    bitrates = [48, 64, 96, 128, 160, 192, 256, 320],
+    bitrate = 320,
+    randomTrack = null,
+    playerState = 'stopped',
+    playerFormats = [],
+    playerType = null,
+    ajaxQueue = {
+        'artists': null,
+        'albums': null,
+        'songs': null
+    },
+    state = {
+        selectedAlbums: [],
+        selectedArtists: [],
+        activeSong: null,
+        currentSearch: null,
+        previousSong: null
+    };
 
 var showCover = function (song) {
     var offset = $('#cover-art').offset(),
@@ -367,7 +367,7 @@ Array.prototype.compare = function (testArr) {
 };
 
 $(document).ready(function () {
-    if ( !! $('#switcher').themeswitcher) {
+    if (!! $('#switcher').themeswitcher) {
         $('#switcher').themeswitcher();
     }
     setupPlayer();
@@ -411,16 +411,16 @@ $(document).ready(function () {
             query = '',
             artists = [],
             albums = [];
-        if ( !! event.parameters.song) {
+        if (!! event.parameters.song) {
             song = event.parameters.song;
         }
-        if ( !! event.parameters.query) {
+        if (!! event.parameters.query) {
             query = event.parameters.query;
         }
-        if ( !! event.parameters.artists) {
+        if (!! event.parameters.artists) {
             artists = event.parameters.artists.split(',');
         }
-        if ( !! event.parameters.albums) {
+        if (!! event.parameters.albums) {
             albums = event.parameters.albums.split(',');
         }
         //        state.selectedArtists = artists;
@@ -632,16 +632,16 @@ $(document).ready(function () {
             artists = [],
             albums = [],
             artistsChanged, albumsChanged, queryChanged, songChanged;
-        if ( !! event.parameters.song) {
+        if (!! event.parameters.song) {
             song = event.parameters.song;
         }
-        if ( !! event.parameters.query) {
+        if (!! event.parameters.query) {
             query = event.parameters.query;
         }
-        if ( !! event.parameters.artists) {
+        if (!! event.parameters.artists) {
             artists = event.parameters.artists.split(',');
         }
-        if ( !! event.parameters.albums) {
+        if (!! event.parameters.albums) {
             albums = event.parameters.albums.split(',');
         }
         artistsChanged = !artists.compare(state.selectedArtists);
@@ -680,16 +680,16 @@ $(document).ready(function () {
             query = '',
             artists = [],
             albums = [];
-        if ( !! event.parameters.song) {
+        if (!! event.parameters.song) {
             song = event.parameters.song;
         }
-        if ( !! event.parameters.query) {
+        if (!! event.parameters.query) {
             query = event.parameters.query;
         }
-        if ( !! event.parameters.artists) {
+        if (!! event.parameters.artists) {
             artists = event.parameters.artists.split(',');
         }
-        if ( !! event.parameters.albums) {
+        if (!! event.parameters.albums) {
             albums = event.parameters.albums.split(',');
         }
         $(".artist").removeClass('ui-state-default');
