@@ -17,14 +17,14 @@
 
 
 import time
+from multiprocessing import Process, Pipe
 
 import pygst
 import gst
 
 from blofeld.log import logger
 
-
-def transcode(path, format='mp3', bitrate=False):
+def transcode_process(conn, path, format='mp3', bitrate=False):
     start_time = time.time()
     # If we were passed a bitrate argument, make sure it's actually a number
     try:
@@ -65,12 +65,38 @@ def transcode(path, format='mp3', bitrate=False):
     try:
         # Grab a bit of encoded data and yield it to the client
         while not output.get_property("eos"):
-            yield output.emit('pull-buffer').data
+            output_buffer = output.emit('pull-buffer')
+            if output_buffer:
+                conn.send(output_buffer.data)
+            else:
+                break
     except:
         logger.warn("User canceled the request during transcoding.")
-    # I think this is supposed to free the memory used by the transcoder
-    transcoder.set_state(gst.STATE_NULL)
-    logger.debug("Transcoded %s in %0.2f seconds." % (path, time.time() - start_time))
+    finally:
+        conn.send(False)
+        conn.close()
+        # I think this is supposed to free the memory used by the transcoder
+        transcoder.set_state(gst.STATE_NULL)
+        logger.debug("Transcoded %s in %0.2f seconds." % (path, time.time() - start_time))
+
+def transcode(path, format='mp3', bitrate=False):
+    parent_conn, child_conn = Pipe()
+    process = Process(target=transcode_process, args=(child_conn, path, format, bitrate))
+    process.start()
+    try:
+        while True:
+            data = parent_conn.recv()
+            if not data:
+                break
+            yield data
+    except:
+        process.terminate()
+        logger.debug("Some type of error occured while communicating with the transcoder process.")
+    finally:
+        logger.debug("Closing connection to the transcoder process and joining it.")
+        parent_conn.close()
+        process.join()
+        yield None
 
 # These are the transcoding pipelines we can use. I should probably add more
 pipeline = {
