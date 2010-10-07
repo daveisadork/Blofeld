@@ -310,7 +310,7 @@ var setupPlayer = function () {
         }
     });
     $.jPlayer.timeFormat.padMin = false;
-    if ($('#jplayer').jPlayer("getData", "html5")) {
+    if ($('#jplayer').jPlayer("getData", "html5") && !$('#jplayer').jPlayer("getData", "usingFlash")) {
         $('#jplayer').jPlayer("getData", "canPlayOGG") && playerFormats.push('ogg');
         $('#jplayer').jPlayer("getData", "canPlayMP3") && playerFormats.push('mp3');
     } else {
