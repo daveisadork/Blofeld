@@ -63,7 +63,7 @@ def transcode_process(conn, path, format='mp3', bitrate=False):
     transcoder.get_state()
     try:
         # Grab a bit of encoded data and yield it to the client
-        while not output.get_property("eos"):
+        while True:
             output_buffer = output.emit('pull-buffer')
             if output_buffer:
                 conn.send(output_buffer.data)
@@ -88,7 +88,6 @@ def transcode(path, format='mp3', bitrate=False):
             if not data:
                 break
             yield data
-        yield None
     except GeneratorExit:
         process.terminate()
         logger.debug("User canceled the request during transcoding.")
@@ -106,5 +105,5 @@ pipeline = {
     #'mp3': "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! id3v2mux ! appsink name=output",
     'mp3': "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! id3mux name=muxer ! appsink name=output",
     'ogg': "filesrc name=source ! decodebin ! audioconvert ! vorbisenc name=encoder ! oggmux name=muxer ! appsink name=output",
-    'm4a': "filesrc name=source ! decodebin ! audioconvert ! faac name=encoder,profile=1 ! ffmux_mp4 ! appsink name=output"
+    'm4a': "filesrc name=source ! decodebin ! audioconvert ! ffenc_aac name=encoder ! ffmux_mp4 name=muxer ! appsink name=output"
 }

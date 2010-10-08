@@ -207,6 +207,11 @@ class WebInterface:
                 raise cherrypy.HTTPError(416)
             else:
                 cherrypy.response.headers['Content-Type'] = 'audio/mpeg'
+                try:
+                    if cherrypy.request.headers['Referer'].lower().endswith('jplayer.swf'):
+                        cherrypy.response.headers['Content-Type'] = 'audio/mp3'
+                except:
+                    pass
                 #cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
                 return transcode(path, 'mp3', bitrate)
         elif True in [True for x in format if x in ['ogg', 'vorbis', 'oga']]:
