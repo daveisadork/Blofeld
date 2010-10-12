@@ -507,9 +507,27 @@ tr.ui-state-default {
     border: none;
 }
 
+th.header {
+    overflow: hidden;
+    white-space: nowrap;
+}
 
+.sort-status.ui-icon {
+    display: none;
+    margin: 0;
+    height: 10px;
+    width: 16px;
+}
 
+th.headerSortUp > .sort-status {
+    display: inline-block;
+    background-position: 0 -18px;
+}
 
+th.headerSortDown > .sort-status {
+    display: inline-block;
+    background-position: -64px -18px;
+}
 
 
 

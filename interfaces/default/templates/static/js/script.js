@@ -221,6 +221,9 @@ var listSongs = function (artists, albums, query, play) {
                 }, 3000);
             }
             //$(".song").draggable({ helper: 'clone' });
+            $("#songs").tablesorter({
+                headers: { 0: { sorter: false}}
+            });
             $("#songs-container").removeClass('ui-state-disabled');
         }
     });
