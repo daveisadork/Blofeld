@@ -27,8 +27,9 @@ __all__ = ['cfg']
 
 class Config(dict):
 
-    def __init__(self, installed=False, system=False, program_dir=None):
+    def __init__(self, installed=False, system=False, program_dir=None, path=None):
         dict.__init__(self)
+        self.path = path
         if program_dir:
             self['PROGRAM_DIR'] = program_dir
         else:
@@ -49,11 +50,11 @@ class Config(dict):
             self['CACHE_DIR'] = os.path.join(self['PROGRAM_DIR'], 'cache')
 
 
-    def load_config(self, path=None):
+    def load_config(self):
         if not os.path.isdir(self['CONFIG_DIR']):
             os.mkdir(self['CONFIG_DIR'])
             
-        if path:
+        if self.path:
             if not os.path.exists(path):
                 raise Exception("Configuration file does not exist!")
             else:
@@ -149,3 +150,4 @@ class Config(dict):
 
 
 cfg = Config()
+cfg.load_config()

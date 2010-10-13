@@ -94,9 +94,9 @@ if __name__ == "__main__":
     from blofeld.config import cfg
     cfg.__init__(installed=os.getenv('BLOFELD_INSTALLED'),
                  system=os.getenv('BLOFELD_SYSTEM_WIDE'),
-                 program_dir=os.path.abspath(os.path.dirname(__file__))
+                 program_dir=os.path.abspath(os.path.dirname(__file__)),
+                 path=options.config_file
                  )
-    cfg.load_config(options.config_file)
     from blofeld.log import *
     if options.log_file:
         enable_single_file(options.log_file)

@@ -20,6 +20,7 @@ import time
 from multiprocessing import Process, Pipe
 
 import pygst
+pygst.require('0.10')
 import gst
 
 from blofeld.log import logger
