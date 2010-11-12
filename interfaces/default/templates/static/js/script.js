@@ -32,7 +32,8 @@ var showCover = function (song) {
         size = Math.floor($(document).height() * 0.85);
     $('.cover-img').toggleClass('active inactive');
     $('img.active').attr({
-        'src': 'get_cover?size=32&songid=' + song,
+        //'src': 'get_cover?size=32&songid=' + song,
+        'src': 'get_cover?size=' + size + '&songid=' + song,
         'top': offset.top,
         'left': offset.left
     }).load(function () {
@@ -373,7 +374,10 @@ $(document).ready(function () {
     setupPlayer();
     mainLayout = $('body').layout({
         center__paneSelector: "#songs-container",
-        west__onresize: "browserLayout.resizeAll",
+        west__onresize: function (event) {
+            browserLayout.resizeAll();
+            browserLayout.sizePane('south', mainLayout.state.west.size);
+        },
         north__paneSelector: "#header",
         north__resizable: false,
         north__size: 'auto',
@@ -394,9 +398,18 @@ $(document).ready(function () {
         minSize: 100,
         center__paneSelector: "#albums-container",
         north__paneSelector: "#artists-container",
+        south__paneSelector: "#cover-art-pane",
         north__size: 250,
         north__resizable: true,
-        north__closable: false
+        north__closable: false,
+        south__closable: false,
+        south__size: mainLayout.state.west.size,
+        south__onresize: function (event) {
+            if (mainLayout.state.west.size !== browserLayout.state.south.size) {
+                browserLayout.sizePane('south', mainLayout.state.west.size);    
+            }
+        },
+        south__spacing_closed: 0
     });
     disableSelection(document.getElementById("browser"));
     disableSelection(document.getElementById("songs-container"));
@@ -598,7 +611,7 @@ $(document).ready(function () {
             });
         }
     });
-    $("#cover-art > img").click(function () {
+    $("#cover-art > img, #cover-art-pane > img").click(function () {
         $("#cover-art-dialog").dialog('open');
     });
     $("#search-box").autocomplete({
