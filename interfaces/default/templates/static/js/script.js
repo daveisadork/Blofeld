@@ -72,6 +72,7 @@ var playSong = function (songIndex) {
         playerType = 'HTML5';
     }
     $("player-type").html(playerType);
+    document.title = $('#now-playing-artist').html() + " - " + $('#now-playing-title').html();
 };
 
 var listArtists = function (query, highlight) {
@@ -239,6 +240,7 @@ var stopPlayback = function () {
     $('.now-playing').removeClass('now-playing');
     playerState = 'stopped';
     $.address.parameter('song', null);
+    document.title = "Blofeld";
 };
 
 var playNextSong = function () {
@@ -562,6 +564,7 @@ $(document).ready(function () {
             }
         } else {
             $(".now-playing .ui-icon-volume-off").toggleClass("ui-icon-volume-on ui-icon-volume-off");
+            document.title = $('#now-playing-artist').html() + " - " + $('#now-playing-title').html();
         }
     });
     $("#pause-button").button({
@@ -571,6 +574,7 @@ $(document).ready(function () {
         text: false
     }).click(function () {
         $(".now-playing .ui-icon-volume-on").toggleClass("ui-icon-volume-on ui-icon-volume-off");
+        document.title = document.title = $('#now-playing-artist').html() + " - " + $('#now-playing-title').html() + " (Paused)"
     });
     $("#next-button").button({
         icons: {
