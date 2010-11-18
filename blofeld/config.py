@@ -55,10 +55,10 @@ class Config(dict):
             os.mkdir(self['CONFIG_DIR'])
             
         if self.path:
-            if not os.path.exists(path):
+            if not os.path.exists(self.path):
                 raise Exception("Configuration file does not exist!")
             else:
-                self['CONFIG_FILE'] = path
+                self['CONFIG_FILE'] = self.path
         else:
             self['CONFIG_FILE'] = os.path.join(self['CONFIG_DIR'], 'blofeld.cfg')
 
@@ -71,7 +71,7 @@ class Config(dict):
         self._cfg = ConfigParser.SafeConfigParser()
 
         # Load the configuration file, or create one with the defaults.
-        if not os.path.exists(self['CONFIG_FILE']) and not path:
+        if not os.path.exists(self['CONFIG_FILE']) and not self.path:
             self._cfg.add_section('server')
             self._cfg.set('server', 'host', '0.0.0.0')
             self._cfg.set('server', 'port', '8083')
