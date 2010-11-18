@@ -16,6 +16,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
+import sys
 import time
 from multiprocessing import Process, Pipe
 
@@ -108,3 +109,8 @@ pipeline = {
     'ogg': "filesrc name=source ! decodebin ! audioconvert ! vorbisenc name=encoder ! oggmux name=muxer ! appsink name=output",
     'm4a': "filesrc name=source ! decodebin ! audioconvert ! ffenc_aac name=encoder ! ffmux_mp4 name=muxer ! appsink name=output"
 }
+
+# The win32 port of gstreamer apparently doesn't have id3mux or id3v2mux so we have to use 
+# ffmux_mp3 instead.
+if sys.platform == "win32":
+    pipeline['mp3'] = "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! ffmux_mp3 name=muxer ! appsink name=output"
