@@ -19,6 +19,7 @@
 
 import os
 import sys
+from multiprocessing import freeze_support
 from optparse import OptionParser
 
 
@@ -88,6 +89,7 @@ def daemonize(name):
 
 
 if __name__ == "__main__":
+    freeze_support()
     (options, args) = get_options()
     if options.daemonize:
         daemonize(sys.argv[0])
