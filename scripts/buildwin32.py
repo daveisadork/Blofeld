@@ -1,4 +1,4 @@
-#!/usr/bin/env python -OO
+#!/usr/bin/env python
 
 # Blofeld - All-in-one music server
 # Copyright 2010 Dave Hayes <dwhayes@gmail.com>
