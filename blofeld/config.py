@@ -18,11 +18,17 @@
 import os
 import sys
 
+import platform
 import ConfigParser
 
 import anyjson
 
 from blofeld.utils import get_main_dir
+
+if platform.system() == 'Windows':
+    from win32com.shell import shellcon, shell
+if platform.system() == 'Linux':
+    from xdg import BaseDirectory
 
 __all__ = ['cfg']
 
@@ -34,7 +40,11 @@ class Config(dict):
         if not program_dir:
             program_dir = get_main_dir()
         if not installed:
-            installed = os.getenv('BLOFELD_INSTALLED')
+            if platform.system() == 'Windows':
+               if program_dir == os.path.join(shell.SHGetFolderPath(0, shellcon.CSIDL_PROGRAM_FILES, 0, 0), 'Blofeld'):
+                   installed = True
+            else:
+                installed = os.getenv('BLOFELD_INSTALLED')
         if not system:
             system = os.getenv('BLOFELD_SYSTEM')
         self['PROGRAM_DIR'] = program_dir
@@ -44,7 +54,12 @@ class Config(dict):
             self['LOG_DIR'] = '/var/log/blofeld'
             self['CACHE_DIR'] = '/var/cache/blofeld'
         elif installed:
-            self['CONFIG_DIR'] = os.path.join(os.path.expanduser("~"), '.blofeld')
+            if platform.system() == 'Windows':
+                self['CONFIG_DIR'] = os.path.join(shell.SHGetFolderPath(0, shellcon.CSIDL_APPDATA, 0, 0), 'Blofeld')
+            elif platform.system() == 'Linux':
+                self['CONFIG_DIR'] = BaseDirectory.save_config_path('blofeld')
+            else:
+                self['CONFIG_DIR'] = os.path.join(os.path.expanduser("~"), '.blofeld')
             self['LOG_DIR'] = os.path.join(self['CONFIG_DIR'], 'log')
             self['CACHE_DIR'] = os.path.join(self['CONFIG_DIR'], 'cache')
         else:
@@ -89,8 +104,11 @@ class Config(dict):
                 'download': ['admin', 'user']
             }))
             self._cfg.add_section('database')
-            self._cfg.set('database', 'path',
-                     os.path.join(os.path.expanduser("~"), "Music"))
+            if platform.system == 'Windows':
+                music_path = shell.SHGetFolderPath(0, shellcon.CSIDL_MYMUSIC, 0, 0)
+            else:
+                music_path = os.path.join(os.path.expanduser("~"), "Music")
+            self._cfg.set('database', 'path', music_path)
             self._cfg.set('database', 'couchdb_url', 'http://localhost:5984')
             self._cfg.set('database', 'couchdb_user', '')
             self._cfg.set('database', 'couchdb_password', '')
