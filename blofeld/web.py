@@ -32,7 +32,6 @@ from Cheetah.Template import Template
 from blofeld.config import *
 from blofeld.transcode import transcode
 import blofeld.utils as utils
-import blofeld.utils.browsercap as browsercap
 from blofeld.library import Library
 from blofeld.coverart import find_cover, resize_cover
 from blofeld.playlist import json_to_playlist
