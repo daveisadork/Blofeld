@@ -247,7 +247,8 @@ if target not in ('source', 'binary', 'installer', 'app'):
     exit(1)
 
 # Derive release name from path
-base, release = os.path.split(os.getcwd())
+# base, release = os.path.split(os.getcwd())
+release = '0.2.4'
 
 prod = 'Blofeld-' + release
 Win32ServiceName = 'Blofeld-service.exe'
@@ -270,6 +271,7 @@ fileImg = prod + '.sparseimage'
 data = [ 'interfaces/',
          'views/',
          'AUTHORS',
+         'blofeld.ico',
          'ChangeLog',
          'COPYING',
          'INSTALL',
@@ -285,9 +287,9 @@ options = dict(
       author_email = 'dwhayes@gmail.com',
       #description = 'Blofeld ' + str(blofeld.__version__),
       scripts = ['Blofeld.py'], # One day, add  'setup.py'
-      packages = ['blofeld', 'blofeld.library', 'blofeld.utils'],
+      packages = ['blofeld', 'blofeld.library'],
       platforms = ['posix'],
-      license = 'GNU General Public License 2 (GPL2) or later',
+      license = 'GNU General Public License 2 (GPL2)',
       data_files = PairList(data)
 
 )
@@ -401,7 +403,7 @@ elif target in ('binary', 'installer'):
         exit(1)
 
     import blofeld
-    options['description'] = 'Blofeld ' + str(blofeld.__version__)
+    options['description'] = 'Blofeld 0.2.4'
     
     import pygst
     pygst.require('0.10')
@@ -411,7 +413,7 @@ elif target in ('binary', 'installer'):
     options['options'] = {"py2exe":
                               {
                                 "bundle_files": 3,
-                                "packages": ["gst", "cjson", "jsonlib", "simplejson", "Cheetah.DummyTransaction"],
+                                "packages": ["gst", "cjson", "jsonlib", "simplejson", "Cheetah.DummyTransaction", "email.mime"],
                                 "excludes": ["pywin", "pywin.debugger", "pywin.debugger.dbgcon", "pywin.dialogs",
                                              "pywin.dialogs.list", "Tkconstants", "Tkinter", "tcl"],
                                 "optimize": 2,
@@ -457,11 +459,14 @@ elif target in ('binary', 'installer'):
     # Give the Windows app its proper name
     rename_file('dist', Win32TempName, Win32WindowName)
 
-
+    
+    from shutil import copyfile
+    copyfile(os.path.abspath('dist/lib/gst._gst.pyd'), os.path.abspath('dist/lib/_gst.pyd'))
+    
     ############################
     if target == 'installer':
 
-        os.system('makensis.exe /v3 /DSAB_PRODUCT=%s /DSAB_FILE=%s NSIS_Installer.nsi' % \
+        os.system('makensis.exe /v3 /DSAB_PRODUCT=%s /DSAB_FILE=%s scripts/NSIS_Installer.nsi' % \
                   (release, fileIns))
 
         DeleteFiles(fileBin)
