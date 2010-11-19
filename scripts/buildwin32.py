@@ -17,17 +17,40 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from distutils.core import setup
 
 import glob
 import sys
 import os
 import shutil
-try:
-    import py2exe
-except ImportError:
-    py2exe = None
 
+# ModuleFinder can't handle runtime changes to __path__, but win32com uses them
+try:
+    # py2exe 0.6.4 introduced a replacement modulefinder.
+    # This means we have to add package paths there, not to the built-in
+    # one.  If this new modulefinder gets integrated into Python, then
+    # we might be able to revert this some day.
+    # if this doesn't work, try import modulefinder
+    try:
+        import py2exe.mf as modulefinder
+    except ImportError:
+        import modulefinder
+    import win32com
+    for p in win32com.__path__[1:]:
+        modulefinder.AddPackagePath("win32com", p)
+    for extra in ["win32com.shell"]: #,"win32com.mapi"
+        __import__(extra)
+        m = sys.modules[extra]
+        for p in m.__path__[1:]:
+            modulefinder.AddPackagePath(extra, p)
+except ImportError:
+    # no build path setup, no worries.
+    pass
+
+from distutils.core import setup
+import py2exe
+
+import pygst
+pygst.require('0.10')
 
 sys.path.append(os.getcwd())
 
@@ -180,21 +203,14 @@ options = dict(
       data_files = pair_list(data)
 )
 
-if not py2exe:
-    print "Sorry, only works on Windows!"
-    exit(1)
-
 options['description'] = 'Blofeld ' + release
-
-import pygst
-pygst.require('0.10')
 
 sys.argv[1] = 'py2exe'
 program = [ {'script' : 'Blofeld.py', 'icon_resources' : [(0, "blofeld.ico")] } ]
 options['options'] = {"py2exe":
                             {
                             "bundle_files": 3,
-                            "packages": ["gst", "cjson", "jsonlib", "simplejson", "Cheetah.DummyTransaction", "email.mime"],
+                            "packages": ["gst", "cjson", "jsonlib", "simplejson", "Cheetah.DummyTransaction", "email.mime", "win32com.shell"],
                             "excludes": ["pywin", "pywin.debugger", "pywin.debugger.dbgcon", "pywin.dialogs",
                                             "pywin.dialogs.list", "Tkconstants", "Tkinter", "tcl"],
                             "optimize": 2,
@@ -247,8 +263,7 @@ for doc in ['AUTHORS', 'ChangeLog', 'COPYING', 'INSTALL', 'NEWS', 'README']:
 
 ############################
 if target == 'installer':
-    os.system('makensis.exe /v3 /D_PRODUCT=%s /D_FILE=%s scripts/NSIS_Installer.nsi' % \
-                (release, file_ins))
+    os.system('makensis.exe /v3 /D_PRODUCT=%s /D_FILE=%s scripts\NSIS_Installer.nsi' % (release, file_ins))
 
     delete_files(file_bin)
     os.rename('dist', prod)

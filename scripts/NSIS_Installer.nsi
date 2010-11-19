@@ -25,7 +25,7 @@
 
 
 Name "${_PRODUCT}"
-OutFile "${_FILE}"
+OutFile "..\${_FILE}"
 
 
 ; Some default compiler settings (uncomment and change at will):
@@ -142,6 +142,34 @@ Function .onInit
         endcheck:
 FunctionEnd
 
+Section -Prerequisites
+  SetOutPath $INSTDIR\lib
+  ; MessageBox MB_YESNO "Install Apache CouchDB?" /SD IDYES IDNO endActiveSync
+    ; File "..\Prerequisites\ActiveSyncSetup.exe"
+    ; ExecWait "$INSTDIR\Prerequisites\ActiveSyncSetup.exe"
+    ; Goto endActiveSync
+  ; endActiveSync:
+  ; MessageBox MB_YESNO "Install the Microsoft .NET Compact Framework 2.0 Redistributable?" /SD IDYES IDNO endNetCF
+    ; File "..\Prerequisites\NETCFSetupv2.msi"
+    ; ExecWait '"msiexec" /i "$INSTDIR\Prerequisites\NETCFSetupv2.msi"'
+  ; endNetCF:
+    IfFileExists "$PROGRAMFILES\Apache Software Foundation\CouchDB\bin\couchjs.exe" endCouchDB beginCouchDB
+    Goto endCouchDB
+    beginCouchDB:
+    MessageBox MB_YESNO "Blofeld requires Apache CouchDB and you don't appear to have it installed. Would you like to install it now?" /SD IDYES IDNO endCouchDB
+    File "setup-couchdb-1.0.1.exe"
+    ExecWait "$INSTDIR\lib\setup-couchdb-1.0.1.exe"
+    Delete "$INSTDIR\lib\setup-couchdb-1.0.1.exe"
+    endCouchDB:
+    IfFileExists "$PROGRAMFILES\OSSBuild\GStreamer\v0.10.6\bin\gst-launch.exe" endGStreamer beginGStreamer
+    Goto endGStreamer
+    beginGStreamer:
+    MessageBox MB_YESNO "Blofeld requires GStreamer and you don't appear to have it installed. Would you like to install it now?" /SD IDYES IDNO endGStreamer
+    File "GStreamer-WinBuilds-GPL-x86.msi"
+    ExecWait '"msiexec" /i "$INSTDIR\lib\GStreamer-WinBuilds-GPL-x86.msi"'
+    Delete "$INSTDIR\lib\GStreamer-WinBuilds-GPL-x86.msi"
+    endGStreamer:
+SectionEnd
 
 Section "Blofeld" SecDummy
 SetOutPath "$INSTDIR"
@@ -232,6 +260,7 @@ Section "un.$(MsgDelProgram)" Uninstall
     Delete "$INSTDIR\lib\blofeld.zip"
     Delete "$INSTDIR\lib\libg*.dll"
     Delete "$INSTDIR\lib\MPR.dll"
+    Delete "$INSTDIR\lib\pythoncom26.dll"
     Delete "$INSTDIR\lib\pywintypes26.dll"
     RMDir "$INSTDIR\lib\"
     RMDir /r "$INSTDIR\views\_design\albums"

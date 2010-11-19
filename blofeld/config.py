@@ -41,8 +41,11 @@ class Config(dict):
             program_dir = get_main_dir()
         if not installed:
             if platform.system() == 'Windows':
-               if program_dir == os.path.join(shell.SHGetFolderPath(0, shellcon.CSIDL_PROGRAM_FILES, 0, 0), 'Blofeld'):
-                   installed = True
+                installed_path = os.path.join(shell.SHGetFolderPath(0,
+                                shellcon.CSIDL_PROGRAM_FILES, 0, 0), 'Blofeld')
+                if os.path.normcase(os.path.abspath(program_dir)) == \
+                   os.path.normcase(os.path.abspath(installed_path)):
+                    installed = True
             else:
                 installed = os.getenv('BLOFELD_INSTALLED')
         if not system:
@@ -55,7 +58,8 @@ class Config(dict):
             self['CACHE_DIR'] = '/var/cache/blofeld'
         elif installed:
             if platform.system() == 'Windows':
-                self['CONFIG_DIR'] = os.path.join(shell.SHGetFolderPath(0, shellcon.CSIDL_APPDATA, 0, 0), 'Blofeld')
+                self['CONFIG_DIR'] = os.path.join(shell.SHGetFolderPath(0,
+                                      shellcon.CSIDL_APPDATA, 0, 0), 'Blofeld')
             elif platform.system() == 'Linux':
                 self['CONFIG_DIR'] = BaseDirectory.save_config_path('blofeld')
             else:
