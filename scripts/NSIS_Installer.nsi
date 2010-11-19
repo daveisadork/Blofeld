@@ -85,9 +85,9 @@ InstallDirRegKey HKEY_LOCAL_MACHINE "SOFTWARE\Blofeld" ""
 
 
   !insertmacro MUI_PAGE_INSTFILES
-  !define MUI_FINISHPAGE_RUN
-  !define MUI_FINISHPAGE_RUN_FUNCTION "LaunchLink"
-  !define MUI_FINISHPAGE_RUN_TEXT $(MsgStartSab)
+  ; !define MUI_FINISHPAGE_RUN
+  ; !define MUI_FINISHPAGE_RUN_FUNCTION "LaunchLink"
+  ; !define MUI_FINISHPAGE_RUN_TEXT $(MsgStartSab)
   !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\NEWS.txt"
   !define MUI_FINISHPAGE_SHOWREADME_TEXT $(MsgShowRelNote)
   ;!define MUI_FINISHPAGE_LINK "View the BlofeldPlus Wiki"
