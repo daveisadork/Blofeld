@@ -20,5 +20,5 @@
 try:
     from blofeld.version import __version__, __revision__
 except:
-    __version__ = "head"
+    __version__ = "development"
     __revision__ = "unknown"
