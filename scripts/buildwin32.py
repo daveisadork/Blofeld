@@ -128,7 +128,7 @@ print sys.argv[0]
 zip_cmd = check_path('zip')
 unzip_cmd = check_path('unzip')
 if os.name == 'nt':
-    nsis_cmd = check_path('makensis_cmd')
+    nsis_cmd = check_path('makensis')
 else:
     nsis_cmd = '-'
 
@@ -145,7 +145,7 @@ if target not in ('binary', 'installer'):
     exit(1)
 
 import blofeld
-release = blofeld.__release__
+release = blofeld.__version__
 
 prod = 'Blofeld-' + release
 w32_service_name = 'Blofeld-service.exe'
@@ -244,11 +244,10 @@ for doc in ['AUTHORS', 'ChangeLog', 'COPYING', 'INSTALL', 'NEWS', 'README']:
                   os.path.abspath('dist/%s.txt'% doc))
         unix2dos(os.path.abspath('dist/%s.txt'% doc))
     except:
-        os.remove(os.path.abspath('dist/%s' % doc)
+        os.remove(os.path.abspath('dist/%s' % doc))
 
 ############################
 if target == 'installer':
-
     os.system('makensis_cmd.exe /v3 /DSAB_PRODUCT=%s /DSAB_FILE=%s scripts/nsis_cmd_Installer.nsi' % \
                 (release, file_ins))
 
