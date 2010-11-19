@@ -22,25 +22,17 @@ import ConfigParser
 
 import anyjson
 
+from blofeld.utils import module_path
+
 
 __all__ = ['cfg']
 
 class Config(dict):
 
-    def __init__(self, installed=False, system=False, program_dir=None, path=None):
+    def __init__(self, installed=False, system=False, path=None):
         dict.__init__(self)
         self.path = path
-        if not program_dir:
-            program_dir = os.path.abspath(
-                                    os.path.join(os.path.dirname(__file__),
-                                    os.pardir))
-        # This is needed because when we create a win32 binary with bbfreeze,
-        # the program_dir will be detected as a zip archive that contains all
-        # the modules when we actually want the parent directory.
-        if program_dir.endswith(".zip"):
-            program_dir = os.path.abspath(os.path.join(program_dir,
-                                    os.pardir))
-        self['PROGRAM_DIR'] = program_dir
+        self['PROGRAM_DIR'] = module_path()
         self['ASSETS_DIR'] = self['PROGRAM_DIR']
         if system:
             self['CONFIG_DIR'] = '/etc/blofeld'
