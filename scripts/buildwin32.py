@@ -210,7 +210,7 @@ program = [ {'script' : 'Blofeld.py', 'icon_resources' : [(0, "blofeld.ico")] } 
 options['options'] = {"py2exe":
                             {
                             "bundle_files": 3,
-                            "packages": ["gst", "cjson", "jsonlib", "simplejson", "Cheetah.DummyTransaction", "email.mime", "win32com.shell"],
+                            "packages": ["gst", "cjson", "jsonlib", "simplejson", "Cheetah.DummyTransaction", "email.mime", "win32com.shell", "mutagen"],
                             "excludes": ["pywin", "pywin.debugger", "pywin.debugger.dbgcon", "pywin.dialogs",
                                             "pywin.dialogs.list", "Tkconstants", "Tkinter", "tcl"],
                             "optimize": 2,
