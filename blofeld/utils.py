@@ -89,5 +89,5 @@ def module_path():
     if we_are_frozen():
         return os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
 
-    return os.path.abspath(os.path.join(os.path.dirname(unicode(__file__, sys.getfilesystemencoding( ))), os.pardir, os.pardir))
+    return os.path.abspath(os.path.join(os.path.dirname(unicode(__file__, sys.getfilesystemencoding( ))), os.pardir))
     
