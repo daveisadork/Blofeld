@@ -3,7 +3,8 @@ bin_SCRIPTS = blofeld
 CLEANFILES = $(bin_SCRIPTS)
 EXTRA_DIST = \
 	blofeld.in \
-	buildwin32.py
+	buildwin32.py \
+    NSIS_Installer.nsi
 
 do_subst = sed -e 's,[@]PYTHON[@],$(PYTHON),g' \
 		   -e 's,[@]pkgdatadir[@],$(pkgdatadir),g'
