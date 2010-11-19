@@ -161,13 +161,13 @@ Section -Prerequisites
     ExecWait "$INSTDIR\lib\setup-couchdb-1.0.1.exe"
     Delete "$INSTDIR\lib\setup-couchdb-1.0.1.exe"
     endCouchDB:
-    IfFileExists "$PROGRAMFILES\OSSBuild\GStreamer\v0.10.6\bin\gst-launch.exe" endGStreamer beginGStreamer
+    IfFileExists "$PROGRAMFILES\OSSBuild\GStreamer\v0.10.7\bin\gst-launch.exe" endGStreamer beginGStreamer
     Goto endGStreamer
     beginGStreamer:
     MessageBox MB_YESNO "Blofeld requires GStreamer and you don't appear to have it installed. Would you like to install it now?" /SD IDYES IDNO endGStreamer
-    File "GStreamer-WinBuilds-GPL-x86.msi"
-    ExecWait '"msiexec" /i "$INSTDIR\lib\GStreamer-WinBuilds-GPL-x86.msi"'
-    Delete "$INSTDIR\lib\GStreamer-WinBuilds-GPL-x86.msi"
+    File "GStreamer-WinBuilds-GPL-x86-Beta02-0.10.7.msi"
+    ExecWait '"msiexec" /i "$INSTDIR\lib\GStreamer-WinBuilds-GPL-x86-Beta02-0.10.7.msi"'
+    Delete "$INSTDIR\lib\GStreamer-WinBuilds-GPL-x86-Beta02-0.10.7.msi"
     endGStreamer:
 SectionEnd
 
