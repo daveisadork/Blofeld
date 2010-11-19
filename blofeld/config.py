@@ -32,7 +32,7 @@ class Config(dict):
     def __init__(self, installed=False, system=False, path=None):
         dict.__init__(self)
         self.path = path
-        self['PROGRAM_DIR'] = module_path()
+        self['PROGRAM_DIR'] = str(module_path())
         self['ASSETS_DIR'] = self['PROGRAM_DIR']
         if system:
             self['CONFIG_DIR'] = '/etc/blofeld'
