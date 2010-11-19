@@ -23,7 +23,7 @@ GIT_REVISION := $(shell git shortlog | grep -E '^[ ]+\w+' | wc -l)
 do_subst = sed -e 's,[@]PACKAGE_VERSION[@],$(PACKAGE_VERSION),g' \
                -e 's,[@]GIT_REVISION[@],$(GIT_REVISION),g'
 
-all-local: version.py.in Makefile
+version.py: version.py.in Makefile
 	$(do_subst) < $(srcdir)/version.py.in > version.py
 
 ## File created by the gnome-build tools
