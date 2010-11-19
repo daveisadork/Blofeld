@@ -4,7 +4,7 @@ dnl Created by Anjuta application wizard.
 AC_INIT(blofeld, 0.2.4, http://github.com/daveisadork/Blofeld)
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
-AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
+AM_INIT_AUTOMAKE([1.9 tar-pax])
 AC_CONFIG_HEADERS([config.h])
 AM_MAINTAINER_MODE
 
