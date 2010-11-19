@@ -160,7 +160,6 @@ file_bin = prod + '-win32-bin.zip'
 data = [ 'interfaces/',
          'views/',
          'AUTHORS',
-         'blofeld.ico',
          'ChangeLog',
          'COPYING',
          'INSTALL',
@@ -248,7 +247,7 @@ for doc in ['AUTHORS', 'ChangeLog', 'COPYING', 'INSTALL', 'NEWS', 'README']:
 
 ############################
 if target == 'installer':
-    os.system('makensis_cmd.exe /v3 /DSAB_PRODUCT=%s /DSAB_FILE=%s scripts/nsis_cmd_Installer.nsi' % \
+    os.system('makensis.exe /v3 /D_PRODUCT=%s /D_FILE=%s scripts/NSIS_Installer.nsi' % \
                 (release, file_ins))
 
     delete_files(file_bin)
