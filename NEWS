@@ -1,0 +1,55 @@
+                      *** ATTENTION WINDOWS USERS ***
+================================================================================
+After installing Blofeld, the first time you run it, the program will create
+a configuration file and then immediately exit. If you music is not in your
+"My Music" folder, you will need to edit this file and tell it where your music
+is. The configuration file is called blofeld.cfg and probably located in either 
+"C:\Users\Your Name\AppData\Roaming\Blofeld" on Vista or Windows 7 or in 
+"C:\Documents and Settings\Your Name\Application Data\Blofeld" on Windows XP.
+
+After that's all done, launch the program again and it'll start scanning your
+music collection into its library. But, it will look like nothing is happening
+because Blofeld has a web based interface and you've only started the server
+part of the program. To see the interface, open your favorite web browser and
+navigate to http://localhost:8083 and you should be able to figure things out
+from there.
+
+
+===========
+What's new? 
+===========
+
+Version 0.2.5 (2010-11-19)?
+ * Windows support with both a portable binary build and an installer
+ * Cover art in the lower-left corner like many desktop apps
+ * Improved desktop experience with Prism and Chrome App
+ * Sorting via clickable headers in the song view
+ * Multiprocess transcoding (keeps things responsive while transcoding)
+ * Deep linking (send links to specific artists/albums/search results)
+ * Lots of minor visual tweaks, bug fixes and under-the-hood improvements
+ 
+Version 0.2.4 (2010-09-30):
+ * Support for CouchDB authentication (admin party is no longer required)
+ * Web interface performance enhancements
+ * File scanner performance improvements
+ * General usability improvements
+ * Dropped distutils in favor of Autotools for easy packaging and installation
+ * Many, many bug fixes
+ 
+Version 0.2.3 (2010-07-27):
+ * Search suggestion
+ * Usability improvements
+
+Version 0.2.2 (2010-07-22):
+ * Massive database performance improvements
+
+Version 0.2.1 (2010-07-21):
+ * All new jQueryUI based interface
+ * Incorporates distutils for installation and packaging
+
+Version 0.2.0 (2010-06-09):
+ * Authentication and basic group based security
+ * Shuffle/random playback
+ * Download albums as a zip file
+ * Embedded cover art support
+ * Robust logging
