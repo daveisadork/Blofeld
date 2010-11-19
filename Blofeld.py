@@ -21,7 +21,8 @@ import os
 import sys
 from multiprocessing import freeze_support
 from optparse import OptionParser
-from blofeld.utils import module_path
+
+from blofeld.utils import get_main_dir
 
 
 def get_options():
@@ -95,10 +96,9 @@ if __name__ == "__main__":
     if options.daemonize:
         daemonize(sys.argv[0])
     from blofeld.config import cfg
-    cfg.__init__(installed=os.getenv('BLOFELD_INSTALLED'),
-                 system=os.getenv('BLOFELD_SYSTEM_WIDE'),
-                 path=options.config_file
-                 )
+    if options.config_file:
+        cfg.__init__(path=options.config_file)
+        cfg.load_config()
     from blofeld.log import *
     if options.log_file:
         enable_single_file(options.log_file)

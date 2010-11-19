@@ -22,17 +22,24 @@ import ConfigParser
 
 import anyjson
 
-from blofeld.utils import module_path
-
+from blofeld.utils import get_main_dir
 
 __all__ = ['cfg']
 
 class Config(dict):
 
-    def __init__(self, installed=False, system=False, path=None):
+    def __init__(self, installed=False, system=False, program_dir=None, path=None):
         dict.__init__(self)
         self.path = path
-        self['PROGRAM_DIR'] = str(module_path())
+        if not program_dir:
+            program_dir = get_main_dir()
+        if not installed:
+            installed = os.getenv('BLOFELD_INSTALLED')
+        if not system:
+            system = os.getenv('BLOFELD_SYSTEM')
+
+        print str(program_dir), str(installed), str(system)
+        self['PROGRAM_DIR'] = program_dir
         self['ASSETS_DIR'] = self['PROGRAM_DIR']
         if system:
             self['CONFIG_DIR'] = '/etc/blofeld'

@@ -20,6 +20,5 @@ AC_OUTPUT([
 Makefile
 blofeld/Makefile
 blofeld/library/Makefile
-blofeld/utils/Makefile
 scripts/Makefile
 ])

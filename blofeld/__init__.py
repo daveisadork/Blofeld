@@ -17,4 +17,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from blofeld.version import __version__, __baseline__
+try:
+    from blofeld.version import __version__, __revision__
+except:
+    __version__ = "head"
+    __revision__ = "unknown"

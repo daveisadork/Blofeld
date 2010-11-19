@@ -1,20 +1,30 @@
+CLEANFILES = version.py
+EXTRA_DIST = version.py.in
 
-SUBDIRS = \
-	library\
-	utils
+SUBDIRS = library
 
 blofeld_PYTHON = \
-	config.py\
-	coverart.py\
-	download.py \
-	__init__.py \
-	log.py \
-	playlist.py \
-	transcode.py \
-	web.py
+    config.py\
+    coverart.py\
+    download.py \
+    __init__.py \
+    log.py \
+    playlist.py \
+    transcode.py \
+    utils.py \
+    web.py \
+    version.py
 
 blofelddir = \
-	$(pkgpythondir)
+    $(pkgpythondir)
+
+GIT_REVISION := $(shell git shortlog | grep -E '^[ ]+\w+' | wc -l)
+
+do_subst = sed -e 's,[@]PACKAGE_VERSION[@],$(PACKAGE_VERSION),g' \
+               -e 's,[@]GIT_REVISION[@],$(GIT_REVISION),g'
+
+all-local: version.py.in Makefile
+	$(do_subst) < $(srcdir)/version.py.in > version.py
 
 ## File created by the gnome-build tools
 

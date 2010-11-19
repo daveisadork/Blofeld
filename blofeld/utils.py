@@ -17,6 +17,7 @@
 
 import os
 import sys
+import imp
 import unicodedata
 
 
@@ -75,19 +76,13 @@ def find_originating_host(headers):
     return remote_add
 
 
-def we_are_frozen():
-    """Returns whether we are frozen via py2exe.
-    This will affect how we find out where we are located."""
+def main_is_frozen():
+   return (hasattr(sys, "frozen") or # new py2exe
+           hasattr(sys, "importers") # old py2exe
+           or imp.is_frozen("__main__")) # tools/freeze
 
-    return hasattr(sys, "frozen")
 
-
-def module_path():
-    """ This will get us the program's directory,
-    even if we are frozen using py2exe"""
-
-    if we_are_frozen():
-        return os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
-
-    return os.path.abspath(os.path.join(os.path.dirname(unicode(__file__, sys.getfilesystemencoding( ))), os.pardir))
-    
+def get_main_dir():
+   if main_is_frozen():
+       return os.path.abspath(os.path.dirname(sys.executable))
+   return os.path.abspath(os.path.dirname(sys.argv[0]))
