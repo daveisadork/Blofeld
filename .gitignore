@@ -22,3 +22,5 @@ log/
 build/
 dist/
 scripts/blofeld
+blofeld/version.py
+

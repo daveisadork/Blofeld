@@ -37,8 +37,6 @@ class Config(dict):
             installed = os.getenv('BLOFELD_INSTALLED')
         if not system:
             system = os.getenv('BLOFELD_SYSTEM')
-
-        print str(program_dir), str(installed), str(system)
         self['PROGRAM_DIR'] = program_dir
         self['ASSETS_DIR'] = self['PROGRAM_DIR']
         if system:
