@@ -8,6 +8,7 @@ blofelddoc_DATA = \
 	AUTHORS\
 	ChangeLog\
 	INSTALL\
+    blofeld.ico\
 	NEWS
 
 interfacesdir = $(pkgdatadir)/interfaces
