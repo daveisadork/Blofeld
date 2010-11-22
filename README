@@ -1,11 +1,33 @@
-Blofeld is currently just a web based music server. You run it, tell it where
-your music is and it makes it available for you to listen to over the web in
-your browser or potentially other software or devices. It's pretty basic right
-now, but it does support cover art, automatic transcoding and a few other 
-things. The plan eventually is to add DAAP server capabailities and uPNP/DLNA
-capabilities to basically have a be-all end-all music server.
+What is Blofeld?
+================
 
-Blofeld uses the following application and libraries:
+Introduction
+------------
+Blofeld is a music server. You install it on a Linux PC and tell it where your
+music is, and it provides a web interface that allows you to listen to that
+music almost anywhere you have internet access and a web browser.
+
+Features
+--------
+Here's a partial list of the things Blofeld supports:
+
+ * Automatic on-the-fly transcoding
+ * Extremely fast library import/update
+ * Cover art (including embedded art)
+ * Nearly any audio container and codec (MP3, M4A, Ogg Vorbis, FLAC, WMA, etc)
+ * A modern, friendly web interface
+ * Full theme/skin/template support
+ * Song downloads (in a zip file, with artwork)
+ * Basic security with users, groups and permissions
+ * A RESTful JSON based API
+
+
+Installation
+============
+
+Dependencies
+------------
+Blofeld uses the following applications and libraries:
 
  * CherryPy 3 ( http://www.cherrypy.org/ )
  * Cheetah ( http://www.cheetahtemplate.org/ )
@@ -15,8 +37,11 @@ Blofeld uses the following application and libraries:
  * Gstreamer ( http://www.gstreamer.net/ )
  * CouchDB ( http://couchdb.apache.org/ )
 
-If you're using Ubuntu Karmic or newer, installation is as easy as using the
-PPA I have set up. You can add it by running the following at a terminal:
+Ubuntu Linux
+------------
+If you're using Ubuntu 9.10 (Karmic Koala) or newer, installation is as easy as
+using the PPA I have set up. You can add it by running the following commands
+at a terminal:
 
     sudo add-apt-repository ppa:dwhayes/ppa
 
@@ -25,21 +50,102 @@ Then just update your sources and install blofeld:
     sudo apt-get update
     sudo apt-get install blofeld
 
-Currently, the PPA packages install Blofeld as a system wide service. A config
-file will be created automatically and placed at /etc/blofeld/blofeld.cfg
-Be sure and edit this file and tell it the correct path to your music if
-nothing else. Blofeld will start automatically at boot time, or you can start
-it manually with this command:
+Microsoft Windows
+-----------------
+There are currently two different Windows builds: an executable installer and
+a plain zip file.
 
-    sudo start blofeld
+The installer will install the program on your system and all of the
+configuration, cache and log files will be stored as part of your user profile.
+CouchDB and GStreamer are included as part of the installer.
 
-Once you're up and running, point your web browser to http://localhost:8083/
-and hopefully you'll see the web interface and be able to start browsing and
-listening to music. Hopefully.
+The zip file is intended for running the program out of a directory you could
+put anywhere you like. All of the configuration information, cached files and
+logs will be stored in the directory with the program. This is suitable for
+running as a portable application. If you plan to use this build, you will need
+to install CouchDB[1] and GStreamer 0.2.17 Beta 2[2] from before you can run
+the application.
 
+Both builds can be found here:
+
+    http://davehayes.org/blofeld/
+
+Either download and run the installer (recommended), or download the zip file
+and extract it somewhere convenient.
+
+[1] http://wiki.apache.org/couchdb/Windows_binary_installer
+
+[2] http://code.google.com/p/ossbuild/downloads/list
+    Currently, you want GStreamer-WinBuilds-GPL-x86-Beta02-0.10.7.msi
+
+Building from Source
+--------------------
+If you would prefer to work from the source distribution or Git, please refer
+to the INSTALL file for more information.
+
+    
+Configuration
+=============
+
+Linux
+-----
+After you've installed the application, either from a PPA, a 3rd party package
+or built it yourself from source, you can start the application from by simply
+running the following command in a terminal:
+
+    blofeld
+    
+You should see a message like this one:
+
+    No configuration file was found, so we created one for you at
+    /home/dave/.config/blofeld/blofeld.cfg. Please check it and make sure
+    everything looks OK before running Blofeld again.
+
+You need to edit the file that was mentioned and make sure that the path points
+to your music collection. You could also change the port number or a few other
+options if you like.
+
+After editing the configuration file to your liking, save it and run the
+program again. Now, Blofeld will begin scanning your music into its libarary.
+
+    
+Windows
+-------
+The first time you run the program, nothing will appear to happen. Blofeld will
+create a configuration file for you and then exit. If you used the zip file,
+you should find a file called blofeld.cfg in the directory with the program.
+If you used the installer, this file is probably in either "C:\Documents and
+Settings\[YourName]\Application Data\Blofeld" (Windows 2000/XP/2003) or
+"C:\Users\[YourName]\AppData\Roaming\Blofeld" (Windows Vista/7/2008).
+Obviously, you'd need to replace [YourName] with your actual username. Probably
+all you need to do at this point is check the configuration file and make sure
+that the path is actually pointing to the directory containing your music
+(e.g., path = C:\Users\Dave\Music).
+
+At this point, you can run the program again. Once again, it will look like
+nothing is happening, but Blofeld is working in the background to scan all of
+your music into its library.
+
+
+Using Blofeld
+=============
+To access the web interface, open your favorite web browser and navigate to:
+
+    http://localhost:8083
+
+With any luck, you should be looking at Blofeld's web interface. Most of what
+you find here should be pretty self explanatory. However, there are a few 
+hidden options. If you hit Ctrl+Right Arrow on the keyboard, another pane
+will open to the right of the song list. There, you can choose the bitrate to
+use for streaming, the theme you would like to use or download the currently
+listed songs in a zip file.
+
+
+Extras
+======
+
+Rhythmbox Plugin
+----------------
 There's a very basic plugin for Rhythmbox which can add a Blofeld server
 as a source. It can be found at http://github.com/daveisadork/blofeld-rhythmbox 
 or you can just install it from the PPA mentioned above.
-
-There's also a pretty useful JSON API that I don't feel like documenting right
-now.
