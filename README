@@ -117,7 +117,7 @@ you should find a file called blofeld.cfg in the directory with the program.
 If you used the installer, this file is probably in either "C:\Documents and
 Settings\[YourName]\Application Data\Blofeld" (Windows 2000/XP/2003) or
 "C:\Users\[YourName]\AppData\Roaming\Blofeld" (Windows Vista/7/2008).
-Obviously, you’d need to replace [YourName] with your actual username. Probably
+Obviously, you'd need to replace [YourName] with your actual username. Probably
 all you need to do at this point is check the configuration file and make sure
 that the path is actually pointing to the directory containing your music
 (e.g., path = C:\Users\Dave\Music).
