@@ -141,7 +141,10 @@ class Config(dict):
         self['THEME_DIR'] = os.path.join(self['ASSETS_DIR'], 'interfaces',
                                  self._cfg.get('interface', 'theme'), 'templates')
 
-        self['ENCODING'] = sys.getfilesystemencoding()
+        if sys.getfilesystemencoding() == 'ANSI_X3.4-1968':
+            self['ENCODING'] = 'utf-8'
+        else:
+            self['ENCODING'] = sys.getfilesystemencoding()
         self['MUSIC_EXTENSIONS'] = [
             'mp3',     # MPEG-2 Layer III
             'ogg',     # Ogg Vorbis

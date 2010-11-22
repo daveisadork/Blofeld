@@ -182,9 +182,10 @@ def remove_missing_files(music_path, couchdb, records):
     songs = {}
     removed = 0
     for song in records:
+        path = str(song['key'].encode('utf-8'))
         # Check if the file this database record points to is still there, and
         # add it to the list to be removed if it's not.
-        if not os.path.isfile(song['key']) or not song['key'].startswith(music_path):
+        if not os.path.isfile(path) or not path.startswith(music_path):
             remove.append(couchdb[song['id']])
             removed += 1
             # Once our list of songs to be removed hits 100, delete them all in
