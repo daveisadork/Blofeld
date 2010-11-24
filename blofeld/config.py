@@ -34,7 +34,8 @@ __all__ = ['cfg']
 
 class Config(dict):
 
-    def __init__(self, installed=False, system=False, program_dir=None, path=None):
+    def __init__(self, installed=False, system=False, program_dir=None, 
+                                                                    path=None):
         dict.__init__(self)
         self.path = path
         if not program_dir:
@@ -63,7 +64,8 @@ class Config(dict):
             elif platform.system() == 'Linux':
                 self['CONFIG_DIR'] = BaseDirectory.save_config_path('blofeld')
             else:
-                self['CONFIG_DIR'] = os.path.join(os.path.expanduser("~"), '.blofeld')
+                self['CONFIG_DIR'] = os.path.join(os.path.expanduser("~"),
+                                                  '.blofeld')
             self['LOG_DIR'] = os.path.join(self['CONFIG_DIR'], 'log')
             self['CACHE_DIR'] = os.path.join(self['CONFIG_DIR'], 'cache')
         else:
@@ -82,7 +84,8 @@ class Config(dict):
             else:
                 self['CONFIG_FILE'] = self.path
         else:
-            self['CONFIG_FILE'] = os.path.join(self['CONFIG_DIR'], 'blofeld.cfg')
+            self['CONFIG_FILE'] = os.path.join(self['CONFIG_DIR'],
+                                               'blofeld.cfg')
 
         if not os.path.isdir(self['CACHE_DIR']):
             os.mkdir(self['CACHE_DIR'])
@@ -109,7 +112,8 @@ class Config(dict):
             }))
             self._cfg.add_section('database')
             if platform.system == 'Windows':
-                music_path = shell.SHGetFolderPath(0, shellcon.CSIDL_MYMUSIC, 0, 0)
+                music_path = shell.SHGetFolderPath(0, shellcon.CSIDL_MYMUSIC,
+                                                   0, 0)
             else:
                 music_path = os.path.join(os.path.expanduser("~"), "Music")
             self._cfg.set('database', 'path', music_path)
@@ -130,16 +134,25 @@ class Config(dict):
         if not os.path.isdir(self['MUSIC_PATH']):
             raise Exception("Music path does not exist!")
 
-        self['REQUIRE_LOGIN'] = self._cfg.getboolean('security', 'require_login')
-        self['USERS'] = anyjson.deserialize(self._cfg.get('security', 'users'))
-        self['GROUPS'] = anyjson.deserialize(self._cfg.get('security', 'groups'))
-        self['COUCHDB_URL'] = self._cfg.get('database', 'couchdb_url')
-        self['COUCHDB_USER'] = self._cfg.get('database', 'couchdb_user')
-        self['COUCHDB_PASSWORD'] = self._cfg.get('database', 'couchdb_password')
-        self['HOSTNAME'] = self._cfg.get('server', 'host')
-        self['PORT'] = self._cfg.getint('server', 'port')
-        self['THEME_DIR'] = unicode(os.path.join(self['ASSETS_DIR'], 'interfaces',
-                                 self._cfg.get('interface', 'theme'), 'templates'))
+        self['REQUIRE_LOGIN'] = self._cfg.getboolean('security', 
+                                                     'require_login')
+        self['USERS'] = anyjson.deserialize(self._cfg.get('security',
+                                                          'users'))
+        self['GROUPS'] = anyjson.deserialize(self._cfg.get('security', 
+                                                           'groups'))
+        self['COUCHDB_URL'] = self._cfg.get('database',
+                                            'couchdb_url')
+        self['COUCHDB_USER'] = self._cfg.get('database',
+                                             'couchdb_user')
+        self['COUCHDB_PASSWORD'] = self._cfg.get('database',
+                                                 'couchdb_password')
+        self['HOSTNAME'] = self._cfg.get('server',
+                                         'host')
+        self['PORT'] = self._cfg.getint('server',
+                                        'port')
+        self['THEME_DIR'] = os.path.join(self['ASSETS_DIR'], 'interfaces',
+                                         self._cfg.get('interface', 'theme'),
+                                         'templates')
 
         if sys.getfilesystemencoding() == 'ANSI_X3.4-1968':
             self['ENCODING'] = 'utf-8'
@@ -175,7 +188,6 @@ class Config(dict):
         ]
 
         self['CHERRYPY_OUTPUT'] = False
-
 
 cfg = Config()
 cfg.load_config()
