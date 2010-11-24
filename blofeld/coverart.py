@@ -16,11 +16,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
-import urllib
-import urllib2
 import hashlib
-
-from urlparse import urlparse
 import Image
 import mutagen
 
@@ -92,20 +88,20 @@ def find_cover(song):
         logger.debug("Couldn't find any suitable cover image.")
         return None
 
-def resize_cover(song, cover, uri, size):
+def resize_cover(song, cover, size):
     """Resizes the cover image for a specific song to a given size and caches
     the resized image for any subsequent requests."""
-    logger.debug("resize_cover(song=%s, cover=%s, uri=%s, size=%s)" % (song, cover, uri, size))
+    logger.debug("resize_cover(song=%s, cover=%s, size=%s)" % (song, cover, size))
     # This is the path to the resized image in the cache
     img_path = os.path.join(cfg['CACHE_DIR'], str(size), hashlib.sha1(song['artist_hash'] + song['album_hash']).hexdigest() + '.jpg')
-    # This is a URI of the above path
-    img_uri = 'file://' + urllib.pathname2url(img_path.encode(cfg['ENCODING']))
     # Make sure our cache directory exists
     if not os.path.exists(os.path.split(img_path)[0]):
         os.makedirs(os.path.split(img_path)[0])
     try:
         # Try to create a file object pointing to the image in the cache
-        artwork = urllib2.urlopen(img_uri)
+        artwork = open(img_path, "rb")
+        artwork.close()
+        artwork = img_path
     except:
         # Load the source image file with PIL
         image = Image.open(cover)
@@ -120,9 +116,8 @@ def resize_cover(song, cover, uri, size):
             # Save it to the cache so we won't have to do this again.
             image.save(img_path)
             # Create a file object pointing to the image in the cache
-            artwork = urllib2.urlopen(img_uri)
+            artwork = img_path
         else:
-            artwork = urllib2.urlopen(uri)
+            artwork = cover
     return artwork
-
 

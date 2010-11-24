@@ -17,11 +17,11 @@
 
 import os
 import sys
-import urllib
-import urllib2
 import anyjson
 import thread
 import hashlib
+import mimetypes
+mimetypes.init()
 from random import shuffle
 
 import cherrypy
@@ -138,7 +138,7 @@ class WebInterface:
             range_request = "bytes=0-"
         try:
             song = self.library.db[songid]
-            path = song['location'].encode(cfg['ENCODING'])
+            path = song['location']
         except:
             log_message += "a song ID which could not be found: %s" % str(songid)
             logger.error(log_message)
@@ -163,8 +163,6 @@ class WebInterface:
                 force_transcode = True
         except:
             pass
-        uri = "file://" + urllib.pathname2url(path)
-        song_file = urllib2.urlopen(uri)
         try:
             song_format = [song['mimetype'].split('/')[1],
                             os.path.splitext(path)[1].lower()[1:]]
@@ -172,8 +170,8 @@ class WebInterface:
             song_format = [os.path.splitext(path)[1].lower()[1:]]
         if not (format or bitrate):
             log_message += " The client did not request any specific format or bitrate so the file is being sent as-is (%s kbps %s)." % (str(song['bitrate'] / 1000), str(song_format))
-            logger.info(log_message)
-            return serve_file(path, song_file.info()['Content-Type'],
+            logger.info(log_message.encode('utf-8'))
+            return serve_file(path, mimetypes.guess_type(path)[0],
                                 "inline", os.path.split(path)[1])
         if format:
             format = format.split(',')
@@ -185,15 +183,15 @@ class WebInterface:
                 log_message += " The client requested %s kbps %s, but the file is already %s kbps %s, so the file is being sent as-is." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
             else:
                 log_message += " The client requested %s, but the file is already %s, so the file is being sent as-is." % (format, str(song_format))
-            logger.info(log_message)
-            return serve_file(path, song_file.info()['Content-Type'],
+            logger.info(log_message.encode('utf-8'))
+            return serve_file(path, mimetypes.guess_type(path)[0],
                                 "inline", os.path.split(path)[1])
         else:
             if bitrate:
                 log_message += " The client requested %s kbps %s, but the file is %s kbps %s, so we're transcoding the file for them." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
             else:
                 log_message += " The client requested %s, but the file %s, so we're transcoding the file for them." % (format, str(song_format))
-            logger.info(log_message)
+            logger.info(log_message.encode('utf-8'))
         # If we're transcoding audio and the client is trying to make range
         # requests, we have to throw an error 416. This sucks because it breaks
         # <audio> in all the WebKit browsers I've tried, but at least it stops
@@ -249,16 +247,16 @@ class WebInterface:
         cover = find_cover(song)
         if cover is None:
             raise cherrypy.HTTPError(404,'Not Found') 
-        uri = 'file://' + urllib.pathname2url(cover.encode(cfg['ENCODING']))
-        if size != 'original':
-            artwork = resize_cover(song, cover, uri, size)
-        else:
-            artwork = urllib2.urlopen(uri)
         if download:
             return serve_file(cover,
-                        artwork.info()['Content-Type'], "attachment", os.path.basename(cover))
-        cherrypy.response.headers['Content-Type'] = artwork.info()['Content-Type']
-        return artwork.read()
+                        mimetypes.guess_type(cover)[0], "attachment", os.path.basename(cover))
+        if size != 'original':
+            artwork = resize_cover(song, cover, size)
+        else:
+            artwork = cover
+        cherrypy.response.headers['Content-Type'] = mimetypes.guess_type(cover)[0]
+        return serve_file(artwork,
+                        mimetypes.guess_type(artwork)[0], "inline", os.path.basename(artwork))
 
     @cherrypy.expose
     def download(self, songs=None, artists=None ,albums=None, query=None):
