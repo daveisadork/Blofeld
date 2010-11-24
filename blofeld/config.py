@@ -17,6 +17,7 @@
 
 import os
 import sys
+import traceback
 
 import platform
 import ConfigParser
@@ -89,7 +90,7 @@ class Config(dict):
 
         if not os.path.isdir(self['CACHE_DIR']):
             os.mkdir(self['CACHE_DIR'])
-
+        self['PID_FILE'] = os.path.join(self['CACHE_DIR'], 'blofeld.pid')
         if not os.path.isdir(self['LOG_DIR']):
             os.mkdir(self['LOG_DIR'])
 
@@ -191,3 +192,30 @@ class Config(dict):
 
 cfg = Config()
 cfg.load_config()
+
+if os.path.exists(cfg['PID_FILE']) and traceback.extract_stack()[0][0] != 'Blofeld.py':
+    try:
+        import cPickle as pickle
+    except:
+        import pickle
+    with open(cfg['PID_FILE']) as pidfile:
+        state = pickle.load(pidfile)
+    del cfg
+    cfg = state['cfg']
+    cfg.load_config()
+    options = state['options']
+    from blofeld.log import *
+    if options.log_file:
+        enable_single_file(options.log_file)
+    else:
+        enable_file()
+    if options.daemonize:
+        pass
+    elif options.debug:
+        enable_console('debug')
+    elif options.verbose:
+        enable_console('info')
+    elif options.quiet:
+        enable_console('critical')
+    else:
+        enable_console()

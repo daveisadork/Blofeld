@@ -352,6 +352,7 @@ class WebInterface:
             logger.info("Received shutdown request, complying.")
             yield "Blofeld is shutting down.\n"
             cherrypy.engine.exit()
+            sys.exit()
         return quit()
     shutdown._cp_config = {'response.stream': True}
 

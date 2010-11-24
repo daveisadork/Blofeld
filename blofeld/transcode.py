@@ -24,6 +24,7 @@ import pygst
 pygst.require('0.10')
 import gst
 
+from blofeld.config import cfg
 from blofeld.log import logger
 
 def transcode_process(conn, path, format='mp3', bitrate=False):
@@ -53,26 +54,29 @@ def transcode_process(conn, path, format='mp3', bitrate=False):
             #encoder.set_property("profile", 1)
             #muxer.set_property("faststart", True)
     # Load our file into the transcoder
-    logger.info(log_message + ".")
+    #logger.info(log_message + ".")
     source = transcoder.get_by_name('source')
-    source.set_property("location", path)
-    # Set the output to be asynchronous so the transcoding happens as quickly
-    # as possible rather than real time.
-    output = transcoder.get_by_name('output')
-    output.set_property("sync", False)
-    # Start the pipeline running so we can start grabbing data out of it
-    transcoder.set_state(gst.STATE_PLAYING)
-    transcoder.get_state()
     try:
-        # Grab a bit of encoded data and yield it to the client
-        while True:
-            output_buffer = output.emit('pull-buffer')
-            if output_buffer:
-                conn.send(output_buffer.data)
-            else:
-                break
+        source.set_property("location", path)
+        # Set the output to be asynchronous so the transcoding happens as quickly
+        # as possible rather than real time.
+        output = transcoder.get_by_name('output')
+        output.set_property("sync", False)
+        # Start the pipeline running so we can start grabbing data out of it
+        transcoder.set_state(gst.STATE_PLAYING)
+        transcoder.get_state()
+        try:
+            # Grab a bit of encoded data and yield it to the client
+            while True:
+                output_buffer = output.emit('pull-buffer')
+                if output_buffer:
+                    conn.send(output_buffer.data)
+                else:
+                    break
+        except:
+            logger.warn("Some type of error occured during transcoding.")
     except:
-        logger.warn("Some type of error occured during transcoding.")
+        logger.error("Could not open the file for transcoding. If you're using Windows, it's probably because there are non-ASCII characters in the filename")
     finally:
         conn.send(False)
         conn.close()

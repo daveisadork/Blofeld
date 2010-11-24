@@ -22,6 +22,10 @@ import sys
 from multiprocessing import freeze_support
 from optparse import OptionParser
 
+try:
+    import cPickle as pickle
+except:
+    import pickle
 from blofeld.utils import get_main_dir
 
 
@@ -99,6 +103,19 @@ if __name__ == "__main__":
     if options.config_file:
         cfg.__init__(path=options.config_file)
         cfg.load_config()
+    if os.path.exists(cfg['PID_FILE']):
+        with open(cfg['PID_FILE'], "r") as pidfile:
+            state = pickle.load(pidfile)
+        if ['pid'] == os.getpid():
+            print "Blofeld is already running."
+            sys.exit()
+        else:
+            os.remove(cfg['PID_FILE'])
+            del cfg
+            from blofeld.config import cfg
+            if options.config_file:
+                cfg.__init__(path=options.config_file)
+                cfg.load_config()
     from blofeld.log import *
     if options.log_file:
         enable_single_file(options.log_file)
@@ -115,5 +132,8 @@ if __name__ == "__main__":
     else:
         enable_console()
     cfg['CHERRYPY_OUTPUT'] = options.cherrypy
+    with open(cfg['PID_FILE'], "w") as pidfile:
+        pickle.dump({'cfg': cfg, 'options': options, 'args': args, 'pid': os.getpid()}, pidfile)
     import blofeld.web
     blofeld.web.start()
+    os.remove(cfg['PID_FILE'])

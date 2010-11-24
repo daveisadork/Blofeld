@@ -73,6 +73,9 @@ def load_music_from_dir(music_path, couchdb):
                     read_queue.put((location, id, mtime, extension, revision))
                 else:
                     unchanged += 1
+    if read_queue.qsize() < 1:
+        logger.debug("No new files found.")
+        return
     logger.debug("Queued %d songs for reading." % read_queue.qsize())
     # This lets us check whether the process that is dealing with the read 
     # read is still working or not.
