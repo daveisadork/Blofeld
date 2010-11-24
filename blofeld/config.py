@@ -126,7 +126,7 @@ class Config(dict):
             self._cfg.read(self['CONFIG_FILE'])
 
 
-        self['MUSIC_PATH'] = self._cfg.get('database', 'path')
+        self['MUSIC_PATH'] = unicode(self._cfg.get('database', 'path'))
         if not os.path.isdir(self['MUSIC_PATH']):
             raise Exception("Music path does not exist!")
 
@@ -138,8 +138,8 @@ class Config(dict):
         self['COUCHDB_PASSWORD'] = self._cfg.get('database', 'couchdb_password')
         self['HOSTNAME'] = self._cfg.get('server', 'host')
         self['PORT'] = self._cfg.getint('server', 'port')
-        self['THEME_DIR'] = os.path.join(self['ASSETS_DIR'], 'interfaces',
-                                 self._cfg.get('interface', 'theme'), 'templates')
+        self['THEME_DIR'] = unicode(os.path.join(self['ASSETS_DIR'], 'interfaces',
+                                 self._cfg.get('interface', 'theme'), 'templates'))
 
         if sys.getfilesystemencoding() == 'ANSI_X3.4-1968':
             self['ENCODING'] = 'utf-8'
