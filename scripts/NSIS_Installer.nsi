@@ -190,7 +190,7 @@ WriteUninstaller "$INSTDIR\Uninstall.exe"
     ;Create shortcuts
     CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Blofeld.lnk" "$INSTDIR\Blofeld.exe"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Blofeld - SafeMode.lnk" "$INSTDIR\Blofeld-console.exe"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Blofeld - SafeMode.lnk" "$INSTDIR\Blofeld-console.exe" "--debug"
     ;WriteINIStr "$SMPROGRAMS\$STARTMENU_FOLDER\Blofeld - Documentation.url" "InternetShortcut" "URL" "http://wiki.blofeld.org/"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 
