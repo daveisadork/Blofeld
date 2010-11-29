@@ -21,6 +21,7 @@
 !addincludedir win\nsis\Include
 
 !include "MUI2.nsh"
+!include Sections.nsh
 ;!include "registerExtension.nsh"
 
 
@@ -123,55 +124,15 @@ InstallDirRegKey HKEY_LOCAL_MACHINE "SOFTWARE\Blofeld" ""
   !insertmacro MUI_RESERVEFILE_LANGDLL
 
 
-Function LaunchLink
-  ExecShell "" "$INSTDIR\Blofeld.exe"
-FunctionEnd
+; Function LaunchLink
+  ; ExecShell "" "$INSTDIR\Blofeld.exe"
+; FunctionEnd
 
 ;--------------------------------
-Function .onInit
-  !insertmacro MUI_LANGDLL_DISPLAY
 
-;make sure blofeld.exe isnt running..if so abort
-        loop:
-        StrCpy $0 "Blofeld.exe"
-		KillProc::FindProcesses
-        StrCmp $0 "0" endcheck
-        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION $(MsgCloseSab) IDOK loop IDCANCEL exitinstall
-        exitinstall:
-        Abort
-        endcheck:
-FunctionEnd
 
-Section -Prerequisites
-  SetOutPath $INSTDIR\lib
-  ; MessageBox MB_YESNO "Install Apache CouchDB?" /SD IDYES IDNO endActiveSync
-    ; File "..\Prerequisites\ActiveSyncSetup.exe"
-    ; ExecWait "$INSTDIR\Prerequisites\ActiveSyncSetup.exe"
-    ; Goto endActiveSync
-  ; endActiveSync:
-  ; MessageBox MB_YESNO "Install the Microsoft .NET Compact Framework 2.0 Redistributable?" /SD IDYES IDNO endNetCF
-    ; File "..\Prerequisites\NETCFSetupv2.msi"
-    ; ExecWait '"msiexec" /i "$INSTDIR\Prerequisites\NETCFSetupv2.msi"'
-  ; endNetCF:
-    IfFileExists "$PROGRAMFILES\Apache Software Foundation\CouchDB\bin\couchjs.exe" endCouchDB beginCouchDB
-    Goto endCouchDB
-    beginCouchDB:
-    MessageBox MB_YESNO "Blofeld requires Apache CouchDB and you don't appear to have it installed. Would you like to install it now?" /SD IDYES IDNO endCouchDB
-    File "setup-couchdb-1.0.1.exe"
-    ExecWait "$INSTDIR\lib\setup-couchdb-1.0.1.exe"
-    Delete "$INSTDIR\lib\setup-couchdb-1.0.1.exe"
-    endCouchDB:
-    IfFileExists "$PROGRAMFILES\OSSBuild\GStreamer\v0.10.7\bin\gst-launch.exe" endGStreamer beginGStreamer
-    Goto endGStreamer
-    beginGStreamer:
-    MessageBox MB_YESNO "Blofeld requires GStreamer and you don't appear to have it installed. Would you like to install it now?" /SD IDYES IDNO endGStreamer
-    File "GStreamer-WinBuilds-GPL-x86-Beta02-0.10.7.msi"
-    ExecWait '"msiexec" /i "$INSTDIR\lib\GStreamer-WinBuilds-GPL-x86-Beta02-0.10.7.msi"'
-    Delete "$INSTDIR\lib\GStreamer-WinBuilds-GPL-x86-Beta02-0.10.7.msi"
-    endGStreamer:
-SectionEnd
+Section "Blofeld" blofeld
 
-Section "Blofeld" SecDummy
 SetOutPath "$INSTDIR"
 
 ; add files / whatever that need to be installed here.
@@ -201,11 +162,33 @@ WriteUninstaller "$INSTDIR\Uninstall.exe"
 
 SectionEnd ; end of default section
 
+Section /o "Apache CouchDB 1.0.1" couchdb
+    SetOutPath $INSTDIR\lib
+    ; IfFileExists "$PROGRAMFILES\Apache Software Foundation\CouchDB\bin\couchjs.exe" endCouchDB beginCouchDB
+    ; Goto endCouchDB
+    ; beginCouchDB:
+    ; MessageBox MB_YESNO "Blofeld requires Apache CouchDB and you don't appear to have it installed. Would you like to install it now?" /SD IDYES IDNO endCouchDB
+    File "setup-couchdb-1.0.1.exe"
+    ExecWait "$INSTDIR\lib\setup-couchdb-1.0.1.exe"
+    Delete "$INSTDIR\lib\setup-couchdb-1.0.1.exe"
+SectionEnd
+
+Section /o "GStreamer v0.10.7" gstreamer
+    SetOutPath $INSTDIR\lib
+    ; IfFileExists "$PROGRAMFILES\OSSBuild\GStreamer\v0.10.7\bin\gst-launch.exe" endGStreamer beginGStreamer
+    ; Goto endGStreamer
+    ; beginGStreamer:
+    ; MessageBox MB_YESNO "Blofeld requires GStreamer and you don't appear to have it installed. Would you like to install it now?" /SD IDYES IDNO endGStreamer
+    File "GStreamer-WinBuilds-GPL-x86-Beta02-0.10.7.msi"
+    ExecWait '"msiexec" /i "$INSTDIR\lib\GStreamer-WinBuilds-GPL-x86-Beta02-0.10.7.msi"'
+    Delete "$INSTDIR\lib\GStreamer-WinBuilds-GPL-x86-Beta02-0.10.7.msi"
+SectionEnd
+
 Section /o $(MsgRunAtStart) startup
     CreateShortCut "$SMPROGRAMS\Startup\Blofeld.lnk" "$INSTDIR\Blofeld.exe" "-b0"
 SectionEnd ;
 
-Section $(MsgIcon) desktop
+Section /o $(MsgIcon) desktop
     CreateShortCut "$DESKTOP\Blofeld.lnk" "$INSTDIR\Blofeld.exe"
 SectionEnd ; end of desktop icon section
 
@@ -315,6 +298,36 @@ Section "un.$(MsgDelCache)" DelCache
     RMDir /r "$LOCALAPPDATA\blofeld\cache"
     RMDir "$LOCALAPPDATA\blofeld"
 SectionEnd
+
+Function .onInit
+  !insertmacro MUI_LANGDLL_DISPLAY
+  !insertmacro SetSectionFlag ${blofeld} ${SF_RO}
+
+
+IfFileExists "$PROGRAMFILES\Apache Software Foundation\CouchDB\bin\couchjs.exe" endCouchDB beginCouchDB
+Goto endCouchDB
+beginCouchDB:
+!insertmacro SelectSection ${couchdb}
+endCouchDB:
+
+
+IfFileExists "$PROGRAMFILES\OSSBuild\GStreamer\v0.10.7\bin\gst-launch.exe" endGStreamer beginGStreamer
+Goto endGStreamer
+beginGStreamer:
+!insertmacro SelectSection ${gstreamer}
+endGStreamer:
+
+
+;make sure blofeld.exe isnt running..if so abort
+        loop:
+        StrCpy $0 "Blofeld.exe"
+		KillProc::FindProcesses
+        StrCmp $0 "0" endcheck
+        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION $(MsgCloseSab) IDOK loop IDCANCEL exitinstall
+        exitinstall:
+        Abort
+        endcheck:
+FunctionEnd
 
 ; eof
 
