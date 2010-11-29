@@ -15,6 +15,14 @@ navigate to http://localhost:8083 and you should be able to figure things out
 from there.
 
 
+============
+Known Issues
+============
+
+ * Due to a limitation in the GStreamer Python bindings, transcoding of files
+   with non-ASCII characters in the filename is not possible on Windows.
+
+
 ===========
 What's new? 
 ===========
