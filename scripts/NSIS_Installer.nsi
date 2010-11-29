@@ -152,7 +152,7 @@ WriteUninstaller "$INSTDIR\Uninstall.exe"
     CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Blofeld.lnk" "$INSTDIR\Blofeld.exe"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Blofeld - SafeMode.lnk" "$INSTDIR\Blofeld-console.exe" "--debug"
-    ;WriteINIStr "$SMPROGRAMS\$STARTMENU_FOLDER\Blofeld - Documentation.url" "InternetShortcut" "URL" "http://wiki.blofeld.org/"
+    WriteINIStr "$SMPROGRAMS\$STARTMENU_FOLDER\Blofeld Web Interface.url" "InternetShortcut" "URL" "http://localhost:8083/"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 
 
@@ -272,6 +272,7 @@ Section "un.$(MsgDelProgram)" Uninstall
     Delete "$SMPROGRAMS\$MUI_TEMP\Blofeld.lnk"
     Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
     Delete "$SMPROGRAMS\$MUI_TEMP\Blofeld - SafeMode.lnk"
+    Delete "$SMPROGRAMS\$MUI_TEMP\Blofeld Web Interface.url"
     RMDir  "$SMPROGRAMS\$MUI_TEMP"
 
     Delete "$SMPROGRAMS\Startup\Blofeld.lnk"
