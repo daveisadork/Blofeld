@@ -603,6 +603,13 @@ $(document).ready(function () {
         });
         window.location.href = 'download?songs=' + downloadList.join(',');
     });
+    $('#shutdown-button').button({
+        icons: {
+            primary: 'ui-icon-power'
+        }
+    }).click(function () {
+        window.location.href = 'shutdown';
+    });
     $(".ui-layout-toggler").button();
     $("#cover-art-dialog").dialog({
         autoOpen: false,
