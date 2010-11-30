@@ -173,7 +173,7 @@ class Config(dict):
 
         self['COVER_EXTENSIONS'] = [
             "jpg",
-            "jpeg"
+            "jpeg",
             "png",
             "gif",
             "tif",
