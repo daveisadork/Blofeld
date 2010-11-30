@@ -74,6 +74,19 @@ class Config(dict):
             self['LOG_DIR'] = os.path.join(self['PROGRAM_DIR'], 'log')
             self['CACHE_DIR'] = os.path.join(self['PROGRAM_DIR'], 'cache')
 
+    def save_config(self):
+        self._cfg.set('server', 'host', str(self['HOSTNAME']))
+        self._cfg.set('server', 'port', str(self['PORT']))
+        self._cfg.set('security', 'require_login', anyjson.serialize(self['REQUIRE_LOGIN']))
+        self._cfg.set('security', 'users', anyjson.serialize(self['USERS']))
+        self._cfg.set('security', 'groups', anyjson.serialize(self['GROUPS']))
+        self._cfg.set('database', 'path', str(os.path.abspath(self['MUSIC_PATH'])))
+        self._cfg.set('database', 'couchdb_url', str(self['COUCHDB_URL']))
+        self._cfg.set('database', 'couchdb_user', str(self['COUCHDB_USER']))
+        self._cfg.set('database', 'couchdb_password', str(self['COUCHDB_PASSWORD']))
+        self._cfg.set('interface', 'theme', str(self['THEME']))
+        with open(self['CONFIG_FILE'], 'w') as conf_file:
+            self._cfg.write(conf_file)
 
     def load_config(self):
         if not os.path.isdir(self['CONFIG_DIR']):
@@ -151,8 +164,9 @@ class Config(dict):
                                          'host')
         self['PORT'] = self._cfg.getint('server',
                                         'port')
+        self['THEME'] = self._cfg.get('interface', 'theme')
         self['THEME_DIR'] = os.path.join(self['ASSETS_DIR'], 'interfaces',
-                                         self._cfg.get('interface', 'theme'),
+                                         self['THEME'],
                                          'templates')
 
         if sys.getfilesystemencoding() == 'ANSI_X3.4-1968':

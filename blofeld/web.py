@@ -22,6 +22,7 @@ import thread
 import hashlib
 import mimetypes
 mimetypes.init()
+import types
 from random import shuffle
 
 import cherrypy
@@ -343,14 +344,49 @@ class WebInterface:
         return anyjson.serialize(result)
 
     @cherrypy.expose
+    def config(self, set_option=None, get_option=None, value=None):
+        logger.debug("%s (%s)\tconfig()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, cherrypy.request.headers))
+        if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['GROUPS']['admin']:
+            logger.warn("%(user)s (%(ip)s) requested configuration data, but was denied because %(user)s is not a member of the admin group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
+            raise cherrypy.HTTPError(401,'Not Authorized')
+        if set_option:
+            if not value:
+                raise cherrypy.HTTPError(501,'No value provided for the requested option')
+            if set_option not in cfg.keys():
+                raise cherrypy.HTTPError(501,'The requested option does not exist')
+            try:
+                if type(cfg[set_option]) is types.ListType:
+                    value = value.split(',')
+                if type(cfg[set_option]) is types.BooleanType:
+                    value = anyjson.deserialize(value)
+                if type(cfg[set_option]) is types.StringType:
+                    value = str(value)
+            except:
+                raise cherrypy.HTTPError(501, 'The value provided was the wrong type. Expected a %s' % type(cfg[set_option]))
+            try:
+                cfg[set_option] = value
+                cfg.save_config()
+                cherrypy.response.headers['Content-Type'] = 'application/json'
+                return anyjson.serialize({'config': {set_option: cfg[set_option]}})
+            except Exception as x:
+                return str(x)
+        if get_option:
+            if get_option not in cfg.keys():
+                raise cherrypy.HTTPError(501,'The requested option does not exist')
+            cherrypy.response.headers['Content-Type'] = 'application/json'
+            return anyjson.serialize({'config': {get_option: cfg[get_option]}})
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+        return anyjson.serialize({'config': cfg})
+        
+    @cherrypy.expose
     def shutdown(self):
         logger.debug("%s (%s)\tshutdown()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, cherrypy.request.headers))
         if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['GROUPS']['admin']:
             logger.warn("%(user)s (%(ip)s) requested that the server shut down, but was denied because %(user)s is not a member of the admin group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
             raise cherrypy.HTTPError(401,'Not Authorized')
         def quit():
+            yield str(0)
             logger.info("Received shutdown request, complying.")
-            yield "Blofeld is shutting down.\n"
             cherrypy.engine.exit()
             sys.exit()
         return quit()
