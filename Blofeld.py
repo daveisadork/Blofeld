@@ -32,6 +32,9 @@ from blofeld.utils import get_main_dir
 def get_options():
     usage = "usage: %prog [options]"
     parser = OptionParser(usage=usage)
+    parser.add_option("-v", "--version",
+                      action="store_true", dest="version",
+                      help="Print the version number and exit.")
     parser.add_option("-c", "--config",
                       action="store", type="string", dest="config_file",
                       help="Load a specific configuration file.")
@@ -97,6 +100,13 @@ def daemonize(name):
 if __name__ == "__main__":
     freeze_support()
     (options, args) = get_options()
+    if options.version:
+        import blofeld
+        if blofeld.release:
+            print "Blofeld v%s" % blofeld.__version__
+        else:
+            print "Blofeld git branch %s, commit %s" % (blofeld.__version__, blofeld.__revision__)
+        sys.exit()
     if options.daemonize:
         daemonize(sys.argv[0])
     from blofeld.config import cfg

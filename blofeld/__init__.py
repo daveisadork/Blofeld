@@ -17,8 +17,22 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
+
+import os
+
+
 try:
     from blofeld.version import __version__, __revision__
+    release = True
 except:
-    __version__ = "development"
-    __revision__ = "unknown"
+    release = False
+    try:
+        with open(os.path.abspath('.git/HEAD'), 'r') as head:
+            data = head.readline()
+        __version__ = data.split('/')[-1][:-1]
+        with open(os.path.abspath('.git/logs/HEAD'), 'r') as log:
+            data = log.readlines()
+        __revision__ = data[-1].split(' ')[1]
+    except:
+        __version__ = "unknown"
+        __revision__ = "unknown"
