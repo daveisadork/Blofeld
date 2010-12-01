@@ -292,9 +292,7 @@ class WebInterface:
             return serve_file(archive, 'application/zip', 'download.zip')
         except:
             logger.debug("Something went wrong while sending the archive.")
-        finally:
-            logger.debug("Removing archive.")
-            os.remove(archive)
+    download._cp_config = {'response.stream': True}
 
     @cherrypy.expose
     def update_library(self):
