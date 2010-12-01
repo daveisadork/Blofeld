@@ -72,7 +72,7 @@ var playSong = function (songIndex) {
         playerType = 'HTML5';
     }
     $("player-type").html(playerType);
-    document.title = $('#now-playing-artist').html() + " - " + $('#now-playing-title').html();
+    $.address.title($('#now-playing-artist').html() + " - " + $('#now-playing-title').html());
 };
 
 var listArtists = function (query, highlight) {
@@ -240,7 +240,7 @@ var stopPlayback = function () {
     $('.now-playing').removeClass('now-playing');
     playerState = 'stopped';
     $.address.parameter('song', null);
-    document.title = "Blofeld";
+    $.address.title("Blofeld");
 };
 
 var playNextSong = function () {
@@ -359,8 +359,12 @@ $(document).ready(function () {
     if (!! $('#switcher').themeswitcher) {
         $('#switcher').themeswitcher();
     }
+    
     setupPlayer();
-    var mainLayout = $('body').layout({
+    
+    var mainLayout, sourcesPaneLayout, browserLayout, aristAlbumListsLayout;
+    
+    mainLayout = $('body').layout({
         center__paneSelector: "#browser",
         west__onresize: function (event) {
             sourcesPaneLayout.resizeAll();
@@ -387,7 +391,7 @@ $(document).ready(function () {
         west__size: '200',
         west__slidable: false
     });
-    var sourcesPaneLayout = $('#sources-pane').layout({
+    sourcesPaneLayout = $('#sources-pane').layout({
         minSize: 100,
         center__paneSelector: "#source-list",
         south__paneSelector: "#cover-art-pane",
@@ -400,7 +404,7 @@ $(document).ready(function () {
         },
         south__spacing_closed: 0
     });
-    var browserLayout = $('#browser').layout({
+    browserLayout = $('#browser').layout({
         center__paneSelector: "#songs-container",
         west__paneSelector: "#artist-album-lists",
         west__closable: false,
@@ -410,7 +414,7 @@ $(document).ready(function () {
 //            sourcesListLayout.sizePane('south', mainLayout.state.west.size);
         }
     });
-    var aristAlbumListsLayout = $('#artist-album-lists').layout({
+    aristAlbumListsLayout = $('#artist-album-lists').layout({
         minSize: 100,
         center__paneSelector: "#albums-container",
         north__paneSelector: "#artists-container",
@@ -580,7 +584,7 @@ $(document).ready(function () {
             }
         } else {
             $(".now-playing .ui-icon-volume-off").toggleClass("ui-icon-volume-on ui-icon-volume-off");
-            document.title = $('#now-playing-artist').html() + " - " + $('#now-playing-title').html();
+            $.address.title($('#now-playing-artist').html() + " - " + $('#now-playing-title').html());
         }
     });
     $("#pause-button").button({
@@ -590,7 +594,7 @@ $(document).ready(function () {
         text: false
     }).click(function () {
         $(".now-playing .ui-icon-volume-on").toggleClass("ui-icon-volume-on ui-icon-volume-off");
-        document.title = document.title = $('#now-playing-artist').html() + " - " + $('#now-playing-title').html() + " (Paused)"
+        $.address.title($('#now-playing-artist').html() + " - " + $('#now-playing-title').html() + " (Paused)");
     });
     $("#next-button").button({
         icons: {
@@ -619,14 +623,14 @@ $(document).ready(function () {
         $("tbody .song").each(function () {
             downloadList.push($(this).attr('id'));
         });
-        window.location.href = 'download?songs=' + downloadList.join(',');
+        window.location = 'download?songs=' + downloadList.join(',');
     });
     $('#shutdown-button').button({
         icons: {
             primary: 'ui-icon-power'
         }
     }).click(function () {
-        window.location.href = 'shutdown';
+        window.location = 'shutdown';
     });
     $(".ui-layout-toggler").button();
     $("#cover-art-dialog").dialog({
