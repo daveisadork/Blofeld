@@ -375,10 +375,11 @@ $(document).ready(function () {
     }
     setupPlayer();
     mainLayout = $('body').layout({
-        center__paneSelector: "#songs-container",
+        center__paneSelector: "#browser",
         west__onresize: function (event) {
+            sourcesPaneLayout.resizeAll();
             browserLayout.resizeAll();
-            browserLayout.sizePane('south', mainLayout.state.west.size);
+            sourcesPaneLayout.sizePane('south', mainLayout.state.west.size);
         },
         north__paneSelector: "#header",
         north__resizable: false,
@@ -389,35 +390,50 @@ $(document).ready(function () {
         south__resizable: false,
         south__initClosed: true,
         south__size: 'auto',
-        east__paneSelector: '#sidebar',
+        east__paneSelector: '#right-sidebar',
         east__slidable: false,
         east__initClosed: true,
-        west__paneSelector: "#browser",
+        west__paneSelector: "#sources-pane",
         west__closable: false,
+        west__size: '200',
         west__slidable: false
     });
-    browserLayout = $('#browser').layout({
+    sourcesPaneLayout = $('#sources-pane').layout({
         minSize: 100,
-        center__paneSelector: "#albums-container",
-        north__paneSelector: "#artists-container",
+        center__paneSelector: "#source-list",
         south__paneSelector: "#cover-art-pane",
-        north__size: 250,
-        north__resizable: true,
-        north__closable: false,
         south__closable: false,
         south__size: mainLayout.state.west.size,
         south__onresize: function (event) {
-            if (mainLayout.state.west.size !== browserLayout.state.south.size) {
-                browserLayout.sizePane('south', mainLayout.state.west.size);    
+            if (mainLayout.state.west.size !== sourcesPaneLayout.state.south.size) {
+                sourcesPaneLayout.sizePane('south', mainLayout.state.west.size);    
             }
         },
         south__spacing_closed: 0
     });
+    browserLayout = $('#browser').layout({
+        center__paneSelector: "#songs-container",
+        west__paneSelector: "#artist-album-lists",
+        west__closable: false,
+        west__onresize: function (event) {
+            aristAlbumListsLayout.resizeAll();
+//            browserLayout.resizeAll();
+//            sourcesListLayout.sizePane('south', mainLayout.state.west.size);
+        }
+    });
+    aristAlbumListsLayout = $('#artist-album-lists').layout({
+        minSize: 100,
+        center__paneSelector: "#albums-container",
+        north__paneSelector: "#artists-container",
+        north__size: 250,
+        north__resizable: true,
+    });
+
+    disableSelection(document.getElementById("sources-pane"));
     disableSelection(document.getElementById("browser"));
-    disableSelection(document.getElementById("songs-container"));
     disableSelection(document.getElementById("controls"));
     disableSelection(document.getElementById("progress"));
-    disableSelection(document.getElementById("sidebar"));
+    disableSelection(document.getElementById("right-sidebar"));
     $.address.init(function (event) {
         var song = null,
             query = '',

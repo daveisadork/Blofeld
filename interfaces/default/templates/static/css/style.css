@@ -428,7 +428,7 @@ ul.ui-autocomplete a {
     width: 100%;
 }
 
-#albums, #artists {
+#albums, #artists, #sources {
     margin-bottom: 3px;
 }
 
@@ -455,24 +455,35 @@ td, th {
     width: 4em;
 }
 
-tr.artist, tr.album, tr.song, thead > tr {
+tr.artist, tr.album, tr.song, tr.source, thead > tr {
     height: 2em;
+}
+
+hr {
+    margin-top: 1px;
+    margin-bottom: 1px;
 }
 
 .status {
     width: 19px;
 }
 
-#browser {
+#sources-pane {
     padding-left: 6px;
 }
 
-#sidebar {
+#right-sidebar {
     padding: 0 6px 5px 0;
 }
 
 #sidebar-widget {
     padding: 0 6px 3px 0;
+    height: 100%;
+}
+
+#source-list-widget {
+    margin-right: -6px;
+    padding-right: 6px;
     height: 100%;
 }
 

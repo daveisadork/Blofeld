@@ -86,17 +86,54 @@
             </div>
         </div>
     </div>
-    <div id="browser">
-        <div id="artists-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
-        <div id="albums-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
+    <div id="sources-pane">
+        <div id="source-list" class="table-container">
+            <div id="source-list-widget" class="ui-widget ui-widget-content ui-corner-left">
+                <div class="scrolling-container">
+                    <table id="sources">
+                        <tbody>
+                            <tr class="source" >
+                                <td class="ui-corner-all">Now Playing</td>
+                            </tr>
+                            <tr class="source" >
+                                <td class="ui-corner-all">Play Queue</td>
+                            </tr>
+                            <tr>
+                                <td ><hr></td>
+                            </tr>
+                            <tr class="source ui-state-default" >
+                                <td class="ui-corner-all">Music Library</td>
+                            </tr>
+                            <tr class="source" >
+                                <td class="ui-corner-all">Playlists</td>
+                            </tr>
+                            <tr class="source" >
+                                <td class="ui-corner-all">Preferences</td>
+                            </tr>
+                            <tr class="source" >
+                                <td class="ui-corner-all">Settings</td>
+                            </tr>
+                            <tr class="source" >
+                                <td class="ui-corner-all">Administration</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
         <div id="cover-art-pane" class="ui-widget ui-widget-content">
             <img class="cover-img active" src="static/images/blank.png" width="100%" height="100%">
             <img class="cover-img inactive" src="static/images/blank.png" width="100%" height="100%">
-
         </div>
     </div>
-    <div id="songs-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
-    <div id="sidebar" class="table-container">
+    <div id="browser">
+        <div id="artist-album-lists">
+            <div id="artists-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
+            <div id="albums-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
+        </div>
+        <div id="songs-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
+    </div>
+    <div id="right-sidebar" class="table-container">
         <div id="sidebar-widget" class="ui-widget ui-widget-content ui-corner-left">
             <div class="scrolling-container">
                 <table id="options">
