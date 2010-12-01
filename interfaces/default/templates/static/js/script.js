@@ -302,20 +302,6 @@ var setupPlayer = function () {
     }).jPlayer("onSoundComplete", function () {
         playNextSong();
     });
-    $("#next-button").click(function () {
-        playNextSong();
-    });
-    $("#previous-button").click(function () {
-        if (playingCurrently) {
-            if (playingCurrently > 0) {
-                playSong(playingCurrently - 1);
-            } else {
-                stopPlayback();
-            }
-        } else {
-            stopPlayback();
-        }
-    });
     $.jPlayer.timeFormat.padMin = false;
     if ($('#jplayer').jPlayer("getData", "html5") && !$('#jplayer').jPlayer("getData", "usingFlash")) {
         if ($('#jplayer').jPlayer("getData", "canPlayOGG")) {
@@ -374,7 +360,7 @@ $(document).ready(function () {
         $('#switcher').themeswitcher();
     }
     setupPlayer();
-    mainLayout = $('body').layout({
+    var mainLayout = $('body').layout({
         center__paneSelector: "#browser",
         west__onresize: function (event) {
             sourcesPaneLayout.resizeAll();
@@ -393,12 +379,15 @@ $(document).ready(function () {
         east__paneSelector: '#right-sidebar',
         east__slidable: false,
         east__initClosed: true,
+        center__onresize: function (event) {
+            browserLayout.resizeAll();
+        },
         west__paneSelector: "#sources-pane",
         west__closable: false,
         west__size: '200',
         west__slidable: false
     });
-    sourcesPaneLayout = $('#sources-pane').layout({
+    var sourcesPaneLayout = $('#sources-pane').layout({
         minSize: 100,
         center__paneSelector: "#source-list",
         south__paneSelector: "#cover-art-pane",
@@ -411,7 +400,7 @@ $(document).ready(function () {
         },
         south__spacing_closed: 0
     });
-    browserLayout = $('#browser').layout({
+    var browserLayout = $('#browser').layout({
         center__paneSelector: "#songs-container",
         west__paneSelector: "#artist-album-lists",
         west__closable: false,
@@ -421,12 +410,13 @@ $(document).ready(function () {
 //            sourcesListLayout.sizePane('south', mainLayout.state.west.size);
         }
     });
-    aristAlbumListsLayout = $('#artist-album-lists').layout({
+    var aristAlbumListsLayout = $('#artist-album-lists').layout({
         minSize: 100,
         center__paneSelector: "#albums-container",
         north__paneSelector: "#artists-container",
         north__size: 250,
         north__resizable: true,
+        north__closable: false
     });
 
     disableSelection(document.getElementById("sources-pane"));
@@ -537,6 +527,16 @@ $(document).ready(function () {
             primary: 'ui-icon-seek-first'
         },
         text: false
+    }).click(function () {
+        if (playingCurrently) {
+            if (playingCurrently > 0) {
+                playSong(playingCurrently - 1);
+            } else {
+                stopPlayback();
+            }
+        } else {
+            stopPlayback();
+        }
     });
     $("#progress-bar").progressbar().slider({
         max: 100,
@@ -597,6 +597,8 @@ $(document).ready(function () {
             primary: 'ui-icon-seek-end'
         },
         text: false
+    }).click(function () {
+        playNextSong();
     });
     $('#bitrate-slider').slider({
         value: 7,
