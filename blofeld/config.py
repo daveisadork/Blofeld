@@ -73,6 +73,12 @@ class Config(dict):
             self['CONFIG_DIR'] = self['PROGRAM_DIR']
             self['LOG_DIR'] = os.path.join(self['PROGRAM_DIR'], 'log')
             self['CACHE_DIR'] = os.path.join(self['PROGRAM_DIR'], 'cache')
+        for item in os.listdir(self['CACHE_DIR']):
+            if item.endswith('.zip'):
+                try:
+                    os.remove(os.path.join(self['CACHE_DIR'], item))
+                except:
+                    pass
 
     def save_config(self):
         self._cfg.set('server', 'host', str(self['HOSTNAME']))

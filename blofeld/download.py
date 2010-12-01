@@ -31,7 +31,7 @@ def create_archive(songs):
         cover = (find_cover(song), os.path.join(os.path.dirname(song['location']), 'Cover.jpg').replace(cfg['MUSIC_PATH'], ''))
         if cover not in files:
             files.append(cover)
-    path = '/tmp/%s.zip' % hashlib.sha1(str(songs).encode('utf-8')).hexdigest()
+    path = os.path.join(cfg['CACHE_DIR'], '%s.zip') % hashlib.sha1(str(songs).encode('utf-8')).hexdigest()
     logger.debug("Creating archive at %s" % path)
     archive = zipfile.ZipFile(path, 'w', zipfile.ZIP_STORED)
     for item in files:
