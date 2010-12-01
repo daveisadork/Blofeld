@@ -382,13 +382,14 @@ class WebInterface:
         if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['GROUPS']['admin']:
             logger.warn("%(user)s (%(ip)s) requested that the server shut down, but was denied because %(user)s is not a member of the admin group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
             raise cherrypy.HTTPError(401,'Not Authorized')
-        def quit():
-            yield str(0)
+        try:
+            cherrypy.response.headers['Content-Type'] = 'application/json'
             logger.info("Received shutdown request, complying.")
+            return anyjson.serialize({'shutdown': True})
+        except:
+            pass
+        finally:
             cherrypy.engine.exit()
-            sys.exit()
-        return quit()
-    shutdown._cp_config = {'response.stream': True}
 
 
 def start(log_level='warn'):

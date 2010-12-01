@@ -147,3 +147,4 @@ if __name__ == "__main__":
     import blofeld.web
     blofeld.web.start()
     os.remove(cfg['PID_FILE'])
+    sys.exit()

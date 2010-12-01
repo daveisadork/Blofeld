@@ -630,9 +630,33 @@ $(document).ready(function () {
             primary: 'ui-icon-power'
         }
     }).click(function () {
-        window.location = 'shutdown';
+        $("#shutdown-dialog").dialog("open");
+        if (ajaxQueue.artists) {
+            ajaxQueue.artists.abort();
+        }
+        if (ajaxQueue.albums) {
+            ajaxQueue.albums.abort();
+        }
+        if (ajaxQueue.artists) {
+            ajaxQueue.songs.abort();
+        }
+        $.ajax({
+            url: 'shutdown',
+            success: function (response) {
+                if (response.shutdown === true) {
+                    $("#shutdown-dialog span").html("done.");
+                }
+            }
+        });
     });
     $(".ui-layout-toggler").button();
+    $("#shutdown-dialog").dialog({
+        autoOpen: false,
+        resizable: false,
+        draggable: false,
+        modal: true,
+        
+    });
     $("#cover-art-dialog").dialog({
         autoOpen: false,
         resizable: false,
