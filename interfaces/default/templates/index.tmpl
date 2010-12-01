@@ -92,28 +92,28 @@
                 <div class="scrolling-container">
                     <table id="sources">
                         <tbody>
-                            <tr class="source" >
+                            <tr name="now-playing-pane" class="source" >
                                 <td class="ui-corner-all">Now Playing</td>
                             </tr>
-                            <tr class="source" >
+                            <tr name="play-queue" class="source" >
                                 <td class="ui-corner-all">Play Queue</td>
                             </tr>
                             <tr>
                                 <td ><hr></td>
                             </tr>
-                            <tr class="source ui-state-default" >
+                            <tr name="music-library" class="source ui-state-default" >
                                 <td class="ui-corner-all">Music Library</td>
                             </tr>
-                            <tr class="source" >
+                            <tr name="playlists" class="source" >
                                 <td class="ui-corner-all">Playlists</td>
                             </tr>
-                            <tr class="source" >
+                            <tr name="preferences" class="source" >
                                 <td class="ui-corner-all">Preferences</td>
                             </tr>
-                            <tr class="source" >
+                            <tr name="settings" class="source" >
                                 <td class="ui-corner-all">Settings</td>
                             </tr>
-                            <tr class="source" >
+                            <tr name="administration" class="source" >
                                 <td class="ui-corner-all">Administration</td>
                             </tr>
                         </tbody>
@@ -126,12 +126,20 @@
             <img class="cover-img inactive" src="static/images/blank.png" width="100%" height="100%">
         </div>
     </div>
-    <div id="browser">
-        <div id="artist-album-lists">
-            <div id="artists-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
-            <div id="albums-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
+    <div id="content" class="ui-layout-center">
+        <div id="now-playing-pane"></div>
+        <div id="play-queue"></div>
+        <div id="music-library">
+            <div id="artist-album-lists">
+                <div id="artists-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
+                <div id="albums-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
+            </div>
+            <div id="songs-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
         </div>
-        <div id="songs-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
+        <div id="playlists"></div>
+        <div id="preferences"></div>
+        <div id="settings"></div>
+        <div id="administration"></div>
     </div>
     <div id="right-sidebar" class="table-container">
         <div id="sidebar-widget" class="ui-widget ui-widget-content ui-corner-left">

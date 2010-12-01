@@ -2,7 +2,7 @@
 
 */
 "use strict";
-var mainLayout, browserLayout, loadingSongs = '<div class="scrolling-container"><table id="songs"><thead class="ui-widget-header ui-corner-all"><tr class="song"><th class="status ui-corner-left"></th><th class="track-number">#</th><th class="title">Title</th><th class="artist">Artist</th><th class="album">Album</th><th class="genre">Genre</th><th class="year">Year</th><th class="time ui-corner-right">Time</th></tr></thead><tbody><tr class="song" id="Loading"><td class="status ui-corner-left" colspan="8"><div class="loading">Loading...</div></td></tr></tbody></table></div>',
+var mainLayout, musicLibraryLayout, loadingSongs = '<div class="scrolling-container"><table id="songs"><thead class="ui-widget-header ui-corner-all"><tr class="song"><th class="status ui-corner-left"></th><th class="track-number">#</th><th class="title">Title</th><th class="artist">Artist</th><th class="album">Album</th><th class="genre">Genre</th><th class="year">Year</th><th class="time ui-corner-right">Time</th></tr></thead><tbody><tr class="song" id="Loading"><td class="status ui-corner-left" colspan="8"><div class="loading">Loading...</div></td></tr></tbody></table></div>',
     loadingArtists = '<div class="scrolling-container"><table id="artists"><tbody><tr class="artist ui-state-default" id="all-artists"><td class="ui-corner-all">All Artists (<span id="artist-count">Loading</span>)</td></tr></tbody></div>',
     loadingAlbums = '<div class="scrolling-container"><table id="albums"><tbody><tr class="album ui-state-default" id="all-albums"><td class="ui-corner-all">All Albums (<span id="album-count">Loading</span>)</td></tr></tbody></div>',
     playlist = [],
@@ -25,6 +25,18 @@ var mainLayout, browserLayout, loadingSongs = '<div class="scrolling-container">
         activeSong: null,
         currentSearch: null,
         previousSong: null
+    },
+    layoutOptions = {
+        musicLibrary: {
+            center__paneSelector: "#songs-container",
+            west__paneSelector: "#artist-album-lists",
+            west__closable: false,
+            west__onresize: function (event) {
+                aristAlbumListsLayout.resizeAll();
+    //            musicLibraryLayout.resizeAll();
+    //            sourcesListLayout.sizePane('south', mainLayout.state.west.size);
+                }
+            }
     };
 
 var showCover = function (song) {
@@ -362,13 +374,14 @@ $(document).ready(function () {
     
     setupPlayer();
     
-    var mainLayout, sourcesPaneLayout, browserLayout, aristAlbumListsLayout;
+    var mainLayout, sourcesPaneLayout, musicLibraryLayout, nowPlayingLayout, aristAlbumListsLayout;
     
     mainLayout = $('body').layout({
-        center__paneSelector: "#browser",
         west__onresize: function (event) {
             sourcesPaneLayout.resizeAll();
-            browserLayout.resizeAll();
+            if ($("#music-library").is(":visible")) {
+                musicLibraryLayout.resizeAll();
+            }
             sourcesPaneLayout.sizePane('south', mainLayout.state.west.size);
         },
         north__paneSelector: "#header",
@@ -384,7 +397,9 @@ $(document).ready(function () {
         east__slidable: false,
         east__initClosed: true,
         center__onresize: function (event) {
-            browserLayout.resizeAll();
+            if ($("#music-library").is(":visible")) {
+                musicLibraryLayout.resizeAll();
+            }
         },
         west__paneSelector: "#sources-pane",
         west__closable: false,
@@ -404,16 +419,8 @@ $(document).ready(function () {
         },
         south__spacing_closed: 0
     });
-    browserLayout = $('#browser').layout({
-        center__paneSelector: "#songs-container",
-        west__paneSelector: "#artist-album-lists",
-        west__closable: false,
-        west__onresize: function (event) {
-            aristAlbumListsLayout.resizeAll();
-//            browserLayout.resizeAll();
-//            sourcesListLayout.sizePane('south', mainLayout.state.west.size);
-        }
-    });
+    musicLibraryLayout = $('#music-library').layout(layoutOptions.musicLibrary);
+    $("#content > div:not(#music-library)").hide()
     aristAlbumListsLayout = $('#artist-album-lists').layout({
         minSize: 100,
         center__paneSelector: "#albums-container",
@@ -424,7 +431,7 @@ $(document).ready(function () {
     });
 
     disableSelection(document.getElementById("sources-pane"));
-    disableSelection(document.getElementById("browser"));
+    disableSelection(document.getElementById("content"));
     disableSelection(document.getElementById("controls"));
     disableSelection(document.getElementById("progress"));
     disableSelection(document.getElementById("right-sidebar"));
@@ -524,6 +531,15 @@ $(document).ready(function () {
             $.address.parameter('artists', selectedArtists);
         } else {
             $.address.parameter('artists', null);
+        }
+    });
+    $('tr.source').click(function (event) {
+        $("#content > div").hide();
+        $(".source.ui-state-default").removeClass('ui-state-default');
+        $(this).addClass('ui-state-default');
+        $("#" + $(this).attr('name')).show();
+        if ($("#music-library").is(":visible")) {
+                musicLibraryLayout.resizeAll();
         }
     });
     $("#previous-button").button({

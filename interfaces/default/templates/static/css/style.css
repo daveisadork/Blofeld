@@ -492,7 +492,7 @@ hr {
     text-align: center;
 }
 
-#jplayer, #browser, .ui-layout-resizer {
+#jplayer, #content, .ui-layout-resizer {
     background-color: inherit;
 }
 
@@ -540,7 +540,33 @@ th.headerSortDown > .sort-status {
     background-position: -64px -18px;
 }
 
+#content > div {
+    height: 100%;
+}
 
+#now-playing-pane {
+    background: red
+}
+
+#play-queue {
+    background: orange
+}
+
+#playlists {
+    background: yellow
+}
+
+#preferences {
+    background: green
+}
+
+#settings {
+    background: blue
+}
+
+#administration {
+    background: purple
+}
 
 
 
