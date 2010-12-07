@@ -261,7 +261,11 @@ var listSongs = function (artists, albums, query, play) {
                     playSong($.inArray(play, playlist));
                 }, 3000);
             }
-            //$(".song").draggable({ helper: 'clone' });
+            $(".song").draggable({
+                helper: function (e,ui) {
+                    return $('<div class="ui-icon ui-icon-document"></div>').appendTo('body').css('zIndex',5).show();
+                } 
+            });
             $("#songs").tablesorter({
                 headers: { 0: { sorter: false}}
             }).bind("sortEnd",function() { 
@@ -576,6 +580,13 @@ $(document).ready(function () {
         if ($("#music-library").is(":visible")) {
                 musicLibraryLayout.resizeAll();
         }
+    });
+    $('tr.source[name="play-queue"]').droppable({
+        drop: function( event, ui ) {
+            $("#play-queue").append("<p>" + ui.draggable.attr('id') + "</p>");
+        },
+        accept: '.song',
+        hoverClass: "ui-state-hover",
     });
     $("#previous-button").button({
         icons: {
