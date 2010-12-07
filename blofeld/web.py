@@ -130,6 +130,26 @@ class WebInterface:
         return playlist
 
     @cherrypy.expose
+    def get_tags(self, songid=None):
+        logger.debug("%s (%s)\tget_tags(songid=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, songid, cherrypy.request.headers))
+        if not songid:
+            raise cherrypy.HTTPError(501, "You must supply a song id.")
+        if self.library.db.doc_exist(songid):
+            song = self.library.db[songid]
+            if song['type'] != 'song':
+                raise cherrypy.HTTPError(501, "The specified document is not a song.")
+            song['id'] = song['_id']
+            del song['_id']
+            del song['location']
+            del song['_rev']
+            del song['type']
+            cherrypy.response.headers['Content-Type'] = 'application/json'
+            return anyjson.serialize({"song": song})
+        else:
+            raise cherrypy.HTTPError(404, "That song doesn't exist in the database.")
+
+        
+    @cherrypy.expose
     def get_song(self, songid=None, format=False, bitrate=False):
         logger.debug("%s (%s)\tget_song(songid=%s, format=%s, bitrate=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, songid, format, bitrate, cherrypy.request.headers))
         log_message = "%s (%s) requested " % (cherrypy.request.login, utils.find_originating_host(cherrypy.request.headers))
