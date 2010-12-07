@@ -237,6 +237,14 @@ var listSongs = function (artists, albums, query, play) {
             //$(".song").draggable({ helper: 'clone' });
             $("#songs").tablesorter({
                 headers: { 0: { sorter: false}}
+            }).bind("sortEnd",function() { 
+                playlist = [];
+                $('.song').each(function (index) {
+                    playlist.push($(this).attr('id'));
+                });
+                if (playingCurrently !== null) {
+                    playingCurrently = $.inArray(state.activeSong, playlist);
+                }
             });
             $("#songs-container").removeClass('ui-state-disabled');
         }
