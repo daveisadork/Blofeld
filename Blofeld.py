@@ -17,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
+
 import os
 import sys
 from multiprocessing import freeze_support
@@ -26,7 +27,7 @@ try:
     import cPickle as pickle
 except:
     import pickle
-from blofeld.utils import get_main_dir
+from blofeld.utils import *
 
 
 def get_options():
@@ -106,7 +107,7 @@ if __name__ == "__main__":
     if os.path.exists(cfg['PID_FILE']):
         with open(cfg['PID_FILE'], "r") as pidfile:
             state = pickle.load(pidfile)
-        if ['pid'] == os.getpid():
+        if state['pid'] == os.getpid():
             print "Blofeld is already running."
             sys.exit()
         else:
@@ -131,9 +132,12 @@ if __name__ == "__main__":
         enable_console('critical')
     else:
         enable_console()
+    logger.debug("Logging initialized.")
     cfg['CHERRYPY_OUTPUT'] = options.cherrypy
     with open(cfg['PID_FILE'], "w") as pidfile:
         pickle.dump({'cfg': cfg, 'options': options, 'args': args, 'pid': os.getpid()}, pidfile)
     import blofeld.web
+    logger.info("Starting web server at %s:%s" % (cfg['HOSTNAME'], cfg['PORT']))
     blofeld.web.start()
-    os.remove(cfg['PID_FILE'])
+    logger.debug("Removing PID file at %" % cfg['PID_FILE'])
+

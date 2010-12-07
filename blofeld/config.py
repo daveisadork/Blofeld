@@ -38,9 +38,13 @@ class Config(dict):
     def __init__(self, installed=False, system=False, program_dir=None, 
                                                                     path=None):
         dict.__init__(self)
+        # Get the user supplied config file path
         self.path = path
+        # Program directory wasn't specified, we we'll try to determine it
         if not program_dir:
             program_dir = get_main_dir()
+        # Detect whether or not the app is being run in portable mode and
+        # determine the appropriate place to store application data.
         if not installed:
             if platform.system() == 'Windows':
                 installed_path = os.path.join(shell.SHGetFolderPath(0,
@@ -50,6 +54,10 @@ class Config(dict):
                     installed = True
             else:
                 installed = os.getenv('BLOFELD_INSTALLED')
+        # Detect whether this is a system wide installation and determine the
+        # appropriate place to store the data (e.g., /etc/blofeld,
+        # /var/log/blofeld and /var/cache/blofeld on Linux or whatever the
+        # equivalent to those in Windows.)
         if not system:
             system = os.getenv('BLOFELD_SYSTEM_WIDE')
         self['PROGRAM_DIR'] = program_dir
@@ -69,10 +77,23 @@ class Config(dict):
                                                   '.blofeld')
             self['LOG_DIR'] = os.path.join(self['CONFIG_DIR'], 'log')
             self['CACHE_DIR'] = os.path.join(self['CONFIG_DIR'], 'cache')
+        # Apparently we're being run from the source directory, so we'll store
+        # all the program data in that directory so the app is portable.
         else:
             self['CONFIG_DIR'] = self['PROGRAM_DIR']
             self['LOG_DIR'] = os.path.join(self['PROGRAM_DIR'], 'log')
             self['CACHE_DIR'] = os.path.join(self['PROGRAM_DIR'], 'cache')
+        # Create the directories we determined above if we need to.
+        if not os.path.isdir(self['CONFIG_DIR']):
+            os.mkdir(self['CONFIG_DIR'])
+        if not os.path.isdir(self['CACHE_DIR']):
+            os.mkdir(self['CACHE_DIR'])
+        if not os.path.isdir(self['LOG_DIR']):
+            os.mkdir(self['LOG_DIR'])
+
+        # Create a PID file
+        self['PID_FILE'] = os.path.join(self['CACHE_DIR'], 'blofeld.pid')
+        # Remove any temporary download files we created last time we ran.
         for item in os.listdir(self['CACHE_DIR']):
             if item.endswith('.zip'):
                 try:
@@ -95,9 +116,6 @@ class Config(dict):
             self._cfg.write(conf_file)
 
     def load_config(self):
-        if not os.path.isdir(self['CONFIG_DIR']):
-            os.mkdir(self['CONFIG_DIR'])
-            
         if self.path:
             if not os.path.exists(self.path):
                 raise Exception("Configuration file does not exist!")
@@ -107,11 +125,7 @@ class Config(dict):
             self['CONFIG_FILE'] = os.path.join(self['CONFIG_DIR'],
                                                'blofeld.cfg')
 
-        if not os.path.isdir(self['CACHE_DIR']):
-            os.mkdir(self['CACHE_DIR'])
-        self['PID_FILE'] = os.path.join(self['CACHE_DIR'], 'blofeld.pid')
-        if not os.path.isdir(self['LOG_DIR']):
-            os.mkdir(self['LOG_DIR'])
+        
 
         self._cfg = ConfigParser.SafeConfigParser()
 

@@ -19,6 +19,8 @@
 import sys
 import time
 from multiprocessing import Process, Pipe
+from blofeld.utils import _stdout
+sys.stderr = _stdout
 
 import pygst
 pygst.require('0.10')
