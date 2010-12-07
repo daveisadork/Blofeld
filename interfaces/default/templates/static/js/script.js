@@ -57,7 +57,7 @@ var showCover = function (song) {
         });
     });
     $('#cover-art-dialog img').attr({
-        src: 'get_cover?songid=' + state.activeSong + '&size=' + size
+        src: 'get_cover?songid=' + song + '&size=' + size
     });
 };
 
