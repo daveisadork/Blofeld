@@ -139,5 +139,5 @@ if __name__ == "__main__":
     import blofeld.web
     logger.info("Starting web server at %s:%s" % (cfg['HOSTNAME'], cfg['PORT']))
     blofeld.web.start()
-    logger.debug("Removing PID file at %" % cfg['PID_FILE'])
+    logger.debug("Removing PID file at %s" % cfg['PID_FILE'])
 
