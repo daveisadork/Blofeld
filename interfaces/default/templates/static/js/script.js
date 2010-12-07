@@ -243,7 +243,7 @@ var listSongs = function (artists, albums, query, play) {
             $("#songs-container").html(response);
             ajaxQueue.songs = null;
             playlist = [];
-            $('.song').each(function (index) {
+            $('tbody tr.song').each(function (index) {
                 playlist.push($(this).attr('id'));
             });
             if (playingCurrently !== null) {
@@ -266,7 +266,7 @@ var listSongs = function (artists, albums, query, play) {
                 headers: { 0: { sorter: false}}
             }).bind("sortEnd",function() { 
                 playlist = [];
-                $('.song').each(function (index) {
+                $('tbody tr.song').each(function (index) {
                     playlist.push($(this).attr('id'));
                 });
                 if (playingCurrently !== null) {
