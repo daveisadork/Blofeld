@@ -353,6 +353,10 @@ body {
     font-weight: bold;
 }
 
+#now-playing-artist, #now-playing-album {
+    cursor: pointer;
+}
+
 #spacer {
     display: inline-block;
     width: 0px;

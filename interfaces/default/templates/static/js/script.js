@@ -17,7 +17,8 @@ var mainLayout, musicLibraryLayout, loadingSongs = '<div class="scrolling-contai
     ajaxQueue = {
         'artists': null,
         'albums': null,
-        'songs': null
+        'songs': null,
+        'tags': null
     },
     state = {
         selectedAlbums: [],
@@ -64,9 +65,25 @@ var playSong = function (songIndex) {
     var song = playlist[songIndex],
         songUrl;
     $("#progress-bar").slider("disable");
+    showInfo(song)
     songUrl = 'get_song?format=' + playerFormats.join(',') + '&songid=' + song + '&bitrate=' + parseInt(bitrate, 10);
     playingCurrently = songIndex;
     $("#jplayer").jPlayer('setFile', songUrl, songUrl).jPlayer("play");
+    
+    $.address.parameter('song', song);
+    playerState = 'playing';
+    
+    if ($('#jplayer').jPlayer("getData", "usingFlash")) {
+        playerType = 'Flash';
+    } else {
+        playerType = 'HTML5';
+    }
+    $("player-type").html(playerType);
+    
+};
+
+var showInfo = function(song) {
+    showCover(song);
     $('#now-playing-title').html($('#' + song + ' .title').html());
     $('#now-playing-artist').html($('#' + song + ' .artist').html());
     $('#now-playing-album').html($('#' + song + ' .album').html());
@@ -75,16 +92,26 @@ var playSong = function (songIndex) {
     $('#' + song).addClass('now-playing');
     $('.now-playing > .status > .status-icon, .status > .ui-icon').addClass('ui-icon ui-icon-volume-on');
     $("#now-playing, #progress-bar, #play-time").show();
-    $.address.parameter('song', song);
-    playerState = 'playing';
-    showCover(song);
-    if ($('#jplayer').jPlayer("getData", "usingFlash")) {
-        playerType = 'Flash';
-    } else {
-        playerType = 'HTML5';
-    }
-    $("player-type").html(playerType);
     $.address.title($('#now-playing-artist').html() + " - " + $('#now-playing-title').html());
+    if (ajaxQueue.tags) {
+        ajaxQueue.tags.abort();
+    }
+    ajaxQueue.tags = $.ajax({
+        url: 'get_tags',
+        data: {songid: song},
+        success: function (response) {
+            tags = response.song
+            ajaxQueue.tags = null;
+            $('#now-playing-artist').click(function () {
+                $.address.parameter('query', null).parameter('albums', null).parameter('artists', tags.artist_hash);
+            });
+            $('#now-playing-album').click(function () {
+                $.address.parameter('artists', null).parameter('query', null).parameter('albums', tags.album_hash);
+            });
+        }
+    });
+
+    
 };
 
 var listArtists = function (query, highlight) {
@@ -246,6 +273,7 @@ var listSongs = function (artists, albums, query, play) {
                     playingCurrently = $.inArray(state.activeSong, playlist);
                 }
             });
+            $("songs").floatHeader();
             $("#songs-container").removeClass('ui-state-disabled');
         }
     });
@@ -761,6 +789,22 @@ $(document).ready(function () {
             state.selectedArtists = artists;
             state.selectedAlbums = albums;
             listSongs(artists, null, query);
+        }
+        $(".artist").removeClass('ui-state-default');
+        if (artists.length > 0) {
+            artists.forEach(function (artistHash) {
+                $('#' + artistHash).addClass('ui-state-default');
+            });
+        } else {
+            $('#all-artists').addClass('ui-state-default');
+        }
+        $(".album").removeClass('ui-state-default');
+        if (albums.length > 0) {
+            albums.forEach(function (albumHash) {
+                $('#' + albumHash).addClass('ui-state-default');
+            });
+        } else {
+            $('#all-albums').addClass('ui-state-default');
         }
     });
     $.address.externalChange(function (event) {
