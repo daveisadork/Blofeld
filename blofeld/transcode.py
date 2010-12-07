@@ -27,6 +27,7 @@ import gst
 from blofeld.config import cfg
 from blofeld.log import logger
 
+
 def transcode_process(conn, path, format='mp3', bitrate=False):
     # If we were passed a bitrate argument, make sure it's actually a number
     try:
@@ -78,10 +79,11 @@ def transcode_process(conn, path, format='mp3', bitrate=False):
     except:
         logger.error("Could not open the file for transcoding. If you're using Windows, it's probably because there are non-ASCII characters in the filename")
     finally:
-        conn.send(False)
-        conn.close()
         # I think this is supposed to free the memory used by the transcoder
         transcoder.set_state(gst.STATE_NULL)
+        conn.send(False)
+        conn.close()
+
 
 def transcode(path, format='mp3', bitrate=False):
     try:

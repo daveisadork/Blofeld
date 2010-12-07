@@ -367,7 +367,7 @@ class WebInterface:
                 cherrypy.response.headers['Content-Type'] = 'application/json'
                 return anyjson.serialize({'config': {set_option: cfg[set_option]}})
             except Exception as x:
-                return str(x)
+                logger.error("Could not save configuration. The error was: %s" % str(x))
         if get_option:
             if get_option not in cfg.keys():
                 raise cherrypy.HTTPError(501,'The requested option does not exist')
@@ -423,6 +423,8 @@ def start(log_level='warn'):
 
     application = cherrypy.tree.mount(WebInterface(), '/', config=conf)
 
-    logger.debug("Starting CherryPy server.")
-    cherrypy.engine.start()
-    cherrypy.engine.block()
+    try:
+        cherrypy.engine.start()
+        cherrypy.engine.block()
+    except IOError:
+        logger.critical("It appears that another instance of Blofeld is already running. If you're sure this isn't the case, make sure nothing else is using port %s." % cfg['PORT'])

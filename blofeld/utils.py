@@ -21,6 +21,10 @@ import imp
 import unicodedata
 
 
+__all__ = ['clean_text', 'detect_cpus', 'find_originating_host', 
+           'main_is_frozen', 'get_main_dir', '_stdout']
+
+
 def clean_text(text, encoding='utf-8'):
     """Convert a string or Unicode object to all lower case, and replace
     any odd characters with their searchable counterparts. For example, turn
@@ -44,7 +48,7 @@ def clean_text(text, encoding='utf-8'):
     return text
 
 
-def detectCPUs():
+def detect_cpus():
     """
     Detects the number of CPUs on a system. Cribbed from pp.
     """
@@ -86,3 +90,13 @@ def get_main_dir():
    if main_is_frozen():
        return os.path.abspath(os.path.dirname(sys.executable))
    return os.path.abspath(os.path.dirname(sys.argv[0]))
+
+
+class WritableObject:
+    def __init__(self):
+        self.content = []
+        
+    def write(self, string):
+        self.content.append(string)
+
+_stdout = WritableObject()
