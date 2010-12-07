@@ -273,7 +273,6 @@ var listSongs = function (artists, albums, query, play) {
                     playingCurrently = $.inArray(state.activeSong, playlist);
                 }
             });
-            $("songs").floatHeader();
             $("#songs-container").removeClass('ui-state-disabled');
         }
     });
