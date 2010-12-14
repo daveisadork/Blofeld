@@ -284,6 +284,7 @@ body {
 
 #bitrate-container {
     padding: 0 3px;
+    width: 200px;
     text-align: center;
 }
 
@@ -427,12 +428,12 @@ ul.ui-autocomplete a {
     overflow-y: auto;
     overflow-x: hidden;
     text-align: center;
-    padding: 3px 3px 0px 3px;
+    padding: 3px 3px 0 3px;
     height: 100%;
     width: 100%;
 }
 
-#albums, #artists, #sources {
+#albums, #artists, #sources, .content {
     margin-bottom: 3px;
 }
 
@@ -476,13 +477,13 @@ hr {
     padding-left: 6px;
 }
 
-#right-sidebar {
+#actions {
     padding: 0 6px 5px 0;
 }
 
-#sidebar-widget {
+.content-widget {
     padding: 0 6px 3px 0;
-    height: 100%;
+    height: 100%; 
 }
 
 #source-list-widget {
@@ -544,8 +545,17 @@ th.headerSortDown > .sort-status {
     background-position: -64px -18px;
 }
 
-#content > div {
+.scrolling-wrapper {
+    
+}
+
+.content-pane {
     height: 100%;
+}
+
+#content {
+    padding: 0;
+    margin: 0;
 }
 
 #now-playing-pane {
@@ -561,8 +571,8 @@ th.headerSortDown > .sort-status {
 }
 
 #preferences {
-    background: green
-}
+
+} 
 
 #settings {
     background: blue

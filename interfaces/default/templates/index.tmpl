@@ -92,30 +92,30 @@
                 <div class="scrolling-container">
                     <table id="sources">
                         <tbody>
-                            <tr name="now-playing-pane" class="source" >
+                            <!-- <tr name="now-playing-pane" class="source" >
                                 <td class="ui-corner-all">Now Playing</td>
                             </tr>
                             <tr name="play-queue" class="source" >
                                 <td class="ui-corner-all">Play Queue</td>
+                            </tr> -->
+                            <tr name="music-library" class="source ui-state-default" >
+                                <td class="ui-corner-all">Music Library</td>
                             </tr>
                             <tr>
                                 <td ><hr></td>
                             </tr>
-                            <tr name="music-library" class="source ui-state-default" >
-                                <td class="ui-corner-all">Music Library</td>
-                            </tr>
-                            <tr name="playlists" class="source" >
-                                <td class="ui-corner-all">Playlists</td>
-                            </tr>
                             <tr name="preferences" class="source" >
                                 <td class="ui-corner-all">Preferences</td>
                             </tr>
+                            <!-- <tr name="playlists" class="source" >
+                                <td class="ui-corner-all">Playlists</td>
+                            </tr>
                             <tr name="settings" class="source" >
                                 <td class="ui-corner-all">Settings</td>
-                            </tr>
+                            </tr> -->
                             <tr name="administration" class="source" >
                                 <td class="ui-corner-all">Administration</td>
-                            </tr>
+                            </tr> 
                         </tbody>
                     </table>
                 </div>
@@ -127,50 +127,153 @@
         </div>
     </div>
     <div id="content" class="ui-layout-center">
-        <div id="now-playing-pane"></div>
-        <div id="play-queue"></div>
-        <div id="music-library">
+        <div id="now-playing-pane" class="table-container content-pane">
+            <div id="now-playing-pane-widget" class="content-widget ui-widget ui-widget-content ui-corner-left"> 
+                <div class="scrolling-container">
+                    <table>
+                        <thead class="ui-widget-header">
+                            <tr>
+                                <th class="ui-corner-all">Now Playing</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>
+                                Now playing information will eventually go here.
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div> 
+        </div>
+        <div id="play-queue" class="table-container content-pane">
+            <div id="play-queue-widget" class="content-widget ui-widget ui-widget-content ui-corner-left"> 
+                <div class="scrolling-container">
+                    <table>
+                        <thead class="ui-widget-header">
+                            <tr>
+                                <th class="ui-corner-all">Play Queue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>
+                                A play queue will eventually go here.
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div> 
+        </div>
+        <div id="music-library" class="content-pane">
             <div id="artist-album-lists">
                 <div id="artists-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
                 <div id="albums-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
             </div>
             <div id="songs-container" class="table-container ui-widget ui-widget-content ui-corner-left"></div>
         </div>
-        <div id="playlists"></div>
-        <div id="preferences"></div>
-        <div id="settings"></div>
-        <div id="administration"></div>
+        <div id="playlists" class="table-container content-pane">
+            <div id="playlists-widget" class="content-widget ui-widget ui-widget-content ui-corner-left"> 
+                <div class="scrolling-container">
+                    <table>
+                        <thead class="ui-widget-header">
+                            <tr>
+                                <th class="ui-corner-all">Playlists</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>
+                                
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div> 
+        </div>
+        <div id="preferences" class="table-container content-pane">
+            <div id="preferences-widget" class="content-widget ui-widget ui-widget-content ui-corner-left"> 
+                <div class="scrolling-container">
+                    <table>
+                        <thead class="ui-widget-header">
+                            <tr>
+                                <th class="ui-corner-all">Preferences</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>
+                                <div id="bitrate-container" class="option">
+                                    <div id="bitrate-slider"></div>
+                                    Streaming bitrate: <span id="amount">320</span>kbps
+                                </div>
+                                <div class="option">
+                                    <input id="html5-audio" type="checkbox">
+                                    <label for="html5-audio">Try to use HTML5 audio</label>
+                                    <div><em>Currently using <span id="player-type"></span></em></div>
+                                </div>
+                                <div class="option">
+                                    <div id="switcher"></div>
+                                </div>
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div> 
+        </div>
+        <div id="settings" class="table-container content-pane">
+            <div id="settings-widget" class="content-widget ui-widget ui-widget-content ui-corner-left"> 
+                <div class="scrolling-container">
+                    <table>
+                        <thead class="ui-widget-header">
+                            <tr>
+                                <th class="ui-corner-all">Settings</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>
+                                Server settings will eventually go here.
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div> 
+        </div>
+        <div id="administration" class="table-container content-pane">
+            <div id="administration-widget" class="content-widget ui-widget ui-widget-content ui-corner-left"> 
+                <div class="scrolling-container">
+                    <table>
+                        <thead class="ui-widget-header">
+                            <tr>
+                                <th class="ui-corner-all">Administration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>
+                                <div class="option">
+                                    <button id="shutdown-button">Shutdown</button>
+                                </div>
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div> 
+        </div>
+        
     </div>
-    <div id="right-sidebar" class="table-container">
-        <div id="sidebar-widget" class="ui-widget ui-widget-content ui-corner-left">
+    <div id="actions" class="table-container">
+        <div id="actions-widget" class="content-widget ui-widget ui-widget-content ui-corner-left">
             <div class="scrolling-container">
-                <table id="options">
+                <table>
                     <thead class="ui-widget-header">
                         <tr>
-                            <th class="ui-corner-all">Options</th>
+                            <th class="ui-corner-all">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td>
-                            <div id="bitrate-container" class="option">
-                                <div id="bitrate-slider"></div>
-                                Streaming bitrate: <span id="amount">320</span>kbps
-                            </div>
-                            <div class="option">
-                                <input id="html5-audio" type="checkbox">
-                                <label for="html5-audio">Try to use HTML5 audio</label>
-                                <div><em>Currently using <span id="player-type"></span></em></div>
-                            </div>
-                            <div class="option">
-                                <button id="download-button">Download</button>
-                            </div>
-                            <div class="option">
-                                <button id="shutdown-button">Shutdown</button>
-                            </div>
-                            <div class="option">
-                                <div id="switcher"></div>
-                            </div>
-                        </td></tr>
+                        <tr>
+                            <td>
+                                <div class="option">
+                                    <button id="download-button">Download</button>
+                                </div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
