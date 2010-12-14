@@ -483,6 +483,7 @@ hr {
 
 .content-widget {
     padding: 0 6px 3px 0;
+    margin: 0;
     height: 100%; 
 }
 
@@ -551,6 +552,7 @@ th.headerSortDown > .sort-status {
 
 .content-pane {
     height: 100%;
+    padding: 0;
 }
 
 #content {
@@ -558,29 +560,10 @@ th.headerSortDown > .sort-status {
     margin: 0;
 }
 
-#now-playing-pane {
-    background: red
-}
 
-#play-queue {
-    background: orange
-}
 
-#playlists {
-    background: yellow
-}
 
-#preferences {
 
-} 
-
-#settings {
-    background: blue
-}
-
-#administration {
-    background: purple
-}
 
 
 

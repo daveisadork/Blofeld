@@ -103,15 +103,6 @@ var contentLayouts = {}, layouts = {}, loadingSongs = '<div class="scrolling-con
                 resizable: true,
                 closable: false
             }
-        },
-        preferences: {
-            center: {
-                paneSelector: "#preferences-widget"
-            },
-            south: {
-                paneSelector: "#content-spacer",
-                size: 200,
-            }
         }
     };
 
@@ -494,6 +485,13 @@ $(document).ready(function () {
     layouts['sources-pane'].sizePane('south', layouts['body'].state.west.size);
     $("tr.source").each(function () {
         name = $(this).attr("name");
+        if (!layoutOptions[name]) {
+            layoutOptions[name] = {
+                center: {
+                    paneSelector: "#" + name + "-widget"
+                } 
+            };
+        }
         contentLayouts[name] = $('#' + name).layout(layoutOptions[name]);
     });
     layouts["artist-album-lists"] = $('#artist-album-lists').layout(layoutOptions["artist-album-lists"]);
