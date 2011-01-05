@@ -152,7 +152,10 @@ def process_read_queue(read_queue, db_queue, working, start_time, records):
                 break
         # Read the tags from the 100 songs and then stick the results in the
         # database queue.
-        db_queue.put(pool.map(read_song, args_list))
+        try:
+            db_queue.put(pool.map(read_song, args_list))
+        except:
+            logger.error("Error processing read queue.")
         logger.debug("Processed %d items in %0.2f seconds" % (queue_size - read_queue.qsize(), time() - start_time))
     pool.close()
     pool.join()
