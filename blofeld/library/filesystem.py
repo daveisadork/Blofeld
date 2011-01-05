@@ -166,13 +166,17 @@ def process_read_queue(read_queue, db_queue, working, start_time, records):
 def read_song(args):
     # Figure out which function we need to use to read the tags from this file
     # and then call it.
-    if args[3] == 'wma':
-        song = read_wma(args[0], args[1], args[2], args[4])
-    else:
-        song = read_metadata(args[0], args[1], args[2], args[4])
-    # Return a tuple with the song metadata and whether this item was already
-    # in the database.
-    return song
+    try:
+        if args[3] == 'wma':
+            song = read_wma(args[0], args[1], args[2], args[4])
+        else:
+            song = read_metadata(args[0], args[1], args[2], args[4])
+        # Return a tuple with the song metadata and whether this item was already
+        # in the database.
+        return song
+    except:
+        logger.error("Error processing %s" % args[0])
+        return None 
 
 
 def remove_missing_files(music_path, couchdb, records):
