@@ -132,21 +132,22 @@ class WebInterface:
     @cherrypy.expose
     def get_tags(self, songid=None):
         logger.debug("%s (%s)\tget_tags(songid=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, songid, cherrypy.request.headers))
+        cherrypy.response.headers['Content-Type'] = 'application/json'
         if not songid:
-            raise cherrypy.HTTPError(501, "You must supply a song id.")
+            return anyjson.serialize({"error": {"reason": "You must supply a song id."}})
         if self.library.db.doc_exist(songid):
             song = self.library.db[songid]
             if song['type'] != 'song':
-                raise cherrypy.HTTPError(501, "The specified document is not a song.")
+                return anyjson.serialize({"error": {"reason": "The specified document is not a song."}})
             song['id'] = song['_id']
             del song['_id']
             del song['location']
             del song['_rev']
             del song['type']
-            cherrypy.response.headers['Content-Type'] = 'application/json'
+            
             return anyjson.serialize({"song": song})
         else:
-            raise cherrypy.HTTPError(404, "That song doesn't exist in the database.")
+            return anyjson.serialize({"error": {"reason": "That song doesn't exist in the database."}})
 
         
     @cherrypy.expose
@@ -320,16 +321,9 @@ class WebInterface:
         if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['GROUPS']['admin']:
             logger.warn("%(user)s (%(ip)s) requested a library update, but was denied because %(user)s is not a member of the admin group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
             raise cherrypy.HTTPError(401,'Not Authorized')
-        def update():
-            yield "Updating library...\n"
-            thread.start_new_thread(self.library.update, ())
-            while not self.library.updating.acquire(False):
-                yield ".\n"
-                sleep(1)
-            self.library.updating.release()
-            yield "Done.\n"
-        return update()
-    update_library._cp_config = {'response.stream': True}
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+        thread.start_new_thread(self.library.update, ())
+        return anyjson.serialize({"update": True})
 
     @cherrypy.expose
     def random(self, songs=None, artists=None ,albums=None, query=None, limit=None):
@@ -359,7 +353,95 @@ class WebInterface:
     def suggest(self, term=None):
         logger.debug("%s (%s)\tsuggest(term=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, term, cherrypy.request.headers))
         result = self.library.songs(suggest=True, query=term)
+        cherrypy.response.headers['Content-Type'] = 'application/json'
         return anyjson.serialize(result)
+    
+    
+    
+    @cherrypy.expose
+    def add_user(self, username=None, real_name=None, password=None):
+        # logger.debug("%s (%s)\tsuggest(term=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, term, cherrypy.request.headers))
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+        if not username:
+            return anyjson.serialize({"error": {"reason": 'You must provide a username.'}})
+        for user in self.library.db.view('users/by_username', key=username):
+            return anyjson.serialize({"error": {"reason": 'Requested username already exists.'}})
+        if password and len(password) != 40:
+            return anyjson.serialize({"error": {"reason": 'Password must be a 40-character SHA-1 hash.'}})
+        user = {
+            'username': username,
+            'type': 'user',
+            'password': password,
+            'real_name': real_name
+        }
+        userid = self.library.db.save_doc(user)['id']
+        return anyjson.serialize(self.library.db[userid])
+        
+    @cherrypy.expose
+    def set_password(self, username=None, userid=None, pw_hash=None):
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+        user = None
+        if userid:
+            if not self.library.db.doc_exist(userid):
+                return anyjson.serialize({"error": {"reason": 'Specified user ID does not exist.'}})
+            user = self.library.db[userid]
+        elif username:
+            for item in self.library.db.view('users/by_username', key=username):
+                user = item['value']
+            userid = user['_id']
+        else:
+            return anyjson.serialize({"error": {"reason": 'No username or ID specified.'}})
+        if not user:
+            return anyjson.serialize({"error": {"reason": 'Specified user does not exist.'}})
+        if user['password']:
+            return anyjson.serialize({"error": {"reason": 'Password has already been set for this user.'}})
+        if pw_hash:
+            if len(pw_hash) != 40:
+                return anyjson.serialize({"error": {"reason": 'Password must be a 40-character SHA-1 hash.'}})
+            user['password'] = hashlib.sha1(self.library.salt + pw_hash).hexdigest()
+            self.library.db.save_doc(user)
+            return anyjson.serialize(self.library.db[userid])
+        else:
+            return anyjson.serialize({"error": {"reason": 'Password must be supplied as a 40-character SHA-1 hash'}})
+           
+    @cherrypy.expose
+    def change_password(self, username=None, userid=None, old_pw_hash=None, new_pw_hash=None):
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+        if not old_pw_hash and new_pw_hash and (username or userid):
+            return anyjson.serialize({"error": {"reason": 'You left something out.'}})
+        user = None
+        if userid:
+            if not self.library.db.doc_exist(userid):
+                return anyjson.serialize({"error": {"reason": 'Specified user ID does not exist.'}})
+            user = self.library.db[userid]
+        elif username:
+            for item in self.library.db.view('users/by_username', key=username):
+                user = item['value']
+            userid = user['_id']
+        else:
+            return anyjson.serialize({"error": {"reason": 'No username or ID specified.'}})
+        if not user:
+            return anyjson.serialize({"error": {"reason": 'Specified user does not exist.'}})
+        if hashlib.sha1(self.library.salt + old_pw_hash).hexdigest() != user['password']:
+            return anyjson.serialize({"error": {"reason": "Old password is incorrect."}})
+        if len(new_pw_hash) != 40:
+            return anyjson.serialize({"error": {"reason": 'Password must be supplied as a 40-character SHA-1 hash'}})
+        user['password'] = hashlib.sha1(self.library.salt + new_pw_hash).hexdigest()
+        self.library.db.save_doc(user)
+        return anyjson.serialize(self.library.db[userid])
+
+    @cherrypy.expose
+    def user_info(self, username=None, userid=None):
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+        if userid:
+            if not self.library.db.doc_exist(userid):
+                return anyjson.serialize({"error": {"reason": 'Specified user ID does not exist.'}})
+            return anyjson.serialize(self.library.db[userid])
+        if username:
+            for user in self.library.db.view('users/by_username', key=username):
+                return anyjson.serialize(user['value'])
+            return anyjson.serialize({"error": {"reason": 'Specified user does not exist.'}})
+        return anyjson.serialize({"error": {"reason": 'No username or ID specified.'}})
 
     @cherrypy.expose
     def config(self, set_option=None, get_option=None, value=None):
@@ -369,9 +451,9 @@ class WebInterface:
             raise cherrypy.HTTPError(401,'Not Authorized')
         if set_option:
             if not value:
-                raise cherrypy.HTTPError(501,'No value provided for the requested option')
+                return anyjson.serialize({"error": {"reason": 'No value provided for the requested option'}})
             if set_option not in cfg.keys():
-                raise cherrypy.HTTPError(501,'The requested option does not exist')
+                return anyjson.serialize({"error": {"reason": 'The requested option does not exist'}})
             try:
                 if type(cfg[set_option]) is types.ListType:
                     value = value.split(',')
@@ -380,7 +462,7 @@ class WebInterface:
                 if type(cfg[set_option]) is types.StringType:
                     value = str(value)
             except:
-                raise cherrypy.HTTPError(501, 'The value provided was the wrong type. Expected a %s' % type(cfg[set_option]))
+                return anyjson.serialize({"error": {"reason": 'The value provided was the wrong type. Expected a %s' % type(cfg[set_option])}})
             try:
                 cfg[set_option] = value
                 cfg.save_config()
@@ -415,6 +497,28 @@ class WebInterface:
 def start(log_level='warn'):
     """Starts the CherryPy web server and initiates the logging module."""
     
+    library = Library()
+    db = library.db
+    
+    def users():
+        users = {}
+        for user in db.view('users/by_username'):
+            users[user['value']['username']] = user['value']['password']
+        return users
+    
+    def authenticate(password):
+        # This block of code will be used with CherryPy 3.2+
+        # try:
+            # for user in db.view('users/by_username', key=username):
+                # pw_hash = hashlib.sha1(library.salt + hashlib.sha1(password).hexdigest()).hexdigest()
+                # print pw_hash, "*************************************"
+                # if user['password'] == hashlib.sha1(library.salt + hashlib.sha1(password).hexdigest()).hexdigest():
+                    # return True
+            # return False
+        # except:
+            # return False
+        return hashlib.sha1(library.salt + hashlib.sha1(password).hexdigest()).hexdigest()
+    
     def cleartext(password):
         return password
     
@@ -427,8 +531,8 @@ def start(log_level='warn'):
         'log.screen': cfg['CHERRYPY_OUTPUT'],
         'tools.basic_auth.on': cfg['REQUIRE_LOGIN'],
         'tools.basic_auth.realm': 'Blofeld',
-        'tools.basic_auth.users': cfg['USERS'],
-        'tools.basic_auth.encrypt': cleartext
+        'tools.basic_auth.users': users,
+        'tools.basic_auth.encrypt': authenticate
         })
 
     static = {

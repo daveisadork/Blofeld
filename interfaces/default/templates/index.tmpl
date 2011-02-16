@@ -250,6 +250,11 @@
                                     <button id="shutdown-button">Shutdown</button>
                                 </div>
                             </td></tr>
+                            <tr><td>
+                                <div class="option">
+                                    <button id="add-user-button">Add User</button>
+                                </div>
+                            </td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -288,6 +293,36 @@
     <div id="shutdown-dialog" title="Shutdown">
         <p>The Blofeld server is shutting down... <span></span></p>
     </div>
+    <div id="add-user-dialog">
+        <form><fieldset>
+            <table>
+                <tr>
+                    <td>
+                        <label for="new-user-name">Username</label>
+                    </td>
+                    <td>
+                        <input type="text" id="new-user-name" name="new-user-name">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="new-user-full-name">Full Name</label>
+                    </td>
+                    <td>
+                        <input type="text" id="new-user-full-name" name="new-user-full-name">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="new-user-password">Password</label>
+                    </td>
+                    <td>
+                        <input type="text" id="new-user-password" name="new-user-password">
+                    </td>
+                </tr>
+            </table>
+        </fieldset></form>
+    </div>
 
     <!-- Javascript at the bottom for fast page loading -->
 
@@ -311,6 +346,7 @@
     <script src="static/js/jquery.tablesorter.min.js"></script>
     <script src="static/js/jquery.jplayer.min.js"></script>
     <script src="static/js/jquery.address-1.3.min.js"></script>
+    <script src="static/js/jquery.sha1.js"></script>
     <script src="static/js/script.js?v=1"></script>
 
 

@@ -20,6 +20,7 @@ from operator import itemgetter, attrgetter
 from time import time
 import threading
 import urlparse
+import uuid
 import os
 
 from couchdbkit import *
@@ -81,6 +82,9 @@ class Library:
             loader.sync(self.db, verbose=True)
         except:
             pass
+        if not self.db.doc_exist("salt"):
+            self.db["salt"] = {"type": "salt", "value": str(uuid.uuid4())}
+        self.salt = self.db["salt"]["value"]
         self.updating = threading.Lock()
         self.cache = BlofeldCache(self.db)
 
