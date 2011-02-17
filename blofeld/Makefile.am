@@ -18,7 +18,7 @@ blofeld_PYTHON = \
 blofelddir = \
     $(pkgpythondir)
 
-GIT_REVISION := $(shell git shortlog | grep -E '^[ ]+\w+' | wc -l)
+GIT_REVISION := $(shell if [ -d "../.git" ]; then git shortlog | grep -E '^[ ]+\w+' | wc -l; else echo "unknown"; fi)
 
 do_subst = sed -e 's,[@]PACKAGE_VERSION[@],$(PACKAGE_VERSION),g' \
                -e 's,[@]GIT_REVISION[@],$(GIT_REVISION),g'
