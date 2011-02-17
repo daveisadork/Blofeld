@@ -190,10 +190,18 @@ class WebInterface:
                             os.path.splitext(path)[1].lower()[1:]]
         except:
             song_format = [os.path.splitext(path)[1].lower()[1:]]
+        if True in [True for x in song_format if x in ['mp3']]:
+            song_mime = 'audio/mpeg'
+        elif True in [True for x in song_format if x in ['ogg', 'vorbis', 'oga']]:
+            song_mime = 'audio/ogg'
+        elif True in [True for x in song_format if x in ['m4a', 'aac', 'mp4']]:
+            song_mime = 'audio/x-m4a'
+        else:
+            song_mime = 'application/octet-stream'
         if not (format or bitrate):
             log_message += " The client did not request any specific format or bitrate so the file is being sent as-is (%s kbps %s)." % (str(song['bitrate'] / 1000), str(song_format))
             logger.info(log_message.encode('utf-8'))
-            return serve_file(path, mimetypes.guess_type(path)[0],
+            return serve_file(path, song_mime,
                                 "inline", os.path.split(path)[1])
         if format:
             format = format.split(',')
@@ -206,7 +214,7 @@ class WebInterface:
             else:
                 log_message += " The client requested %s, but the file is already %s, so the file is being sent as-is." % (format, str(song_format))
             logger.info(log_message.encode('utf-8'))
-            return serve_file(path, mimetypes.guess_type(path)[0],
+            return serve_file(path, song_mime,
                                 "inline", os.path.split(path)[1])
         else:
             if bitrate:

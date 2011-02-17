@@ -32,7 +32,7 @@
     <!-- Uncomment if you are specifically targeting less enabled mobile browsers
     <link rel="stylesheet" media="handheld" href="static/css/handheld.css?v=1"> -->
 
-    <link rel="stylesheet" href="static/css/smoothness/jquery-ui-1.8.5.custom.css">
+    <link rel="stylesheet" href="static/css/smoothness/jquery-ui-1.8.9.custom.css">
 
 
     <!-- All JavaScript at the bottom, except for Modernizr which enables HTML5 elements & feature detects -->
@@ -48,7 +48,7 @@
     <div id="header">
         <div id="header-widget" class="ui-widget ui-widget-content ui-corner-all">
             <div id="controls">
-                <button id="previous-button" >Previous</button>
+                <button id="previous-button">Previous</button>
                 <button id="play-button">Play</button>
                 <button id="pause-button">Pause</button>
                 <button id="next-button">Next</button>
@@ -115,6 +115,9 @@
                             </tr> -->
                             <tr name="administration" class="source" >
                                 <td class="ui-corner-all">Administration</td>
+                            </tr> 
+                            <tr name="debugging" class="source" >
+                                <td class="ui-corner-all">Debugging</td>
                             </tr> 
                         </tbody>
                     </table>
@@ -258,6 +261,24 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+        <div id="debugging" class="table-container content-pane">
+            <div id="debugging-widget" class="content-widget ui-widget ui-widget-content ui-corner-left"> 
+                <div class="scrolling-container">
+                    <table>
+                        <thead class="ui-widget-header">
+                            <tr>
+                                <th class="ui-corner-all">Debugging</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>
+                                <ul id="jplayer-inspector"></ul>
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div> 
         </div>
         
@@ -284,9 +305,7 @@
             </div>
         </div>
     </div>
-    <div id="footer">
-    </div>
-    <div id="jplayer"></div>
+    <div id="footer"></div>
     <div id="cover-art-dialog">
         <img src="static/images/blank.png">
     </div>
@@ -324,16 +343,15 @@
         </fieldset></form>
     </div>
 
+    <div id="jplayer"></div>
+
     <!-- Javascript at the bottom for fast page loading -->
 
-    <!-- Grab Google CDN's jQuery. fall back to local if necessary -->
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
-    <script>!window.jQuery && document.write(unescape('%3Cscript src="static/js/jquery-1.4.4.min.js"%3E%3C/script%3E'))</script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js"></script>
-    <script>!$.ui && document.write(unescape('%3Cscript src="static/js/jquery-ui-1.8.6.min.js"%3E%3C/script%3E'))</script>
+    <script src="static/js/jquery-1.4.4.min.js"></script>
+    <script src="static/js/jquery-ui-1.8.9.min.js"></script>
 
     <!-- jQueryUI Theme Switcher -->
-    <script src="http://jqueryui.com/themeroller/themeswitchertool/"></script>
+    <!-- <script src="http://jqueryui.com/themeroller/themeswitchertool/"></script> -->
 
     <!-- Try to detect IE8 Compatibility Mode and notify the user they need to
     change their settings because that will render this site in a horribly 
@@ -354,26 +372,5 @@
         <script src="js/dd_belatedpng.js"></script>
         <script> DD_belatedPNG.fix('img, .png_bg'); //fix any <img> or .png_bg background-images </script>
     <![endif]-->
-
-
-    <!-- yui profiler and profileviewer - remove for production -->
-<!--    <script src="static/js/profiling/yahoo-profiling.min.js"></script>-->
-<!--    <script src="static/js/profiling/config.js?v=1"></script>-->
-    <!-- end profiling code -->
-
-
-    <!-- asynchronous google analytics: mathiasbynens.be/notes/async-analytics-snippet 
-             change the UA-XXXXX-X to be your site's ID -->
-<!--    <script>-->
-<!--     var _gaq = [['_setAccount', 'UA-XXXXX-X'], ['_trackPageview']];-->
-<!--     (function(d, t) {-->
-<!--        var g = d.createElement(t),-->
-<!--                s = d.getElementsByTagName(t)[0];-->
-<!--        g.async = true;-->
-<!--        g.src = '//www.google-analytics.com/ga.js';-->
-<!--        s.parentNode.insertBefore(g, s);-->
-<!--     })(document, 'script');-->
-<!--    </script>-->
-
 </body>
 </html>
