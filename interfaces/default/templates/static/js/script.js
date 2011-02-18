@@ -489,7 +489,7 @@ $(document).ready(function () {
     layouts["sources-pane"] = $('#sources-pane').layout(layoutOptions["sources-pane"]);
     layouts['sources-pane'].sizePane('south', layouts['body'].state.west.size);
     $("tr.source").each(function () {
-        name = $(this).attr("name");
+        var name = $(this).attr("name");
         if (!layoutOptions[name]) {
             layoutOptions[name] = {
                 center: {
