@@ -229,16 +229,23 @@ def read_metadata(location, id, mtime, revision):
     song['location'] = location
     song['type'] = 'song'
     song['mtime'] = mtime
+    song['tracknumber'] = 0
     if revision:
         song['_rev'] = revision
     # Try to set the length of the song in seconds, the bitrate in bps and the
-    # mimetype of the file.
-    try: song['length'] = metadata.info.length
-    except: song['length'] = 0
-    try: song['bitrate'] = metadata.info.bitrate
-    except: song['bitrate'] = 0
-    try: song['mimetype'] = metadata.mime[0]
-    except: pass
+    # mimetype and a default track number of the file.
+    try:
+        song['length'] = metadata.info.length
+    except:
+        song['length'] = 0
+    try:
+        song['bitrate'] = metadata.info.bitrate
+    except:
+        song['bitrate'] = 0
+    try:
+        song['mimetype'] = metadata.mime[0]
+    except:
+        pass
     # Create artist and album IDs which are just SHA-1 hashes of each field
     try:
         artist = metadata['artist'][0]
@@ -301,16 +308,23 @@ def read_wma(location, id, mtime, revision):
     song['location'] = location
     song['type'] = 'song'
     song['mtime'] = mtime
+    song['tracknumber'] = 0
     if revision:
         song['_rev'] = revision
     # Try to set the length of the song in seconds, the bitrate in bps and the
     # mimetype of the file.
-    try: song['length'] = metadata.info.length
-    except: song['length'] = 0
-    try: song['bitrate'] = metadata.info.bitrate
-    except: song['bitrate'] = 0
-    try: song['mimetype'] = metadata.mime[0]
-    except: pass
+    try:
+        song['length'] = metadata.info.length
+    except:
+        song['length'] = 0
+    try:
+        song['bitrate'] = metadata.info.bitrate
+    except:
+        song['bitrate'] = 0
+    try:
+        song['mimetype'] = metadata.mime[0]
+    except:
+        pass
     # Create artist and album IDs which are just SHA-1 hashes of each field
     try:
         artist = metadata['Author'][0]
@@ -377,5 +391,6 @@ asf_map = {
     'MusicBrainz/Album Type': 'musicbrainz_albumtype',
     'MusicBrainz/Album Release Country': 'releasecountry',
     'WM/Publisher': 'organization',
-    'WM/PartOfSet': 'discnumber'
+    'WM/PartOfSet': 'discnumber',
+    'WM/OriginalReleaseYear': 'originaldate'
     }
