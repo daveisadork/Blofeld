@@ -33,10 +33,10 @@ from Cheetah.Template import Template
 from blofeld.config import *
 from blofeld.transcode import transcode
 import blofeld.utils as utils
-from blofeld.library import Library
+from blofeld.library import library
 from blofeld.coverart import find_cover, resize_cover
 from blofeld.playlist import json_to_playlist
-from blofeld.log import logger, enable_console, enable_file
+from blofeld.log import logger
 from blofeld.download import create_archive
 
 
@@ -44,7 +44,7 @@ class WebInterface:
     """Handles any web requests, including API calls."""
     def __init__(self):
         # Create a library object to run queries against
-        self.library = Library()
+        self.library = library
         # Do a startup scan for new music
         thread.start_new_thread(self.library.update, ())
 
@@ -450,6 +450,11 @@ def start(log_level='warn'):
         }
 
     application = cherrypy.tree.mount(WebInterface(), '/', config=conf)
+    
+    if hasattr(cherrypy.engine, 'signal_handler'):
+        cherrypy.engine.signal_handler.subscribe()
+        del cherrypy.engine.signal_handler.handlers['SIGTERM']
+        del cherrypy.engine.signal_handler.handlers['SIGHUP']
 
     try:
         cherrypy.engine.start()

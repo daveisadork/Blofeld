@@ -70,10 +70,12 @@ class Library:
                   db_password=cfg['COUCHDB_PASSWORD']):
         """Sets up the database connection and starts loading songs."""
         # Initiate a connection to the database server
+        logger.debug("Initiating the database connection.")
         auth = BasicAuth(db_username, db_password)
         self._server = Server(db_url, filters=[auth])
         # Get a reference to our database
         self.db = self._server.get_or_create_db("blofeld")
+        logger.debug("Loading database design documents.")
         # Load our database views from the filesystem
         loader = FileSystemDocsLoader(os.path.join(cfg['ASSETS_DIR'],
                                       'views/_design'))
@@ -82,6 +84,7 @@ class Library:
         except:
             pass
         self.updating = threading.Lock()
+        logger.debug("Initializing the database cache.")
         self.cache = BlofeldCache(self.db)
 
     def update(self, verbose=False):
@@ -295,3 +298,4 @@ class Library:
         logger.debug("Generated list of %d artists in %0.2f seconds." % (len(result), finish_time))
         return result
 
+library = Library()
