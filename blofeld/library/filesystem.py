@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
+from __future__ import division
 import os
 import hashlib
 from time import time, sleep
@@ -36,15 +37,14 @@ class Scanner:
         # Create queues for songs that need to be read and saved to the DB
         self.read_queue = Queue()
         self.db_queue = Queue()
+        self.db_needs_updated = threading.Event()
         self.scanning = threading.Event()
         self.updating = threading.Event()
         self.cleaning = threading.Event()
-        # This lets us check whether the thread that is dealing with the read 
-        # read is still working or not.
         self.reading = threading.Event()
-        # Ditto for the database thread
-        self.db_lock = threading.Lock()
-     
+        self.db_working = threading.Event()
+
+
     def update(self):
         if self.updating.is_set():
             logger.warn("Library update requested, but one is already in progress.")
@@ -57,21 +57,36 @@ class Scanner:
         self.scan()
         # Spawn a new thread to handle the queue of files that need read.
         read_thread = threading.Thread(target=self.process_read_queue)
-        self.status = "Reading"
         read_thread.start()
+        sleep(2)
         # Spawn a new thread to handle the queue of items that need added to the
         # database.
         db_thread = threading.Thread(target=self.add_items_to_db)
         db_thread.start()
         # Block while we wait for everything to finish
-        self.db_lock.acquire()
+        self.db_working.wait(None)
         # Join our threads back
         read_thread.join()
-        db_thread.join()
         finish_time = time() - self.start_time
         logger.debug("Added all new songs in %0.2f seconds." % finish_time)
+        compact_thread = threading.Thread(target=self.couchdb.compact)
+        compact_thread.start()
         self.updating.clear()
-        
+
+    def status(self):
+        if not self.updating.is_set():
+            return {'status': 'Idle'}
+        elif self.scanning.is_set():
+            return {'status': 'Scanning'}
+        elif self.reading.is_set():
+            return {
+                'status': 'Reading',
+                'total_songs': self.songs_total,
+                'remaining_songs': self.read_queue.qsize()
+            }
+        else:
+            return None
+
     def scan(self):
         """Scans music_path for songs, adds new/changed songs to couchdb and
         removes any songs that have gone missing.
@@ -115,18 +130,17 @@ class Scanner:
         if self.read_queue.qsize() < 1:
             logger.debug("No new files found.")
             return False
+        self.songs_total = self.read_queue.qsize()
         logger.debug("Queued %d songs for reading." % self.read_queue.qsize())
         return True
 
     def add_items_to_db(self):
         # While the read queue is still being processed or we have stuff waiting
         # to be added to the database...
-        while (self.reading.is_set() or self.db_queue.qsize() > 0):
-            if self.db_queue.qsize() == 0:
-                # Files are still being read, but we don't have anything to add to 
-                # the database so we'll try again.
-                sleep(2)
-            else:
+        self.db_working.set()
+        while self.reading.is_set() or self.db_queue.qsize() > 0:
+            if self.db_needs_updated.is_set() or self.db_needs_updated.wait(2.0):
+                self.db_needs_updated.clear()
                 songs = []
                 while self.db_queue.qsize() > 0:
                     # Grab all the items out of the database queue
@@ -135,9 +149,9 @@ class Scanner:
                 new = []
                 for song in songs:
                     if song is None:
-                        # There must've been a problem reading this file so we'll
-                        # remove it from the list
-                        del song
+                        # There must've been a problem reading this file so 
+                        # we'll skip it.
+                        continue
                     else:
                         # Get the metadata ready to send to the database
                         new.append(song)
@@ -146,10 +160,7 @@ class Scanner:
                 # Make our changes to the database
                 self.couchdb.bulk_save(new)
                 logger.debug("Added %d songs to the database, %d of which already existed." % (len(new), updated))
-        # Compact the database so it doesn't get too huge. Really only needed
-        # if we've added a bunch of files, maybe we should check for that.
-        self.couchdb.compact()
-        # Release the lock on the database so the main process knows we're finished
+        self.db_working.clear()
 
     def process_read_queue(self):
         # This lets the other processes know that we're working on reading files
@@ -169,14 +180,16 @@ class Scanner:
             # database queue.
             try:
                 self.db_queue.put(pool.map(read_song, args_list))
+                self.db_needs_updated.set()
             except:
                 logger.error("Error processing read queue.")
             logger.debug("Processed %d items in %0.2f seconds" % (queue_size - self.read_queue.qsize(), time() - self.start_time))
         pool.close()
         pool.join()
         # Let the other processes know we're finished.
+        while not self.db_queue.qsize() == 0:
+            sleep(1)
         self.reading.clear()
-
 
     def clean(self):
         """Search music_path to find if any of the songs in records have been
@@ -215,7 +228,7 @@ class Scanner:
         self.cleaning.clear()
         return songs
 
-    
+
 def read_song(args):
     # Figure out which function we need to use to read the tags from this file
     # and then call it.
@@ -230,7 +243,7 @@ def read_song(args):
     except:
         logger.error("Error processing %s" % args[0])
         return None 
-    
+
 
 def read_metadata(location, id, mtime, revision):
     """Uses Mutagen to read the metadata of a file and returns it as a dict"""
