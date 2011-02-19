@@ -90,7 +90,7 @@ def daemonize(name):
         sys.exit(1)
 
     # decouple from parent environment
-    os.chdir("/") 
+    os.chdir(".") 
     os.setsid() 
     os.umask(0) 
 
@@ -145,7 +145,6 @@ if __name__ == "__main__":
             print "The daemonize option is not available on your OS."
             sys.exit()
         daemonize(sys.argv[0])
-
     from blofeld.config import cfg
     if options.config_file:
         cfg.__init__(path=options.config_file)
