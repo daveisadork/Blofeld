@@ -83,7 +83,6 @@ class Library:
         except:
             pass
         logger.debug("Initializing the database cache.")
-        self.db.flush()
         self.cache = BlofeldCache(self.db)
         self.scanner = Scanner(cfg['MUSIC_PATH'], self.db)
 
