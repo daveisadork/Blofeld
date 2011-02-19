@@ -20,7 +20,6 @@
 
 import os
 import sys
-import time
 import signal
 from multiprocessing import freeze_support
 from optparse import OptionParser
@@ -119,6 +118,9 @@ def shutdown(sig=signal.SIGTERM, func=None):
         if not blofeld.web.library.updating.acquire(False):
             logger.info("A library update is in progress, we need to wait for it to finish before we try to shut down.")
             blofeld.web.library.updating.acquire()
+    except KeyboardInterrupt:
+        logger.info("User is insisting that we stop now, so we're exiting. Hopefully there aren't any straggler processes.")
+        sys.exit()
     except:
         pass
     try:
@@ -139,59 +141,53 @@ if __name__ == "__main__":
             print "Blofeld git branch %s, commit %s" % (blofeld.__version__, blofeld.__revision__)
         sys.exit()
     if options.daemonize:
+        if os.name == "nt":
+            print "The daemonize option is not available on your OS."
+            sys.exit()
         daemonize(sys.argv[0])
-    try:
-        from blofeld.config import cfg
-        if options.config_file:
-            cfg.__init__(path=options.config_file)
-            cfg.load_config()
-        if os.path.exists(cfg['PID_FILE']):
-            with open(cfg['PID_FILE'], "r") as pidfile:
-                state = pickle.load(pidfile)
-            if state['pid'] == os.getpid():
-                print "Blofeld is already running."
-                sys.exit()
-            else:
-                os.remove(cfg['PID_FILE'])
-                del cfg
-                from blofeld.config import cfg
-                if options.config_file:
-                    cfg.__init__(path=options.config_file)
-                    cfg.load_config()
-        from blofeld.log import *
-        if options.log_file:
-            enable_single_file(options.log_file)
+
+    from blofeld.config import cfg
+    if options.config_file:
+        cfg.__init__(path=options.config_file)
+        cfg.load_config()
+    if os.path.exists(cfg['PID_FILE']):
+        with open(cfg['PID_FILE'], "r") as pidfile:
+            state = pickle.load(pidfile)
+        if state['pid'] == os.getpid():
+            print "Blofeld is already running."
+            sys.exit()
         else:
-            enable_file()
-        if options.daemonize:
-            pass
-        elif options.debug:
-            enable_console('debug')
-        elif options.verbose:
-            enable_console('info')
-        elif options.quiet:
-            enable_console('critical')
-        else:
-            enable_console()
-        logger.debug("Logging initialized.")
-        set_exit_handler(shutdown)
-        logger.debug("Configuring CherryPy.")
-        cfg['CHERRYPY_OUTPUT'] = options.cherrypy
-        logger.debug("Writing PID file.")
-        with open(cfg['PID_FILE'], "w") as pidfile:
-            pickle.dump({'cfg': cfg, 'options': options, 'args': args, 'pid': os.getpid()}, pidfile)
-        logger.info("Starting web server at %s:%s" % (cfg['HOSTNAME'], cfg['PORT']))
-        import blofeld.web
-        blofeld.web.start()
-        logger.debug("CherryPy has shut down.")
-    except KeyboardInterrupt:
-        pass
-    finally:
-        try:
-            logger.debug("Removing PID file at %s" % cfg['PID_FILE'])
             os.remove(cfg['PID_FILE'])
-        except:
-            pass
-        time.sleep(1)
-        sys.exit()
+            del cfg
+            from blofeld.config import cfg
+            if options.config_file:
+                cfg.__init__(path=options.config_file)
+                cfg.load_config()
+    from blofeld.log import *
+    if options.log_file:
+        enable_single_file(options.log_file)
+    else:
+        enable_file()
+    if options.daemonize:
+        pass
+    elif options.debug:
+        enable_console('debug')
+    elif options.verbose:
+        enable_console('info')
+    elif options.quiet:
+        enable_console('critical')
+    else:
+        enable_console()
+    logger.debug("Logging initialized.")
+    set_exit_handler(shutdown)
+    logger.debug("Configuring CherryPy.")
+    cfg['CHERRYPY_OUTPUT'] = options.cherrypy
+    logger.debug("Writing PID file.")
+    with open(cfg['PID_FILE'], "w") as pidfile:
+        pickle.dump({'cfg': cfg, 'options': options, 'args': args, 'pid': os.getpid()}, pidfile)
+    logger.info("Starting web server at %s:%s" % (cfg['HOSTNAME'], cfg['PORT']))
+    import blofeld.web
+    blofeld.web.start()
+    logger.debug("CherryPy has shut down.")
+
 

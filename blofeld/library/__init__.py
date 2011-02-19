@@ -18,7 +18,6 @@
 
 from operator import itemgetter, attrgetter
 from time import time
-import threading
 import urlparse
 import os
 
@@ -28,7 +27,7 @@ from restkit import BasicAuth
 import anyjson
 
 from blofeld.config import cfg
-from blofeld.library.filesystem import load_music_from_dir
+from blofeld.library.filesystem import Scanner
 import blofeld.utils as utils
 from blofeld.log import logger
 
@@ -83,21 +82,17 @@ class Library:
             loader.sync(self.db, verbose=True)
         except:
             pass
-        self.updating = threading.Lock()
         logger.debug("Initializing the database cache.")
         self.cache = BlofeldCache(self.db)
+        self.scanner = Scanner(cfg['MUSIC_PATH'], self.db)
 
     def update(self, verbose=False):
         """Figures out which backend to load and then updates the database"""
-        if not self.updating.acquire(False):
-            logger.warn("Library update requested, but one is already in progress.")
-            return
         logger.info("Starting library update.")
         start_time = time()
-        load_music_from_dir(cfg['MUSIC_PATH'], self.db)
+        self.scanner.update()
         finish_time = time() - start_time
         logger.info("Updated library in %0.2f seconds." % finish_time)
-        self.updating.release()
 
     def songs(self, artists=None, albums=None, query=None, suggest=None):
         '''Returns a list of songs as dictionary objects.'''
@@ -297,5 +292,3 @@ class Library:
         finish_time = time() - start_time
         logger.debug("Generated list of %d artists in %0.2f seconds." % (len(result), finish_time))
         return result
-
-library = Library()

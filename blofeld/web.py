@@ -33,7 +33,7 @@ from Cheetah.Template import Template
 from blofeld.config import *
 from blofeld.transcode import transcode
 import blofeld.utils as utils
-from blofeld.library import library
+from blofeld.library import Library
 from blofeld.coverart import find_cover, resize_cover
 from blofeld.playlist import json_to_playlist
 from blofeld.log import logger
@@ -44,7 +44,7 @@ class WebInterface:
     """Handles any web requests, including API calls."""
     def __init__(self):
         # Create a library object to run queries against
-        self.library = library
+        self.library = Library()
         # Do a startup scan for new music
         thread.start_new_thread(self.library.update, ())
 
