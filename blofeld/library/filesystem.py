@@ -37,7 +37,6 @@ class Scanner:
         # Create queues for songs that need to be read and saved to the DB
         self.read_queue = Queue()
         self.db_queue = Queue()
-        self.db_needs_updated = threading.Event()
         self.scanning = threading.Event()
         self.updating = threading.Event()
         self.cleaning = threading.Event()
@@ -140,8 +139,7 @@ class Scanner:
         # to be added to the database...
         self.db_working.set()
         while self.reading.is_set() or self.db_queue.qsize() > 0:
-            if self.db_needs_updated.is_set() or self.db_needs_updated.wait(2.0):
-                self.db_needs_updated.clear()
+            if self.db_queue.qsize() > 0:
                 songs = []
                 while self.db_queue.qsize() > 0:
                     # Grab all the items out of the database queue
@@ -161,7 +159,7 @@ class Scanner:
                 # Make our changes to the database
                 self.couchdb.bulk_save(new)
                 logger.debug("Added %d songs to the database, %d of which already existed." % (len(new), updated))
-                sleep(5)
+            sleep(5)
         self.db_working.clear()
 
     def process_read_queue(self):
@@ -182,7 +180,6 @@ class Scanner:
             # database queue.
             try:
                 self.db_queue.put(pool.map(read_metadata, args_list))
-                self.db_needs_updated.set()
             except:
                 logger.error("Error processing read queue.")
             logger.debug("Processed %d items in %0.2f seconds" % (queue_size - self.read_queue.qsize(), time() - self.start_time))
