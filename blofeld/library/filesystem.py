@@ -105,7 +105,7 @@ class Scanner:
                 if extension in cfg['MUSIC_EXTENSIONS']:
                     # Get the full decoded path of the file. The decoding part is
                     # important if the filename includes non-ASCII characters.
-                    location = os.path.join(root, item)
+                    location = os.path.abspath(os.path.join(root, item))
                     # Generate a unique ID for this song by making a SHA-1 hash of
                     # its location.
                     id = hashlib.sha1(location.encode('utf-8')).hexdigest()
@@ -161,6 +161,7 @@ class Scanner:
                 # Make our changes to the database
                 self.couchdb.bulk_save(new)
                 logger.debug("Added %d songs to the database, %d of which already existed." % (len(new), updated))
+                sleep(5)
         self.db_working.clear()
 
     def process_read_queue(self):
