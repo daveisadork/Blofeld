@@ -58,7 +58,7 @@ class Scanner:
         # Spawn a new thread to handle the queue of files that need read.
         read_thread = threading.Thread(target=self.process_read_queue)
         read_thread.start()
-        sleep(2)
+        sleep(5)
         # Spawn a new thread to handle the queue of items that need added to the
         # database.
         db_thread = threading.Thread(target=self.add_items_to_db)
@@ -67,11 +67,12 @@ class Scanner:
         self.db_working.wait(None)
         # Join our threads back
         read_thread.join()
-        finish_time = time() - self.start_time
-        logger.debug("Added all new songs in %0.2f seconds." % finish_time)
+        db_thread.join()
         compact_thread = threading.Thread(target=self.couchdb.compact)
         compact_thread.start()
         self.updating.clear()
+        finish_time = time() - self.start_time
+        logger.debug("Added all new songs in %0.2f seconds." % finish_time)
 
     def status(self):
         if not self.updating.is_set():
@@ -123,7 +124,7 @@ class Scanner:
                         except:
                             revision = None
                         # Add the song to the queue to be read
-                        self.read_queue.put((location, id, mtime, extension, revision))
+                        self.read_queue.put((location, id, mtime, revision))
                     else:
                         unchanged += 1
         self.scanning.clear()
@@ -179,7 +180,7 @@ class Scanner:
             # Read the tags from the 100 songs and then stick the results in the
             # database queue.
             try:
-                self.db_queue.put(pool.map(read_song, args_list))
+                self.db_queue.put(pool.map(read_metadata, args_list))
                 self.db_needs_updated.set()
             except:
                 logger.error("Error processing read queue.")
@@ -229,23 +230,7 @@ class Scanner:
         return songs
 
 
-def read_song(args):
-    # Figure out which function we need to use to read the tags from this file
-    # and then call it.
-    try:
-        if args[3] == 'wma':
-            song = read_wma(args[0], args[1], args[2], args[4])
-        else:
-            song = read_metadata(args[0], args[1], args[2], args[4])
-        # Return a tuple with the song metadata and whether this item was already
-        # in the database.
-        return song
-    except:
-        logger.error("Error processing %s" % args[0])
-        return None 
-
-
-def read_metadata(location, id, mtime, revision):
+def read_metadata((location, id, mtime, revision)):
     """Uses Mutagen to read the metadata of a file and returns it as a dict"""
     # Try to open the file
     try:
@@ -254,13 +239,20 @@ def read_metadata(location, id, mtime, revision):
         logger.error("%s made Mutagen explode." % location)
         return None
     # Create the metadata object we're going to return
-    song = {}
-    # Set the '_id' property which CouchDB uses as a UUID
-    song['_id'] = id
-    song['location'] = location
-    song['type'] = 'song'
-    song['mtime'] = mtime
-    song['tracknumber'] = 0
+    song = {
+        "_id": id,
+        "location": location,
+        "title": os.path.split(location)[1],
+        "mtime": mtime,
+        "artist": "Unknown Artist",
+        "album": "Unknown Album",
+        "genre": [],
+        "date": "",
+        "tracknumber": 0,
+        "bitrate": 0,
+        "length": 0,
+        "type": "song"
+    }
     if revision:
         song['_rev'] = revision
     # Try to set the length of the song in seconds, the bitrate in bps and the
@@ -268,28 +260,26 @@ def read_metadata(location, id, mtime, revision):
     try:
         song['length'] = metadata.info.length
     except:
-        song['length'] = 0
+        pass
     try:
         song['bitrate'] = metadata.info.bitrate
     except:
-        song['bitrate'] = 0
+        pass
     try:
         song['mimetype'] = metadata.mime[0]
     except:
         pass
+    if os.path.splitext(location)[1].lower()[1:] == 'wma':
+        song = parse_wma(song, metadata)
+    else:
+        song = parse_metadata(song, metadata)
     # Create artist and album IDs which are just SHA-1 hashes of each field
-    try:
-        artist = metadata['artist'][0]
-        song['artist_hash'] = hashlib.sha1(artist.encode('utf-8')).hexdigest()
-    except:
-        artist = "Unknown Artist"
-        song['artist_hash'] = hashlib.sha1(artist.encode('utf-8')).hexdigest()
-    try:
-        album = metadata['album'][0]
-        song['album_hash'] = hashlib.sha1(album.encode('utf-8')).hexdigest()
-    except:
-        album = "Unknown Album"
-        song['album_hash'] = hashlib.sha1(album.encode('utf-8')).hexdigest()
+    song['artist_hash'] = hashlib.sha1(song['artist'].encode('utf-8')).hexdigest()
+    song['album_hash'] = hashlib.sha1(song['album'].encode('utf-8')).hexdigest()
+    return song
+
+
+def parse_metadata(song, metadata):
     # Go through each tag we read from the file and add it to our ojbect.
     for tag, value in metadata.iteritems():
         try:
@@ -318,7 +308,7 @@ def read_metadata(location, id, mtime, revision):
     return song
 
 
-def read_wma(location, id, mtime, revision):
+def parse_wma(song, metadata):
     """Uses Mutagen to read the metadata of a WMA file and returns it as a
     dict. WMA files need special treatment because unlike MP3 and MP4, Mutagen
     doesn't offer an 'easy' interface to get metadata from WMA files. So, where
@@ -326,49 +316,6 @@ def read_wma(location, id, mtime, revision):
     use song['WM/AlbumTitle']. So, we use dict called asf_map to map the WMA
     specific values to what we want them to be in the database.
     """
-    # Try to open the file
-    try:
-        metadata = mutagen.File(location, None, True)
-    except:
-        logger.error("%s made Mutagen explode." % location)
-        return None
-    # Create the metadata object we're going to return
-    song = {}
-    # Set the '_id' property which CouchDB uses as a UUID
-    song['_id'] = id
-    song['location'] = location
-    song['type'] = 'song'
-    song['mtime'] = mtime
-    song['tracknumber'] = 0
-    if revision:
-        song['_rev'] = revision
-    # Try to set the length of the song in seconds, the bitrate in bps and the
-    # mimetype of the file.
-    try:
-        song['length'] = metadata.info.length
-    except:
-        song['length'] = 0
-    try:
-        song['bitrate'] = metadata.info.bitrate
-    except:
-        song['bitrate'] = 0
-    try:
-        song['mimetype'] = metadata.mime[0]
-    except:
-        pass
-    # Create artist and album IDs which are just SHA-1 hashes of each field
-    try:
-        artist = metadata['Author'][0]
-        song['artist_hash'] = hashlib.sha1(artist.encode('utf-8')).hexdigest()
-    except:
-        artist = "Unknown Artist"
-        song['artist_hash'] = hashlib.sha1(artist.encode('utf-8')).hexdigest()
-    try:
-        album = metadata['WM/AlbumTitle'][0]
-        song['album_hash'] = hashlib.sha1(album.encode('utf-8')).hexdigest()
-    except:
-        album = "Unknown Album"
-        song['album_hash'] = hashlib.sha1(album.encode('utf-8')).hexdigest()
     for tag, value in metadata.iteritems():
         try:
             # Mutagen returns all metadata as lists, so normally we'd just get
