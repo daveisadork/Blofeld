@@ -93,6 +93,14 @@ class Library:
         self.scanner.update()
         finish_time = time() - start_time
         logger.info("Updated library in %0.2f seconds." % finish_time)
+        logger.debug("Rebuilding the database cache.")
+        self.artists()
+        self.albums()
+        self.songs()
+        self.songs(query="The")
+        self.songs(suggest="The")
+        logger.debug("Finished rebuilding the database cache.")
+        
 
     def songs(self, artists=None, albums=None, query=None, suggest=None):
         '''Returns a list of songs as dictionary objects.'''
