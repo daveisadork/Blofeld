@@ -34,7 +34,8 @@ class Scanner:
     def __init__(self, music_path, couchdb):
         self.music_path = music_path
         self.couchdb = couchdb
-        # Create queues for songs that need to be read and saved to the DB
+        # Create the shared objects our various threads and processes will be
+        # using to communicate.
         self.read_queue = Queue()
         self.db_queue = Queue()
         self.scanning = threading.Event()
@@ -43,30 +44,37 @@ class Scanner:
         self.reading = threading.Event()
         self.db_working = threading.Event()
 
-
     def update(self):
+        """Initiates the process of updating the database by removing any songs
+        that have gone missing, adding new songs and updating changed songs.
+        """
         if self.updating.is_set():
             logger.warn("Library update requested, but one is already in progress.")
             return
         self.updating.set()
         # Clean the database of files that no longer exist and get a list of the
         # remaining songs in the database.
-        self.records = self.clean()
+        self.records = self._clean()
         self.start_time = time()
-        self.scan()
+        # Create a queue of files from which we need to read metadata.
+        self._scan()
         # Spawn a new thread to handle the queue of files that need read.
-        read_thread = threading.Thread(target=self.process_read_queue)
+        read_thread = threading.Thread(target=self._process_read_queue)
         read_thread.start()
+        # Give the read_thread a chance to get going and then spawn a new
+        # thread to handle inserting metadata into the database.
         sleep(5)
-        # Spawn a new thread to handle the queue of items that need added to the
-        # database.
-        db_thread = threading.Thread(target=self.add_items_to_db)
+        db_thread = threading.Thread(target=self._add_items_to_db)
         db_thread.start()
         # Block while we wait for everything to finish
         self.db_working.wait(None)
         # Join our threads back
         read_thread.join()
         db_thread.join()
+        # Compact the database so it doesn't get unreasonably large. We do this
+        # in a separate thread so we can go ahead and return since the we've
+        # added everything we need to the database already and we don't want
+        # to wait for this to finish.
         compact_thread = threading.Thread(target=self.couchdb.compact)
         compact_thread.start()
         self.updating.clear()
@@ -87,9 +95,9 @@ class Scanner:
         else:
             return None
 
-    def scan(self):
-        """Scans music_path for songs, adds new/changed songs to couchdb and
-        removes any songs that have gone missing.
+    def _scan(self):
+        """Scans the music_path to find songs that need to be added to the
+        database and adds those files to the read_queue.
         """
         logger.debug("Scanning for new files.")
         self.scanning.set()
@@ -134,7 +142,10 @@ class Scanner:
         logger.debug("Queued %d songs for reading." % self.read_queue.qsize())
         return True
 
-    def add_items_to_db(self):
+    def _add_items_to_db(self):
+        """Watches the db_queue for metadata from songs and inserts that data
+        into the database.
+        """
         # While the read queue is still being processed or we have stuff waiting
         # to be added to the database...
         self.db_working.set()
@@ -162,10 +173,14 @@ class Scanner:
             sleep(5)
         self.db_working.clear()
 
-    def process_read_queue(self):
-        # This lets the other processes know that we're working on reading files
+    def _process_read_queue(self):
+        """Spawns a pool of worker processes to handle reading the metadata
+        from all of the files in the read_queue.
+        """
         self.reading.set()
-        # Create a pool of processes to handle the actual reading of tags
+        # Create a pool of processes to handle the actual reading of tags.
+        # Using processes instead of threads lets us take full advantage of
+        # multi-core CPUs so this operation doesn't take as long.
         pool = Pool()
         queue_size = self.read_queue.qsize()
         while self.read_queue.qsize() > 0:
@@ -185,13 +200,10 @@ class Scanner:
             logger.debug("Processed %d items in %0.2f seconds" % (queue_size - self.read_queue.qsize(), time() - self.start_time))
         pool.close()
         pool.join()
-        # Let the other processes know we're finished.
-        while not self.db_queue.qsize() == 0:
-            sleep(1)
         self.reading.clear()
 
-    def clean(self):
-        """Search music_path to find if any of the songs in records have been
+    def _clean(self):
+        """Searches music_path to find if any of the songs in records have been
         removed, and then remove them from couchdb.
         """
         self.cleaning.set()
@@ -229,14 +241,16 @@ class Scanner:
 
 
 def read_metadata((location, id, mtime, revision)):
-    """Uses Mutagen to read the metadata of a file and returns it as a dict"""
-    # Try to open the file
+    """Uses Mutagen to read the metadata of a file and returns it as a dict."""
+    # Try to open the file and read its tags
     try:
         metadata = mutagen.File(location, None, True)
     except:
         logger.error("%s made Mutagen explode." % location)
         return None
-    # Create the metadata object we're going to return
+    # Create the metadata object we're going to return with some default values
+    # filled in. This is just in case there aren't tags for these things so 
+    # we don't run into problems elsewhere with this data not being there.
     song = {
         "_id": id,
         "location": location,
@@ -267,6 +281,7 @@ def read_metadata((location, id, mtime, revision)):
         song['mimetype'] = metadata.mime[0]
     except:
         pass
+    # Now we parse all the metadata we read and transfer it to our song object.
     if os.path.splitext(location)[1].lower()[1:] == 'wma':
         song = parse_wma(song, metadata)
     else:
@@ -278,7 +293,9 @@ def read_metadata((location, id, mtime, revision)):
 
 
 def parse_metadata(song, metadata):
-    # Go through each tag we read from the file and add it to our ojbect.
+    """Parses a Mutagen metadata object and transfers the data to a song object
+    that is suitable to insert into our database.
+    """
     for tag, value in metadata.iteritems():
         try:
             # Mutagen returns all metadata as lists, so normally we'd just get
@@ -307,12 +324,9 @@ def parse_metadata(song, metadata):
 
 
 def parse_wma(song, metadata):
-    """Uses Mutagen to read the metadata of a WMA file and returns it as a
-    dict. WMA files need special treatment because unlike MP3 and MP4, Mutagen
-    doesn't offer an 'easy' interface to get metadata from WMA files. So, where
-    we'd normally get the album title like song['album'], with WMA we have to
-    use song['WM/AlbumTitle']. So, we use dict called asf_map to map the WMA
-    specific values to what we want them to be in the database.
+    """Parses a Mutagen WMA metadata object and transfers that data to a song
+    object using a dict to map the WMA tag names to ones that we want them to
+    be. This is a specialized version of parse_metadata().
     """
     for tag, value in metadata.iteritems():
         try:
