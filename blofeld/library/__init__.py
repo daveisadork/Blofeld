@@ -97,7 +97,6 @@ class Library:
         self.artists()
         self.albums()
         self.songs()
-        self.songs(query="The")
         self.songs(suggest="The")
         logger.debug("Finished rebuilding the database cache.")
         

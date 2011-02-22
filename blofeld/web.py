@@ -31,7 +31,7 @@ from cherrypy.lib.static import serve_file
 from Cheetah.Template import Template
 
 from blofeld.config import *
-from blofeld.transcode import transcode
+from blofeld.transcode import Transcoder
 import blofeld.utils as utils
 from blofeld.library import Library
 from blofeld.coverart import find_cover, resize_cover
@@ -47,6 +47,7 @@ class WebInterface:
         self.library = Library()
         # Do a startup scan for new music
         thread.start_new_thread(self.library.update, ())
+        self.transcoder = Transcoder()
 
     @cherrypy.expose
     def index(self):
@@ -239,7 +240,7 @@ class WebInterface:
                 except:
                     pass
                 #cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
-                return transcode(path, 'mp3', bitrate)
+                return self.transcoder.transcode(path, 'mp3', bitrate)
         elif True in [True for x in format if x in ['ogg', 'vorbis', 'oga']]:
 #            cherrypy.response.headers['Content-Length'] = '-1'
             if range_request != 'bytes=0-':
@@ -248,7 +249,7 @@ class WebInterface:
             else:
                 cherrypy.response.headers['Content-Type'] = 'audio/ogg'
                 #cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
-                return transcode(path, 'ogg', bitrate)
+                return self.transcoder.transcode(path, 'ogg', bitrate)
         elif True in [True for x in format if x in ['m4a', 'aac', 'mp4']]:
 #            cherrypy.response.headers['Content-Length'] = '-1'
             if range_request != 'bytes=0-':
@@ -257,7 +258,7 @@ class WebInterface:
             else:
                 cherrypy.response.headers['Content-Type'] = 'audio/x-m4a'
                 #cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
-                return transcode(path, 'm4a', bitrate)
+                return self.transcoder.transcode(path, 'm4a', bitrate)
         else:
             raise cherrypy.HTTPError(501) 
     get_song._cp_config = {'response.stream': True}
@@ -419,8 +420,30 @@ class WebInterface:
         finally:
             cherrypy.engine.exit()
 
+    @cherrypy.expose
+    def flush_db(self):
+        logger.debug("%s (%s)\tshutdown()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, cherrypy.request.headers))
+        if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['GROUPS']['admin']:
+            logger.warn("%(user)s (%(ip)s) requested that the database be flushed, but was denied because %(user)s is not a member of the admin group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
+            raise cherrypy.HTTPError(401,'Not Authorized')
+        try:
+            cherrypy.response.headers['Content-Type'] = 'application/json'
+            logger.info("Received flush database request, complying.")
+            return anyjson.serialize({'flush_db': True})
+        except:
+            pass
+        finally:
+            self.library.db.flush()
 
-def start(log_level='warn'):
+    def stop(self):
+        self.library.scanner.stop()
+        self.transcoder.stop()
+    
+    def exit(self):
+        self.library.scanner.exit()
+
+
+def setup(log_level='warn'):
     """Starts the CherryPy web server and initiates the logging module."""
     
     def cleartext(password):
@@ -455,9 +478,17 @@ def start(log_level='warn'):
         cherrypy.engine.signal_handler.subscribe()
         del cherrypy.engine.signal_handler.handlers['SIGTERM']
         del cherrypy.engine.signal_handler.handlers['SIGHUP']
+    
+    cherrypy.engine.subscribe("stop", application.root.stop)
+    cherrypy.engine.subscribe("stop", application.root.exit)
 
+
+def start():
     try:
         cherrypy.engine.start()
         cherrypy.engine.block()
     except IOError:
         logger.critical("It appears that another instance of Blofeld is already running. If you're sure this isn't the case, make sure nothing else is using port %s." % cfg['PORT'])
+
+
+setup()

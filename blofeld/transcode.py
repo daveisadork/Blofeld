@@ -18,7 +18,9 @@
 
 import sys
 import time
+from uuid import uuid4
 from multiprocessing import Process, Pipe
+from Queue import Queue
 
 import pygst
 pygst.require('0.10')
@@ -84,27 +86,39 @@ def transcode_process(conn, path, format='mp3', bitrate=False):
         conn.send(False)
         conn.close()
 
-
-def transcode(path, format='mp3', bitrate=False):
-    try:
-        start_time = time.time()
-        parent_conn, child_conn = Pipe()
-        process = Process(target=transcode_process, args=(child_conn, path, format, bitrate))
-        process.start()
-        while True:
-            data = parent_conn.recv()
-            if not data:
-                break
-            yield data
-    except GeneratorExit:
-        process.terminate()
-        logger.debug("User canceled the request during transcoding.")
-    except:
-        logger.warn("Some type of error occured during transcoding.")
-    finally:
-        parent_conn.close()
-        process.join()
-        logger.debug("Transcoded %s in %0.2f seconds." % (path, time.time() - start_time))
+class Transcoder:
+    def __init__(self):
+        self._transcoders = {}
+    
+    def stop(self):
+        for process in self._transcoders.itervalues():
+            process.terminate()
+            process.join()
+        
+    def transcode(self, path, format='mp3', bitrate=False):
+        try:
+            uuid = str(uuid4())
+            start_time = time.time()
+            parent_conn, child_conn = Pipe()
+            process = Process(target=transcode_process, args=(child_conn, path, format, bitrate))
+            self._transcoders[uuid] = process
+            process.start()
+            while True:
+                data = parent_conn.recv()
+                if not data:
+                    break
+                yield data
+        except GeneratorExit:
+            process.terminate()
+            logger.debug("User canceled the request during transcoding.")
+        except Exception as e:
+            logger.warn("Some type of error occured during transcoding.")
+            raise e
+        finally:
+            parent_conn.close()
+            process.join()
+            del self._transcoders[uuid]
+            logger.debug("Transcoded %s in %0.2f seconds." % (path, time.time() - start_time))
 
 # These are the transcoding pipelines we can use. I should probably add more
 pipeline = {

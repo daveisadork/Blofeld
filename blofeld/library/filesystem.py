@@ -42,7 +42,23 @@ class Scanner:
         self.updating = threading.Event()
         self.cleaning = threading.Event()
         self.reading = threading.Event()
+        self.compacting = threading.Event()
         self.db_working = threading.Event()
+        self.stopping = threading.Event()
+
+    def stop(self):
+        logger.debug("File scanner is stopping.")
+        self.stopping.set()
+        self.upating.wait(10)
+        if self.updating.is_set():
+            logger.debug("Timed out waiting for file scanner to stop.")
+        else:
+            self.stopping.clear()
+
+    def exit(self):
+        if self.stopping.is_set() and self.updating.is_set():
+            if self.scanning.is_set() and self.scan_thread.is_alive():
+                self.pool.terminate()
 
     def update(self):
         """Initiates the process of updating the database by removing any songs
@@ -50,33 +66,39 @@ class Scanner:
         """
         if self.updating.is_set():
             logger.warn("Library update requested, but one is already in progress.")
-            return
+            return False
         self.updating.set()
         # Clean the database of files that no longer exist and get a list of the
         # remaining songs in the database.
-        self.records = self._clean()
+        self.clean_thread = threading.Thread(target=self._clean)
+        self.clean_thread.start()
+        self.cleaning.wait(None)
+        self.clean_thread.join()
         self.start_time = time()
         # Create a queue of files from which we need to read metadata.
-        self._scan()
+        self.scan_thread = threading.Thread(target=self._scan)
+        self.scan_thread.start()
+        self.scanning.wait(None)
+        self.scan_thread.join()
         # Spawn a new thread to handle the queue of files that need read.
-        read_thread = threading.Thread(target=self._process_read_queue)
-        read_thread.start()
+        self.read_thread = threading.Thread(target=self._process_read_queue)
+        self.read_thread.start()
         # Give the read_thread a chance to get going and then spawn a new
         # thread to handle inserting metadata into the database.
         sleep(5)
-        db_thread = threading.Thread(target=self._add_items_to_db)
-        db_thread.start()
+        self.db_thread = threading.Thread(target=self._add_items_to_db)
+        self.db_thread.start()
         # Block while we wait for everything to finish
         self.db_working.wait(None)
         # Join our threads back
-        read_thread.join()
-        db_thread.join()
+        self.read_thread.join()
+        self.db_thread.join()
         # Compact the database so it doesn't get unreasonably large. We do this
         # in a separate thread so we can go ahead and return since the we've
         # added everything we need to the database already and we don't want
         # to wait for this to finish.
-        compact_thread = threading.Thread(target=self.couchdb.compact)
-        compact_thread.start()
+        self.compact_thread = threading.Thread(target=self._compact)
+        self.compact_thread.start()
         self.updating.clear()
         finish_time = time() - self.start_time
         logger.debug("Added all new songs in %0.2f seconds." % finish_time)
@@ -95,16 +117,27 @@ class Scanner:
         else:
             return None
 
+    def _compact(self):
+        if self.stopping.is_set():
+            return
+        self.compacting.set()
+        self.couchdb.compact()
+        self.compacting.clear()
+
     def _scan(self):
         """Scans the music_path to find songs that need to be added to the
         database and adds those files to the read_queue.
         """
+        if self.stopping.is_set():
+            return
         logger.debug("Scanning for new files.")
         self.scanning.set()
         changed = 0
         unchanged = 0
         # Iterate through all the folders and files in music_path
         for root, dirs, files in os.walk(self.music_path):
+            if self.stopping.is_set():
+                break
             for item in files:
                 # Get the file extension, e.g. 'mp3' or 'flac', and see if it's in
                 # the list of extensions we're supposed to look for.
@@ -134,11 +167,11 @@ class Scanner:
                         self.read_queue.put((location, id, mtime, revision))
                     else:
                         unchanged += 1
+        self.songs_total = self.read_queue.qsize()
         self.scanning.clear()
         if self.read_queue.qsize() < 1:
             logger.debug("No new files found.")
             return False
-        self.songs_total = self.read_queue.qsize()
         logger.debug("Queued %d songs for reading." % self.read_queue.qsize())
         return True
 
@@ -149,7 +182,7 @@ class Scanner:
         # While the read queue is still being processed or we have stuff waiting
         # to be added to the database...
         self.db_working.set()
-        while self.reading.is_set() or self.db_queue.qsize() > 0:
+        while self.reading.is_set() or self.db_queue.qsize() > 0 and not self.stopping.is_set():
             if self.db_queue.qsize() > 0:
                 songs = []
                 while self.db_queue.qsize() > 0:
@@ -181,9 +214,9 @@ class Scanner:
         # Create a pool of processes to handle the actual reading of tags.
         # Using processes instead of threads lets us take full advantage of
         # multi-core CPUs so this operation doesn't take as long.
-        pool = Pool()
+        self.pool = Pool()
         queue_size = self.read_queue.qsize()
-        while self.read_queue.qsize() > 0:
+        while self.read_queue.qsize() > 0 and not self.stopping.is_set():
             args_list = []
             # Get 100 songs from the queue
             for x in range(100):
@@ -194,18 +227,20 @@ class Scanner:
             # Read the tags from the 100 songs and then stick the results in the
             # database queue.
             try:
-                self.db_queue.put(pool.map(read_metadata, args_list))
+                self.db_queue.put(self.pool.map(read_metadata, args_list))
             except:
                 logger.error("Error processing read queue.")
             logger.debug("Processed %d items in %0.2f seconds" % (queue_size - self.read_queue.qsize(), time() - self.start_time))
-        pool.close()
-        pool.join()
+        self.pool.close()
+        self.pool.join()
         self.reading.clear()
 
     def _clean(self):
         """Searches music_path to find if any of the songs in records have been
         removed, and then remove them from couchdb.
         """
+        if self.stopping.is_set():
+            return
         self.cleaning.set()
         logger.debug("Searching for changed/removed files.")
         start_time = time()
@@ -217,6 +252,8 @@ class Scanner:
         songs = {}
         removed = 0
         for song in records:
+            if self.stopping.is_set():
+                break
             path = song['key']
             # Check if the file this database record points to is still there, and
             # add it to the list to be removed if it's not.
@@ -236,8 +273,8 @@ class Scanner:
         # batch delete, so let's get any stragglers now.
         self.couchdb.bulk_delete(remove)
         logger.debug("Removed %d songs in %0.2f seconds." % (removed, time() - start_time))
+        self.records = songs
         self.cleaning.clear()
-        return songs
 
 
 def read_metadata((location, id, mtime, revision)):

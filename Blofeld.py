@@ -115,17 +115,11 @@ def daemonize(name):
 def shutdown(sig=signal.SIGTERM, func=None):
     logger.info("User pressed Ctrl+C, shutting down.")
     try:
-        if not blofeld.web.library.updating.acquire(False):
-            logger.info("A library update is in progress, we need to wait for it to finish before we try to shut down.")
-            blofeld.web.library.updating.acquire()
+        logger.debug("Stopping CherryPy")
+        blofeld.web.cherrypy.engine.exit()
     except KeyboardInterrupt:
         logger.info("User is insisting that we stop now, so we're exiting. Hopefully there aren't any straggler processes.")
         sys.exit()
-    except:
-        pass
-    try:
-        logger.debug("Stopping CherryPy")
-        blofeld.web.cherrypy.engine.exit()
     except:
         pass
 
@@ -188,5 +182,9 @@ if __name__ == "__main__":
     import blofeld.web
     blofeld.web.start()
     logger.debug("CherryPy has shut down.")
-
+    logger.debug("Removing PID file.")
+    try:
+        os.remove(cfg['PID_FILE'])
+    except:
+        pass
 
