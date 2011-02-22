@@ -16,7 +16,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
-import sys
+import os
 import time
 from uuid import uuid4
 from multiprocessing import Process, Pipe
@@ -79,7 +79,7 @@ def transcode_process(conn, path, format='mp3', bitrate=False):
         except:
             logger.warn("Some type of error occured during transcoding.")
     except:
-        logger.error("Could not open the file for transcoding. If you're using Windows, it's probably because there are non-ASCII characters in the filename")
+        logger.error("Could not open the file for transcoding. This is probably happening because there are non-ASCII characters in the filename.")
     finally:
         # I think this is supposed to free the memory used by the transcoder
         transcoder.set_state(gst.STATE_NULL)
@@ -132,5 +132,5 @@ pipeline = {
 
 # The win32 port of gstreamer apparently doesn't have id3mux or id3v2mux so we have to use 
 # ffmux_mp3 instead.
-if sys.platform == "win32":
+if os.name == "nt":
     pipeline['mp3'] = "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! ffmux_mp3 name=muxer ! appsink name=output"

@@ -160,7 +160,7 @@ class WebInterface:
             range_request = "bytes=0-"
         try:
             song = self.library.db[songid]
-            path = song['location'].encode(cfg['ENCODING'])
+            path = song['location'].encode('utf-8')
         except:
             log_message += "a song ID which could not be found: %s" % str(songid)
             logger.error(log_message)
