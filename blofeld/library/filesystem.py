@@ -80,19 +80,20 @@ class Scanner:
         self.scan_thread.start()
         self.scanning.wait(None)
         self.scan_thread.join()
-        # Spawn a new thread to handle the queue of files that need read.
-        self.read_thread = threading.Thread(target=self._process_read_queue)
-        self.read_thread.start()
-        # Give the read_thread a chance to get going and then spawn a new
-        # thread to handle inserting metadata into the database.
-        sleep(5)
-        self.db_thread = threading.Thread(target=self._add_items_to_db)
-        self.db_thread.start()
-        # Block while we wait for everything to finish
-        self.db_working.wait(None)
-        # Join our threads back
-        self.read_thread.join()
-        self.db_thread.join()
+        if self.read_queue.qsize() > 0:
+            # Spawn a new thread to handle the queue of files that need read.
+            self.read_thread = threading.Thread(target=self._process_read_queue)
+            self.read_thread.start()
+            # Give the read_thread a chance to get going and then spawn a new
+            # thread to handle inserting metadata into the database.
+            sleep(5)
+            self.db_thread = threading.Thread(target=self._add_items_to_db)
+            self.db_thread.start()
+            # Block while we wait for everything to finish
+            self.db_working.wait(None)
+            # Join our threads back
+            self.read_thread.join()
+            self.db_thread.join()
         # Compact the database so it doesn't get unreasonably large. We do this
         # in a separate thread so we can go ahead and return since the we've
         # added everything we need to the database already and we don't want
