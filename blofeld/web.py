@@ -201,6 +201,8 @@ class WebInterface:
         if not (format or bitrate):
             log_message += " The client did not request any specific format or bitrate so the file is being sent as-is (%s kbps %s)." % (str(song['bitrate'] / 1000), str(song_format))
             logger.info(log_message)
+            if not os.name == 'nt':
+                path = path.encode(cfg['ENCODING'])
             return serve_file(path, song_mime,
                                 "inline", os.path.split(path)[1])
         if format:
@@ -214,6 +216,8 @@ class WebInterface:
             else:
                 log_message += " The client requested %s, but the file is already %s, so the file is being sent as-is." % (format, str(song_format))
             logger.info(log_message)
+            if not os.name == 'nt':
+                path = path.encode(cfg['ENCODING'])
             return serve_file(path, song_mime,
                                 "inline", os.path.split(path)[1])
         else:
