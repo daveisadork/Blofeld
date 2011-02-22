@@ -160,12 +160,12 @@ class WebInterface:
             range_request = "bytes=0-"
         try:
             song = self.library.db[songid]
-            path = song['location'].encode('utf-8')
+            path = song['location']
         except:
             log_message += "a song ID which could not be found: %s" % str(songid)
             logger.error(log_message)
             raise cherrypy.HTTPError(404)
-        log_message += "%(title)s by %(artist)s from %(album)s " % song
+        log_message += "%s by %s from %s " % (song['title'].encode(cfg['ENCODING']), song['artist'].encode(cfg['ENCODING']), song['album'].encode(cfg['ENCODING']))
         try:
             b = False
             #b = self.bc(cherrypy.request.headers['User-Agent'])
@@ -200,7 +200,7 @@ class WebInterface:
             song_mime = 'application/octet-stream'
         if not (format or bitrate):
             log_message += " The client did not request any specific format or bitrate so the file is being sent as-is (%s kbps %s)." % (str(song['bitrate'] / 1000), str(song_format))
-            logger.info(log_message.encode('utf-8'))
+            logger.info(log_message)
             return serve_file(path, song_mime,
                                 "inline", os.path.split(path)[1])
         if format:
@@ -213,7 +213,7 @@ class WebInterface:
                 log_message += " The client requested %s kbps %s, but the file is already %s kbps %s, so the file is being sent as-is." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
             else:
                 log_message += " The client requested %s, but the file is already %s, so the file is being sent as-is." % (format, str(song_format))
-            logger.info(log_message.encode('utf-8'))
+            logger.info(log_message)
             return serve_file(path, song_mime,
                                 "inline", os.path.split(path)[1])
         else:
@@ -221,7 +221,7 @@ class WebInterface:
                 log_message += " The client requested %s kbps %s, but the file is %s kbps %s, so we're transcoding the file for them." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
             else:
                 log_message += " The client requested %s, but the file %s, so we're transcoding the file for them." % (format, str(song_format))
-            logger.info(log_message.encode('utf-8'))
+            logger.info(log_message)
         # If we're transcoding audio and the client is trying to make range
         # requests, we have to throw an error 416. This sucks because it breaks
         # <audio> in all the WebKit browsers I've tried, but at least it stops

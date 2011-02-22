@@ -36,7 +36,7 @@ def transcode_process(conn, path, format='mp3', bitrate=False):
         bitrate = int(bitrate)
     except:
         bitrate = False
-    log_message = "Transcoding %s to %s" % (path, format)
+    log_message = "Transcoding %s to %s" % (path.encode(cfg['ENCODING']), format)
     # Create our transcoding pipeline using one of the strings at the end of
     # this module.
     transcoder = gst.parse_launch(pipeline[format])
@@ -57,10 +57,11 @@ def transcode_process(conn, path, format='mp3', bitrate=False):
             #encoder.set_property("profile", 1)
             #muxer.set_property("faststart", True)
     # Load our file into the transcoder
-    #logger.info(log_message + ".")
+    log_message += "."
+    logger.info(log_message)
     source = transcoder.get_by_name('source')
     try:
-        source.set_property("location", path)
+        source.set_property("location", path.encode('utf-8'))
         # Set the output to be asynchronous so the transcoding happens as quickly
         # as possible rather than real time.
         output = transcoder.get_by_name('output')
@@ -111,14 +112,13 @@ class Transcoder:
         except GeneratorExit:
             process.terminate()
             logger.debug("User canceled the request during transcoding.")
-        except Exception as e:
+        except Exception:
             logger.warn("Some type of error occured during transcoding.")
-            raise e
         finally:
             parent_conn.close()
             process.join()
             del self._transcoders[uuid]
-            logger.debug("Transcoded %s in %0.2f seconds." % (path, time.time() - start_time))
+            logger.debug("Transcoded %s in %0.2f seconds." % (path.encode(cfg['ENCODING']), time.time() - start_time))
 
 # These are the transcoding pipelines we can use. I should probably add more
 pipeline = {
