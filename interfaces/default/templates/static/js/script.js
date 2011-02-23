@@ -156,7 +156,7 @@ var showInfo = function(song) {
     $('#' + song).addClass('now-playing');
     $('.now-playing > .status > .status-icon, .status > .ui-icon').addClass('ui-icon ui-icon-volume-on');
     $("#now-playing, #progress-bar, #play-time").show();
-    $.address.title($('#now-playing-artist').html() + " - " + $('#now-playing-title').html());
+    $.address.title($('#now-playing-artist').text() + " - " + $('#now-playing-title').text());
     if (ajaxQueue.tags) {
         ajaxQueue.tags.abort();
     }
