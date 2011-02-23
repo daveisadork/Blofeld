@@ -684,7 +684,7 @@ $(document).ready(function () {
             }
         } else {
             $(".now-playing .ui-icon-volume-off").toggleClass("ui-icon-volume-on ui-icon-volume-off");
-            $.address.title($('#now-playing-artist').html() + " - " + $('#now-playing-title').html());
+            $.address.title($('#now-playing-artist').text() + " - " + $('#now-playing-title').text());
         }
     });
     $("#pause-button").button({
@@ -694,7 +694,7 @@ $(document).ready(function () {
         text: false
     }).click(function () {
         $(".now-playing .ui-icon-volume-on").toggleClass("ui-icon-volume-on ui-icon-volume-off");
-        $.address.title($('#now-playing-artist').html() + " - " + $('#now-playing-title').html() + " (Paused)");
+        $.address.title($('#now-playing-artist').text() + " - " + $('#now-playing-title').text() + " (Paused)");
     });
     $("#next-button").button({
         icons: {
