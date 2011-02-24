@@ -483,9 +483,7 @@ def setup(log_level='warn'):
         del cherrypy.engine.signal_handler.handlers['SIGTERM']
         del cherrypy.engine.signal_handler.handlers['SIGHUP']
     
-    cherrypy.engine.subscribe("stop", application.root.stop)
-    cherrypy.engine.subscribe("stop", application.root.exit)
-
+    cherrypy.engine.subscribe("exit", application.root.stop)
 
 def start():
     try:
