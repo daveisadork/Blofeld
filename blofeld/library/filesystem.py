@@ -49,7 +49,7 @@ class Scanner:
     def stop(self):
         logger.debug("File scanner is stopping.")
         self.stopping.set()
-        self.upating.wait(10)
+        self.updating.wait(10)
         if self.updating.is_set():
             logger.debug("Timed out waiting for file scanner to stop.")
         else:
