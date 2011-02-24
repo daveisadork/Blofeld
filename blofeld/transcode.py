@@ -22,15 +22,15 @@ from uuid import uuid4
 from multiprocessing import Process, Pipe
 from Queue import Queue
 
-import pygst
-pygst.require('0.10')
-import gst
-
 from blofeld.config import cfg
 from blofeld.log import logger
 
 
 def transcode_process(conn, path, format='mp3', bitrate=False):
+    import pygst
+    pygst.require('0.10')
+    import gst
+
     # If we were passed a bitrate argument, make sure it's actually a number
     try:
         bitrate = int(bitrate)
