@@ -114,14 +114,9 @@ def daemonize(name):
 
 def shutdown(sig=signal.SIGTERM, func=None):
     logger.info("User pressed Ctrl+C, shutting down.")
-    try:
-        logger.debug("Stopping CherryPy")
-        blofeld.web.cherrypy.engine.exit()
-    except KeyboardInterrupt:
-        logger.info("User is insisting that we stop now, so we're exiting. Hopefully there aren't any straggler processes.")
-        sys.exit()
-    except:
-        pass
+    blofeld.web.transcoder.stop()
+    blofeld.web.library.scanner.stop()
+    blofeld.web.cherrypy.engine.exit()
 
 
 if __name__ == "__main__":
@@ -179,12 +174,17 @@ if __name__ == "__main__":
     with open(cfg['PID_FILE'], "w") as pidfile:
         pickle.dump({'cfg': cfg, 'options': options, 'args': args, 'pid': os.getpid()}, pidfile)
     logger.info("Starting web server at %s:%s" % (cfg['HOSTNAME'], cfg['PORT']))
-    import blofeld.web
-    blofeld.web.start()
-    logger.debug("CherryPy has shut down.")
+    try:
+        import blofeld.web
+        blofeld.web.start()
+    except KeyboardInterrupt:
+        if not os.name == "nt":
+            shutdown()
+    logger.debug("CherryPy has stopped.")
     logger.debug("Removing PID file.")
     try:
         os.remove(cfg['PID_FILE'])
     except:
         pass
+    sys.exit()
 
