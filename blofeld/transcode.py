@@ -92,8 +92,10 @@ class Transcoder:
         self._transcoders = {}
     
     def stop(self):
-        for process in self._transcoders.itervalues():
+        for transcoder in self._transcoders.itervalues():
+            (process, parent_conn, child_conn) = transcoder
             process.terminate()
+            parent_conn.close()
             process.join()
         
     def transcode(self, path, format='mp3', bitrate=False):
@@ -102,7 +104,7 @@ class Transcoder:
             start_time = time.time()
             parent_conn, child_conn = Pipe()
             process = Process(target=transcode_process, args=(child_conn, path, format, bitrate))
-            self._transcoders[uuid] = process
+            self._transcoders[uuid] = (process, parent_conn, child_conn)
             process.start()
             while True:
                 data = parent_conn.recv()
@@ -112,7 +114,7 @@ class Transcoder:
         except GeneratorExit:
             process.terminate()
             logger.debug("User canceled the request during transcoding.")
-        except Exception:
+        except:
             logger.warn("Some type of error occured during transcoding.")
         finally:
             parent_conn.close()
