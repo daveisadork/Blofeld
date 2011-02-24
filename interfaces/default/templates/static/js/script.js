@@ -2,9 +2,8 @@
 
 */
 "use strict";
-var contentLayouts = {}, layouts = {}, loadingSongs = '<div class="scrolling-container"><table id="songs"><thead class="ui-widget-header ui-corner-all"><tr class="song"><th class="status ui-corner-left"></th><th class="track-number">#</th><th class="title">Title</th><th class="artist">Artist</th><th class="album">Album</th><th class="genre">Genre</th><th class="year">Year</th><th class="time ui-corner-right">Time</th></tr></thead><tbody><tr class="song" id="Loading"><td class="status ui-corner-left" colspan="8"><div class="loading">Loading...</div></td></tr></tbody></table></div>',
-    loadingArtists = '<div class="scrolling-container"><table id="artists"><tbody><tr class="artist ui-state-default" id="all-artists"><td class="ui-corner-all">All Artists (<span id="artist-count">Loading</span>)</td></tr></tbody></div>',
-    loadingAlbums = '<div class="scrolling-container"><table id="albums"><tbody><tr class="album ui-state-default" id="all-albums"><td class="ui-corner-all">All Albums (<span id="album-count">Loading</span>)</td></tr></tbody></div>',
+var contentLayouts = {},
+    layouts = {},
     playlist = [],
     seekPercent = 0,
     playingCurrently = null,
@@ -12,8 +11,6 @@ var contentLayouts = {}, layouts = {}, loadingSongs = '<div class="scrolling-con
     bitrate = 320,
     randomTrack = null,
     playerState = 'stopped',
-    playerFormats = [],
-    playerType = null,
     ajaxQueue = {
         'artists': null,
         'albums': null,
@@ -112,7 +109,6 @@ var showCover = function (song) {
         size = Math.floor($(document).height() * 0.85);
     $('.cover-img').toggleClass('active inactive');
     $('img.active').attr({
-        //'src': 'get_cover?size=32&songid=' + song,
         'src': 'get_cover?size=' + size + '&songid=' + song,
         'top': offset.top,
         'left': offset.left
@@ -133,7 +129,6 @@ var playSong = function (songIndex) {
         songUrl, songUrlMp3, songUrlOga;
     $("#progress-bar").slider("disable");
     showInfo(song)
-    songUrl = 'get_song?format=' + playerFormats.join(',') + '&songid=' + song + '&bitrate=' + parseInt(bitrate, 10);
     songUrlMp3 = 'get_song?format=mp3&songid=' + song + '&bitrate=' + parseInt(bitrate, 10);
     songUrlOga = 'get_song?format=oga&songid=' + song + '&bitrate=' + parseInt(bitrate, 10);
     playingCurrently = songIndex;
@@ -188,7 +183,6 @@ var listArtists = function (query, highlight) {
     if (query) {
         options.query = query;
     }
-    //    $("#artists-container").html(loadingArtists);
     $("#artists-container").addClass('ui-state-disabled');
     ajaxQueue.artists = $.ajax({
         url: 'list_artists',
@@ -241,7 +235,6 @@ var listAlbums = function (artists, query) {
     if (artists) {
         options.artists = artists.join(',');
     }
-    //    $("#albums-container").html(loadingAlbums);
     $('#albums-container').addClass("ui-state-disabled");
     ajaxQueue.albums = $.ajax({
         url: 'list_albums',
@@ -298,7 +291,6 @@ var listSongs = function (artists, albums, query, play) {
     if (albums) {
         options.albums = albums.join(',');
     }
-    //    $("#songs-container").html(loadingSongs);
     $("#songs-container").addClass('ui-state-disabled');
     ajaxQueue.songs = $.ajax({
         url: 'list_songs',
@@ -420,8 +412,23 @@ var setupPlayer = function () {
             "duration" : "#play-time-total"
         },
         ready: function (event) {
+            var formats = {html: [], flash: []},
+                solutions = ['html', 'flash']
             $("#jplayer-inspector").append('<li class="jp-info">Flash: ' + JSON.stringify(event.jPlayer.flash) + '</li>');
-            $("#jplayer-inspector").append('<li class="jp-info">HTML: ' + JSON.stringify(event.jPlayer.html) + '</li>');
+            $("#jplayer-inspector").append('<li class="jp-info">HTML5: ' + JSON.stringify(event.jPlayer.html) + '</li>');
+            
+            for (var index in solutions) {
+                event.jPlayer[solutions[index]].canPlay.mp3 && formats[solutions[index]].push('mp3');
+                event.jPlayer[solutions[index]].canPlay.oga && formats[solutions[index]].push('oga');
+                if (!!event.jPlayer[solutions[index]].audio) {
+                    $("#jplayer-solutions ." + solutions[index] + " .available").html(JSON.stringify(event.jPlayer[solutions[index]].audio.available));
+                } else {
+                    $("#jplayer-solutions ." + solutions[index] + " .available").html(JSON.stringify(event.jPlayer[solutions[index]].available));
+                }
+                $("#jplayer-solutions ." + solutions[index] + " .preferred").html(JSON.stringify(event.jPlayer[solutions[index]].desired));
+                $("#jplayer-solutions ." + solutions[index] + " .used").html(JSON.stringify(event.jPlayer[solutions[index]].used));
+                $("#jplayer-solutions ." + solutions[index] + " .formats").html(formats[solutions[index]].join(', '));
+            }
             $(this).bind($.jPlayer.event.timeupdate, function (event) {
                 seekPercent = parseInt(event.jPlayer.status.seekPercent, 10);
                 if (seekPercent > 0) {
@@ -437,8 +444,6 @@ var setupPlayer = function () {
         },
         ended:  playNextSong
     });
-    playerFormats.push('mp3');
-    
 };
 
 var disableSelection = function (target) {
@@ -624,7 +629,7 @@ $(document).ready(function () {
             $("#play-queue").append("<p>" + ui.draggable.attr('id') + "</p>");
         },
         accept: '.song',
-        hoverClass: "ui-state-hover",
+        hoverClass: "ui-state-hover"
     });
     $("#previous-button").button({
         icons: {
