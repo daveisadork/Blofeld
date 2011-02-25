@@ -18,7 +18,6 @@
 
 import os
 import time
-from uuid import uuid4
 from multiprocessing import Process, Pipe
 from Queue import Queue
 
@@ -92,7 +91,6 @@ def transcode_process(conn, path, format='mp3', bitrate=False):
 
 class Transcoder:
     def __init__(self):
-        self._transcoders = {}
         self.stopping = False
     
     def stop(self):
@@ -103,11 +101,9 @@ class Transcoder:
         if self.stopping:
             return
         try:
-            uuid = str(uuid4())
             start_time = time.time()
             parent_conn, child_conn = Pipe()
             process = Process(target=transcode_process, args=(child_conn, path, format, bitrate))
-            self._transcoders[uuid] = (process, parent_conn, child_conn, True)
             process.start()
             while True:
                 data = parent_conn.recv()
@@ -124,8 +120,6 @@ class Transcoder:
         finally:
             parent_conn.close()
             process.join()
-            self._transcoders[uuid][3] = (0, 0, 0, False)
-            
 
 # These are the transcoding pipelines we can use. I should probably add more
 pipeline = {

@@ -195,10 +195,13 @@ class WebInterface:
             song_format = [os.path.splitext(path)[1].lower()[1:]]
         if True in [True for x in song_format if x in ['mp3']]:
             song_mime = 'audio/mpeg'
+            song_format = ['mp3']
         elif True in [True for x in song_format if x in ['ogg', 'vorbis', 'oga']]:
             song_mime = 'audio/ogg'
+            song_format = ['ogg', 'vorbis', 'oga']
         elif True in [True for x in song_format if x in ['m4a', 'aac', 'mp4']]:
             song_mime = 'audio/x-m4a'
+            song_format = ['m4a', 'aac', 'mp4']
         else:
             song_mime = 'application/octet-stream'
         if not (format or bitrate):
