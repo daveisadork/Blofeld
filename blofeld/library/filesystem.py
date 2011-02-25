@@ -47,13 +47,19 @@ class Scanner:
         self.stopping = threading.Event()
 
     def stop(self):
-        logger.debug("File scanner is stopping.")
-        self.stopping.set()
-        self.upating.wait(10)
+        if not self.stopping.is_set():
+            logger.debug("Stopping the file scanner.")
+            self.stopping.set()
+        for timeout in range(10):
+            if not self.updating.is_set():
+                break
+            sleep(1)
         if self.updating.is_set():
             logger.debug("Timed out waiting for file scanner to stop.")
         else:
             self.stopping.clear()
+        if not self.stopping.is_set():
+            logger.debug("File scanner has stopped.")
 
     def exit(self):
         if self.stopping.is_set() and self.updating.is_set():

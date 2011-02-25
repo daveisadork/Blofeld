@@ -23,6 +23,7 @@ import hashlib
 import mimetypes
 mimetypes.init()
 import types
+import time
 from random import shuffle
 
 import cherrypy
@@ -39,15 +40,17 @@ from blofeld.playlist import json_to_playlist
 from blofeld.log import logger
 from blofeld.download import create_archive
 
+library = Library()
+transcoder = Transcoder()
 
 class WebInterface:
     """Handles any web requests, including API calls."""
     def __init__(self):
         # Create a library object to run queries against
-        self.library = Library()
+        self.library = library
         # Do a startup scan for new music
         thread.start_new_thread(self.library.update, ())
-        self.transcoder = Transcoder()
+        self.transcoder = transcoder
 
     @cherrypy.expose
     def index(self):
@@ -418,10 +421,13 @@ class WebInterface:
         try:
             cherrypy.response.headers['Content-Type'] = 'application/json'
             logger.info("Received shutdown request, complying.")
+            self.transcoder.stop()
+            self.library.scanner.stop()
             return anyjson.serialize({'shutdown': True})
         except:
             pass
         finally:
+            logger.debug("Stopping CherryPy.")
             cherrypy.engine.exit()
 
     @cherrypy.expose
@@ -439,16 +445,9 @@ class WebInterface:
         finally:
             self.library.db.flush()
 
-    def stop(self):
-        self.library.scanner.stop()
-        self.transcoder.stop()
-    
-    def exit(self):
-        self.library.scanner.exit()
 
-
-def setup(log_level='warn'):
-    """Starts the CherryPy web server and initiates the logging module."""
+def start():
+    """Starts the CherryPy web server"""
     
     def cleartext(password):
         return password
@@ -482,17 +481,17 @@ def setup(log_level='warn'):
         cherrypy.engine.signal_handler.subscribe()
         del cherrypy.engine.signal_handler.handlers['SIGTERM']
         del cherrypy.engine.signal_handler.handlers['SIGHUP']
-    
-    #cherrypy.engine.subscribe("stop", application.root.stop)
-    cherrypy.engine.subscribe("stop", application.root.stop)
 
-
-def start():
     try:
         cherrypy.engine.start()
-        cherrypy.engine.block()
     except IOError:
         logger.critical("It appears that another instance of Blofeld is already running. If you're sure this isn't the case, make sure nothing else is using port %s." % cfg['PORT'])
-
-
-setup()
+    
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        transcoder.stop()
+        library.scanner.stop()
+        logger.debug("Stopping CherryPy.")
+        cherrypy.engine.exit()
