@@ -20,7 +20,7 @@ from operator import itemgetter, attrgetter
 from time import time
 import urlparse
 import os
-from threading import Event
+import threading
 
 from couchdbkit import *
 from couchdbkit.loaders import FileSystemDocsLoader
@@ -70,7 +70,7 @@ class Library:
                   db_password=cfg['COUCHDB_PASSWORD']):
         """Sets up the database connection and starts loading songs."""
         # Initiate a connection to the database server
-        self.shutting_down = Event()
+        self.shutting_down = threading.Event()
         logger.debug("Initiating the database connection.")
         auth = BasicAuth(db_username, db_password)
         self._server = Server(db_url, filters=[auth])
@@ -95,13 +95,15 @@ class Library:
         self.scanner.update()
         finish_time = time() - start_time
         logger.info("Updated library in %0.2f seconds." % finish_time)
+        self.cache_thread = threading.Thread(target=self.build_cache)
+        self.cache_thread.start()
         
-    def stop():
+    def stop(self):
         logger.info("Preventing new library calls.")
         self.shutting_down.set()
         self.scanner.stop()
         
-    def build_cache():
+    def build_cache(self):
         logger.debug("Building the database cache.")
         if not self.shutting_down.is_set():
             self.artists()
