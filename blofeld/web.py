@@ -42,6 +42,7 @@ from blofeld.download import create_archive
 
 library = Library()
 transcoder = Transcoder()
+shutting_down = False
 
 class WebInterface:
     """Handles any web requests, including API calls."""
@@ -493,7 +494,7 @@ def start():
 
 def block():
     try:
-        while True:
+        while not shutting_down:
             time.sleep(1)
     except KeyboardInterrupt:
         stop()
@@ -504,3 +505,4 @@ def stop():
         library.scanner.stop()
         logger.debug("Stopping CherryPy.")
         cherrypy.engine.exit()
+        shutting_down = True
