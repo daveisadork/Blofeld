@@ -25,6 +25,7 @@ mimetypes.init()
 import types
 import time
 from random import shuffle
+from threading import Event
 
 import cherrypy
 from cherrypy.lib.static import serve_file
@@ -42,7 +43,7 @@ from blofeld.download import create_archive
 
 library = Library()
 transcoder = Transcoder()
-shutting_down = False
+shutting_down = Event()
 
 class WebInterface:
     """Handles any web requests, including API calls."""
@@ -494,15 +495,16 @@ def start():
 
 def block():
     try:
-        while not shutting_down:
+        while not shutting_down.is_set():
             time.sleep(1)
     except KeyboardInterrupt:
         stop()
 
 
 def stop():
-        transcoder.stop()
-        library.scanner.stop()
-        logger.debug("Stopping CherryPy.")
-        cherrypy.engine.exit()
-        shutting_down = True
+    transcoder.stop()
+    library.scanner.stop()
+    logger.debug("Stopping web server.")
+    shutting_down.set()
+    cherrypy.engine.exit()
+        

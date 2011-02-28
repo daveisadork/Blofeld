@@ -169,7 +169,7 @@ if __name__ == "__main__":
         enable_console()
     logger.debug("Logging initialized.")
     set_exit_handler(shutdown)
-    logger.debug("Configuring CherryPy.")
+    logger.debug("Configuring the web server.")
     cfg['CHERRYPY_OUTPUT'] = options.cherrypy
     logger.debug("Writing PID file.")
     with open(cfg['PID_FILE'], "w") as pidfile:
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         if not os.name == "nt":
             shutdown()
-    logger.debug("CherryPy has stopped.")
+    logger.debug("The web server has stopped.")
     logger.debug("Removing PID file.")
     try:
         os.remove(cfg['PID_FILE'])
