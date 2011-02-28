@@ -20,6 +20,7 @@ from operator import itemgetter, attrgetter
 from time import time
 import urlparse
 import os
+from threading import Event
 
 from couchdbkit import *
 from couchdbkit.loaders import FileSystemDocsLoader
@@ -69,6 +70,7 @@ class Library:
                   db_password=cfg['COUCHDB_PASSWORD']):
         """Sets up the database connection and starts loading songs."""
         # Initiate a connection to the database server
+        self.shutting_down = Event()
         logger.debug("Initiating the database connection.")
         auth = BasicAuth(db_username, db_password)
         self._server = Server(db_url, filters=[auth])
@@ -93,13 +95,27 @@ class Library:
         self.scanner.update()
         finish_time = time() - start_time
         logger.info("Updated library in %0.2f seconds." % finish_time)
-        logger.debug("Rebuilding the database cache.")
-        self.artists()
-        self.albums()
-        self.songs()
-        self.songs(suggest="The")
-        logger.debug("Finished rebuilding the database cache.")
         
+    def stop():
+        logger.info("Preventing new library calls.")
+        self.shutting_down.set()
+        self.scanner.stop()
+        
+    def build_cache():
+        logger.debug("Building the database cache.")
+        if not self.shutting_down.is_set():
+            self.artists()
+        if not self.shutting_down.is_set():
+            self.albums()
+        if not self.shutting_down.is_set():
+            self.songs(suggest="The")
+        if not self.shutting_down.is_set():
+            self.artists(query="The")
+        if not self.shutting_down.is_set():
+            self.albums(query="The")
+        if not self.shutting_down.is_set():
+            self.songs(query="The")
+        logger.debug("Finished building the database cache.")
 
     def songs(self, artists=None, albums=None, query=None, suggest=None):
         '''Returns a list of songs as dictionary objects.'''
