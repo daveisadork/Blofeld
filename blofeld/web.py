@@ -503,7 +503,7 @@ def block():
 
 def stop():
     transcoder.stop()
-    library.scanner.stop()
+    library.stop()
     logger.debug("Stopping web server.")
     shutting_down.set()
     cherrypy.engine.exit()
