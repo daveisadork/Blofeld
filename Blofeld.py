@@ -113,10 +113,11 @@ def daemonize(name):
 
 
 def shutdown(sig=signal.SIGTERM, func=None):
-    logger.info("User pressed Ctrl+C, shutting down.")
-    blofeld.web.transcoder.stop()
-    blofeld.web.library.scanner.stop()
-    blofeld.web.cherrypy.engine.exit()
+    if sig is signal.SIGTERM:
+        logger.info("Received SIGTERM, shutting down.")
+    else:
+        logger.info("User pressed Ctrl+C, shutting down.")
+    blofeld.web.stop()
 
 
 if __name__ == "__main__":
@@ -177,6 +178,8 @@ if __name__ == "__main__":
     try:
         import blofeld.web
         blofeld.web.start()
+        set_exit_handler(shutdown)
+        blofeld.web.block()
     except KeyboardInterrupt:
         if not os.name == "nt":
             shutdown()

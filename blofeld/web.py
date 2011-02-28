@@ -489,11 +489,17 @@ def start():
         cherrypy.engine.start()
     except IOError:
         logger.critical("It appears that another instance of Blofeld is already running. If you're sure this isn't the case, make sure nothing else is using port %s." % cfg['PORT'])
-    
+
+
+def block():
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
+        stop()
+
+
+def stop():
         transcoder.stop()
         library.scanner.stop()
         logger.debug("Stopping CherryPy.")
