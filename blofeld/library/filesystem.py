@@ -381,7 +381,7 @@ def parse_wma(song, metadata):
             if tag == 'WM/Genre':
                 song[asf_map[tag]] = []
                 for genre in value:
-                    song[asf_map[tag]].append(unicode(genre))
+                    song[asf_map[tag]].append(genre.value)
             # Mutagen returns the tracknumber in a format like '2/12'. We're
             # only interested in the track number, not the total number of
             # tracks.
@@ -393,7 +393,10 @@ def parse_wma(song, metadata):
             # We need to ignore tags that contain cover art data so we don't
             # end up inserting giant binary blobs into our database.
             elif tag != 'WM/Picture':
-                song[asf_map[tag]] = unicode(value[0])
+                if type(value[0]) is unicode:
+                    song[asf_map[tag]] = value[0]
+                else:
+                    song[asf_map[tag]] = value[0].value
         except TypeError:
             pass
         except AttributeError:
@@ -401,7 +404,10 @@ def parse_wma(song, metadata):
         except KeyError:
             # We encountered a tag that wasn't in asf_map. Print it out to the
             # console so that hopefully someone will tell us and we can add it.
-            logger.warn("Skipping unrecognized tag %s with data %s in file %s" % (tag, value[0], location))
+            try:
+                logger.warn("Skipping unrecognized tag %s with data %s in file %s" % (tag, value[0], song['location']))
+            except:
+                logger.warn("Skipping unrecognized tag %s with un-printable data in file %s" % (tag, song['location']))
     return song
 
 
