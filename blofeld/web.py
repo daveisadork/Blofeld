@@ -377,92 +377,76 @@ class WebInterface:
         cherrypy.response.headers['Content-Type'] = 'application/json'
         return anyjson.serialize(result)
     
-    
-    
     @cherrypy.expose
-    def add_user(self, username=None, real_name=None, password=None):
+    def add_user(self, username=None, real_name=None, password=None, admin=False):
         # logger.debug("%s (%s)\tsuggest(term=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, term, cherrypy.request.headers))
         cherrypy.response.headers['Content-Type'] = 'application/json'
         if not username:
-            return anyjson.serialize({"error": {"reason": 'You must provide a username.'}})
+            return anyjson.serialize({"status": {"error": True, "reason": 'You must supply a username.'}})
         for user in self.library.db.view('users/by_username', key=username):
-            return anyjson.serialize({"error": {"reason": 'Requested username already exists.'}})
-        if password and len(password) != 40:
-            return anyjson.serialize({"error": {"reason": 'Password must be a 40-character SHA-1 hash.'}})
+            return anyjson.serialize({"status": {"error": True, "reason": 'Requested username already exists.'}})
+        if not password:
+            return anyjson.serialize({"status": {"error": True, "reason": 'You must supply a password.'}})
+        if admin:
+            admin = True
+        else:
+            admin = False
         user = {
             'username': username,
             'type': 'user',
-            'password': password,
+            'admin': admin,
+            'password': hashlib.sha1(password).hexdigest(),
             'real_name': real_name
         }
         userid = self.library.db.save_doc(user)['id']
-        return anyjson.serialize(self.library.db[userid])
+        return anyjson.serialize({"status": {"error": False, "user": self.library.db[userid]}})
         
     @cherrypy.expose
-    def set_password(self, username=None, userid=None, pw_hash=None):
+    def set_password(self, username=None, userid=None, password=None):
         cherrypy.response.headers['Content-Type'] = 'application/json'
-        user = None
-        if userid:
-            if not self.library.db.doc_exist(userid):
-                return anyjson.serialize({"error": {"reason": 'Specified user ID does not exist.'}})
-            user = self.library.db[userid]
-        elif username:
-            for item in self.library.db.view('users/by_username', key=username):
-                user = item['value']
-            userid = user['_id']
-        else:
-            return anyjson.serialize({"error": {"reason": 'No username or ID specified.'}})
+        if not (username or userid):
+            return anyjson.serialize({"status": {"error": True, "reason": 'No username or ID specified.'}})
+        user = self.get_user(username, userid)
         if not user:
-            return anyjson.serialize({"error": {"reason": 'Specified user does not exist.'}})
+            return anyjson.serialize({"status": {"error": True, "reason": 'The specified user does not exist.'}})
         if user['password']:
-            return anyjson.serialize({"error": {"reason": 'Password has already been set for this user.'}})
-        if pw_hash:
-            if len(pw_hash) != 40:
-                return anyjson.serialize({"error": {"reason": 'Password must be a 40-character SHA-1 hash.'}})
-            user['password'] = hashlib.sha1(self.library.salt + pw_hash).hexdigest()
-            self.library.db.save_doc(user)
-            return anyjson.serialize(self.library.db[userid])
+            return anyjson.serialize({"status": {"error": True, "reason": 'A password has already been set for this user.'}})
+        if not password:
+            return anyjson.serialize({"status": {"error": True, "reason": 'You must supply a password.'}})
         else:
-            return anyjson.serialize({"error": {"reason": 'Password must be supplied as a 40-character SHA-1 hash'}})
+            user['password'] = hashlib.sha1(password).hexdigest()
+            self.library.db.save_doc(user)
+            return anyjson.serialize({"status": {"error": False, "user": self.library.db[userid]}})
            
     @cherrypy.expose
-    def change_password(self, username=None, userid=None, old_pw_hash=None, new_pw_hash=None):
+    def change_password(self, username=None, userid=None, old_password=None, new_password=None):
         cherrypy.response.headers['Content-Type'] = 'application/json'
-        if not old_pw_hash and new_pw_hash and (username or userid):
-            return anyjson.serialize({"error": {"reason": 'You left something out.'}})
-        user = None
-        if userid:
-            if not self.library.db.doc_exist(userid):
-                return anyjson.serialize({"error": {"reason": 'Specified user ID does not exist.'}})
-            user = self.library.db[userid]
-        elif username:
-            for item in self.library.db.view('users/by_username', key=username):
-                user = item['value']
-            userid = user['_id']
-        else:
-            return anyjson.serialize({"error": {"reason": 'No username or ID specified.'}})
+        if not (username or userid):
+            return anyjson.serialize({"status": {"error": True, "reason": 'No username or ID specified.'}})
+        user = self.get_user(username, userid)
         if not user:
-            return anyjson.serialize({"error": {"reason": 'Specified user does not exist.'}})
-        if hashlib.sha1(self.library.salt + old_pw_hash).hexdigest() != user['password']:
-            return anyjson.serialize({"error": {"reason": "Old password is incorrect."}})
-        if len(new_pw_hash) != 40:
-            return anyjson.serialize({"error": {"reason": 'Password must be supplied as a 40-character SHA-1 hash'}})
-        user['password'] = hashlib.sha1(self.library.salt + new_pw_hash).hexdigest()
+            return anyjson.serialize({"status": {"error": True, "reason": 'The specified user does not exist.'}})
+        if not old_password:
+            return anyjson.serialize({"status": {"error": True, "reason": 'You must supply an old password.'}})
+        elif hashlib.sha1(old_password).hexdigest() != user['password']:
+            return anyjson.serialize({"status": {"error": True, "reason": "The old password is incorrect."}})
+        if not new_password:
+            return anyjson.serialize({"status": {"error": True, "reason": 'You must supply a password.'}})
+        user['password'] = hashlib.sha1(new_password).hexdigest()
         self.library.db.save_doc(user)
-        return anyjson.serialize(self.library.db[userid])
+        return anyjson.serialize({"status": {"error": False, "user": self.library.db[userid]}})
 
     @cherrypy.expose
     def user_info(self, username=None, userid=None):
         cherrypy.response.headers['Content-Type'] = 'application/json'
-        if userid:
-            if not self.library.db.doc_exist(userid):
-                return anyjson.serialize({"error": {"reason": 'Specified user ID does not exist.'}})
-            return anyjson.serialize(self.library.db[userid])
-        if username:
-            for user in self.library.db.view('users/by_username', key=username):
-                return anyjson.serialize(user['value'])
-            return anyjson.serialize({"error": {"reason": 'Specified user does not exist.'}})
-        return anyjson.serialize({"error": {"reason": 'No username or ID specified.'}})
+        if not (username or userid):
+            return anyjson.serialize({"status": {"error": True, "reason": 'No username or ID specified.'}})
+        user = self.get_user(username, userid)
+        if user:
+            return anyjson.serialize({"status": {"error": False, "user": user}})
+        else:
+            return anyjson.serialize({"status": {"error": True, "reason": 'The specified user does not exist.'}})
+        
 
     @cherrypy.expose
     def config(self, set_option=None, get_option=None, value=None):
@@ -531,7 +515,22 @@ class WebInterface:
             pass
         finally:
             self.library.db.flush()
-
+    
+    def get_user(self, username=None, userid=None):
+        user = False
+        if userid:
+            if not self.library.db.doc_exist(userid):
+                return False
+            user = self.library.db[userid]
+        elif username:
+            for item in self.library.db.view('users/by_username', key=username):
+                user = item['value']
+            try:
+                userid = user['_id']
+            except:
+                return False
+        return user
+        
 
 def start():
     """Starts the CherryPy web server"""
@@ -556,7 +555,7 @@ def start():
             # return False
         # except:
             # return False
-        return hashlib.sha1(library.salt + hashlib.sha1(password).hexdigest()).hexdigest()
+        return hashlib.sha1(password).hexdigest()
     
     def cleartext(password):
         return password
