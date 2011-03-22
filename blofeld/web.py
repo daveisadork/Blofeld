@@ -23,7 +23,9 @@ import hashlib
 import mimetypes
 mimetypes.init()
 import types
+import time
 from random import shuffle
+from threading import Event
 
 import cherrypy
 from cherrypy.lib.static import serve_file
@@ -31,22 +33,26 @@ from cherrypy.lib.static import serve_file
 from Cheetah.Template import Template
 
 from blofeld.config import *
-from blofeld.transcode import transcode
+from blofeld.transcode import Transcoder
 import blofeld.utils as utils
 from blofeld.library import Library
 from blofeld.coverart import find_cover, resize_cover
 from blofeld.playlist import json_to_playlist
-from blofeld.log import logger, enable_console, enable_file
+from blofeld.log import logger
 from blofeld.download import create_archive
 
+library = Library()
+transcoder = Transcoder()
+shutting_down = Event()
 
 class WebInterface:
     """Handles any web requests, including API calls."""
     def __init__(self):
         # Create a library object to run queries against
-        self.library = Library()
+        self.library = library
         # Do a startup scan for new music
         thread.start_new_thread(self.library.update, ())
+        self.transcoder = transcoder
 
     @cherrypy.expose
     def index(self):
@@ -165,7 +171,7 @@ class WebInterface:
             log_message += "a song ID which could not be found: %s" % str(songid)
             logger.error(log_message)
             raise cherrypy.HTTPError(404)
-        log_message += "%(title)s by %(artist)s from %(album)s " % song
+        log_message += "%s by %s from %s " % (song['title'].encode(cfg['ENCODING']), song['artist'].encode(cfg['ENCODING']), song['album'].encode(cfg['ENCODING']))
         try:
             b = False
             #b = self.bc(cherrypy.request.headers['User-Agent'])
@@ -192,15 +198,20 @@ class WebInterface:
             song_format = [os.path.splitext(path)[1].lower()[1:]]
         if True in [True for x in song_format if x in ['mp3']]:
             song_mime = 'audio/mpeg'
+            song_format = ['mp3']
         elif True in [True for x in song_format if x in ['ogg', 'vorbis', 'oga']]:
             song_mime = 'audio/ogg'
+            song_format = ['ogg', 'vorbis', 'oga']
         elif True in [True for x in song_format if x in ['m4a', 'aac', 'mp4']]:
             song_mime = 'audio/x-m4a'
+            song_format = ['m4a', 'aac', 'mp4']
         else:
             song_mime = 'application/octet-stream'
         if not (format or bitrate):
             log_message += " The client did not request any specific format or bitrate so the file is being sent as-is (%s kbps %s)." % (str(song['bitrate'] / 1000), str(song_format))
-            logger.info(log_message.encode('utf-8'))
+            logger.info(log_message)
+            if not os.name == 'nt':
+                path = path.encode(cfg['ENCODING'])
             return serve_file(path, song_mime,
                                 "inline", os.path.split(path)[1])
         if format:
@@ -213,7 +224,9 @@ class WebInterface:
                 log_message += " The client requested %s kbps %s, but the file is already %s kbps %s, so the file is being sent as-is." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
             else:
                 log_message += " The client requested %s, but the file is already %s, so the file is being sent as-is." % (format, str(song_format))
-            logger.info(log_message.encode('utf-8'))
+            logger.info(log_message)
+            if not os.name == 'nt':
+                path = path.encode(cfg['ENCODING'])
             return serve_file(path, song_mime,
                                 "inline", os.path.split(path)[1])
         else:
@@ -221,7 +234,7 @@ class WebInterface:
                 log_message += " The client requested %s kbps %s, but the file is %s kbps %s, so we're transcoding the file for them." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
             else:
                 log_message += " The client requested %s, but the file %s, so we're transcoding the file for them." % (format, str(song_format))
-            logger.info(log_message.encode('utf-8'))
+            logger.info(log_message)
         # If we're transcoding audio and the client is trying to make range
         # requests, we have to throw an error 416. This sucks because it breaks
         # <audio> in all the WebKit browsers I've tried, but at least it stops
@@ -240,7 +253,7 @@ class WebInterface:
                 except:
                     pass
                 #cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
-                return transcode(path, 'mp3', bitrate)
+                return self.transcoder.transcode(path, 'mp3', bitrate)
         elif True in [True for x in format if x in ['ogg', 'vorbis', 'oga']]:
 #            cherrypy.response.headers['Content-Length'] = '-1'
             if range_request != 'bytes=0-':
@@ -249,7 +262,7 @@ class WebInterface:
             else:
                 cherrypy.response.headers['Content-Type'] = 'audio/ogg'
                 #cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
-                return transcode(path, 'ogg', bitrate)
+                return self.transcoder.transcode(path, 'ogg', bitrate)
         elif True in [True for x in format if x in ['m4a', 'aac', 'mp4']]:
 #            cherrypy.response.headers['Content-Length'] = '-1'
             if range_request != 'bytes=0-':
@@ -258,7 +271,7 @@ class WebInterface:
             else:
                 cherrypy.response.headers['Content-Type'] = 'audio/x-m4a'
                 #cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
-                return transcode(path, 'm4a', bitrate)
+                return self.transcoder.transcode(path, 'm4a', bitrate)
         else:
             raise cherrypy.HTTPError(501) 
     get_song._cp_config = {'response.stream': True}
@@ -495,15 +508,33 @@ class WebInterface:
         try:
             cherrypy.response.headers['Content-Type'] = 'application/json'
             logger.info("Received shutdown request, complying.")
+            self.transcoder.stop()
+            self.library.scanner.stop()
             return anyjson.serialize({'shutdown': True})
         except:
             pass
         finally:
+            logger.debug("Stopping CherryPy.")
             cherrypy.engine.exit()
 
+    @cherrypy.expose
+    def flush_db(self):
+        logger.debug("%s (%s)\tshutdown()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, cherrypy.request.headers))
+        if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['GROUPS']['admin']:
+            logger.warn("%(user)s (%(ip)s) requested that the database be flushed, but was denied because %(user)s is not a member of the admin group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
+            raise cherrypy.HTTPError(401,'Not Authorized')
+        try:
+            cherrypy.response.headers['Content-Type'] = 'application/json'
+            logger.info("Received flush database request, complying.")
+            return anyjson.serialize({'flush_db': True})
+        except:
+            pass
+        finally:
+            self.library.db.flush()
 
-def start(log_level='warn'):
-    """Starts the CherryPy web server and initiates the logging module."""
+
+def start():
+    """Starts the CherryPy web server"""
     
     library = Library()
     db = library.db
@@ -554,9 +585,30 @@ def start(log_level='warn'):
         }
 
     application = cherrypy.tree.mount(WebInterface(), '/', config=conf)
+    
+    if hasattr(cherrypy.engine, 'signal_handler'):
+        cherrypy.engine.signal_handler.subscribe()
+        del cherrypy.engine.signal_handler.handlers['SIGTERM']
+        del cherrypy.engine.signal_handler.handlers['SIGHUP']
 
     try:
         cherrypy.engine.start()
-        cherrypy.engine.block()
     except IOError:
         logger.critical("It appears that another instance of Blofeld is already running. If you're sure this isn't the case, make sure nothing else is using port %s." % cfg['PORT'])
+
+
+def block():
+    try:
+        while not shutting_down.is_set():
+            time.sleep(1)
+    except KeyboardInterrupt:
+        stop()
+
+
+def stop():
+    transcoder.stop()
+    library.stop()
+    logger.debug("Stopping web server.")
+    shutting_down.set()
+    cherrypy.engine.exit()
+        

@@ -20,6 +20,7 @@
 
 import os
 import sys
+import signal
 from multiprocessing import freeze_support
 from optparse import OptionParser
 
@@ -63,6 +64,19 @@ def get_options():
     return parser.parse_args()
 
 
+def set_exit_handler(func):
+    if os.name == "nt":
+        try:
+            import win32api
+            win32api.SetConsoleCtrlHandler(func, True)
+        except ImportError:
+            version = ".".join(map(str, sys.version_info[:2]))
+            raise Exception("pywin32 not installed for Python " + version)
+    else:
+        signal.signal(signal.SIGTERM, func)
+        signal.signal(signal.SIGHUP, func)
+
+
 def daemonize(name):
     # do the UNIX double-fork magic, see Stevens' "Advanced 
     # Programming in the UNIX Environment" for details (ISBN 0201563177)
@@ -76,7 +90,7 @@ def daemonize(name):
         sys.exit(1)
 
     # decouple from parent environment
-    os.chdir("/") 
+    os.chdir(".") 
     os.setsid() 
     os.umask(0) 
 
@@ -98,6 +112,14 @@ def daemonize(name):
     libc.prctl(15, byref(buff), 0, 0, 0)
 
 
+def shutdown(sig=signal.SIGTERM, func=None):
+    if sig is signal.SIGTERM:
+        logger.info("Received SIGTERM, shutting down.")
+    else:
+        logger.info("User pressed Ctrl+C, shutting down.")
+    blofeld.web.stop()
+
+
 if __name__ == "__main__":
     freeze_support()
     (options, args) = get_options()
@@ -109,6 +131,9 @@ if __name__ == "__main__":
             print "Blofeld git branch %s, commit %s" % (blofeld.__version__, blofeld.__revision__)
         sys.exit()
     if options.daemonize:
+        if os.name == "nt":
+            print "The daemonize option is not available on your OS."
+            sys.exit()
         daemonize(sys.argv[0])
     from blofeld.config import cfg
     if options.config_file:
@@ -143,13 +168,26 @@ if __name__ == "__main__":
     else:
         enable_console()
     logger.debug("Logging initialized.")
+    set_exit_handler(shutdown)
+    logger.debug("Configuring the web server.")
     cfg['CHERRYPY_OUTPUT'] = options.cherrypy
+    logger.debug("Writing PID file.")
     with open(cfg['PID_FILE'], "w") as pidfile:
         pickle.dump({'cfg': cfg, 'options': options, 'args': args, 'pid': os.getpid()}, pidfile)
-    import blofeld.web
     logger.info("Starting web server at %s:%s" % (cfg['HOSTNAME'], cfg['PORT']))
-    blofeld.web.start()
-    logger.debug("Removing PID file at %s" % cfg['PID_FILE'])
-    os.remove(cfg['PID_FILE'])
+    try:
+        import blofeld.web
+        blofeld.web.start()
+        set_exit_handler(shutdown)
+        blofeld.web.block()
+    except KeyboardInterrupt:
+        if not os.name == "nt":
+            shutdown()
+    logger.debug("The web server has stopped.")
+    logger.debug("Removing PID file.")
+    try:
+        os.remove(cfg['PID_FILE'])
+    except:
+        pass
     sys.exit()
 

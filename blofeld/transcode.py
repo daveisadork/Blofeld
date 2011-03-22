@@ -16,25 +16,26 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
-import sys
+import os
 import time
 from multiprocessing import Process, Pipe
-
-import pygst
-pygst.require('0.10')
-import gst
+from Queue import Queue
 
 from blofeld.config import cfg
 from blofeld.log import logger
 
 
 def transcode_process(conn, path, format='mp3', bitrate=False):
+    import pygst
+    pygst.require('0.10')
+    import gst
+
     # If we were passed a bitrate argument, make sure it's actually a number
     try:
         bitrate = int(bitrate)
     except:
         bitrate = False
-    log_message = "Transcoding %s to %s" % (path, format)
+    log_message = "Transcoding %s to %s" % (path.encode(cfg['ENCODING']), format)
     # Create our transcoding pipeline using one of the strings at the end of
     # this module.
     transcoder = gst.parse_launch(pipeline[format])
@@ -55,10 +56,11 @@ def transcode_process(conn, path, format='mp3', bitrate=False):
             #encoder.set_property("profile", 1)
             #muxer.set_property("faststart", True)
     # Load our file into the transcoder
-    #logger.info(log_message + ".")
+    log_message += "."
+    logger.info(log_message)
     source = transcoder.get_by_name('source')
     try:
-        source.set_property("location", path)
+        source.set_property("location", path.encode('utf-8'))
         # Set the output to be asynchronous so the transcoding happens as quickly
         # as possible rather than real time.
         output = transcoder.get_by_name('output')
@@ -77,34 +79,47 @@ def transcode_process(conn, path, format='mp3', bitrate=False):
         except:
             logger.warn("Some type of error occured during transcoding.")
     except:
-        logger.error("Could not open the file for transcoding. If you're using Windows, it's probably because there are non-ASCII characters in the filename")
+        logger.error("Could not open the file for transcoding. This is probably happening because there are non-ASCII characters in the filename.")
     finally:
-        # I think this is supposed to free the memory used by the transcoder
-        transcoder.set_state(gst.STATE_NULL)
+        try:
+            # I think this is supposed to free the memory used by the transcoder
+            transcoder.set_state(gst.STATE_NULL)
+        except:
+            pass
         conn.send(False)
         conn.close()
 
-
-def transcode(path, format='mp3', bitrate=False):
-    try:
-        start_time = time.time()
-        parent_conn, child_conn = Pipe()
-        process = Process(target=transcode_process, args=(child_conn, path, format, bitrate))
-        process.start()
-        while True:
-            data = parent_conn.recv()
-            if not data:
-                break
-            yield data
-    except GeneratorExit:
-        process.terminate()
-        logger.debug("User canceled the request during transcoding.")
-    except:
-        logger.warn("Some type of error occured during transcoding.")
-    finally:
-        parent_conn.close()
-        process.join()
-        logger.debug("Transcoded %s in %0.2f seconds." % (path, time.time() - start_time))
+class Transcoder:
+    def __init__(self):
+        self.stopping = False
+    
+    def stop(self):
+        logger.debug("Preventing new transcoding processes.")
+        self.stopping = True
+        
+    def transcode(self, path, format='mp3', bitrate=False):
+        if self.stopping:
+            return
+        try:
+            start_time = time.time()
+            parent_conn, child_conn = Pipe()
+            process = Process(target=transcode_process, args=(child_conn, path, format, bitrate))
+            process.start()
+            while True:
+                data = parent_conn.recv()
+                if not data:
+                    break
+                yield data
+            logger.debug("Transcoded %s in %0.2f seconds." % (path.encode(cfg['ENCODING']), time.time() - start_time))
+        except GeneratorExit:
+            process.terminate()
+            logger.debug("User canceled the request during transcoding.")
+        except:
+            process.terminate()
+            logger.warn("Some type of error occured during transcoding.")
+        finally:
+            parent_conn.close()
+            process.join()
 
 # These are the transcoding pipelines we can use. I should probably add more
 pipeline = {
@@ -118,5 +133,5 @@ pipeline = {
 
 # The win32 port of gstreamer apparently doesn't have id3mux or id3v2mux so we have to use 
 # ffmux_mp3 instead.
-if sys.platform == "win32":
+if os.name == "nt":
     pipeline['mp3'] = "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! ffmux_mp3 name=muxer ! appsink name=output"

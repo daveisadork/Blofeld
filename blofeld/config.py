@@ -125,7 +125,6 @@ class Config(dict):
             self['CONFIG_FILE'] = os.path.join(self['CONFIG_DIR'],
                                                'blofeld.cfg')
 
-        
 
         self._cfg = ConfigParser.SafeConfigParser()
 

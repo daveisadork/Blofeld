@@ -18,10 +18,10 @@
 
 from operator import itemgetter, attrgetter
 from time import time
-import threading
 import urlparse
 import uuid
 import os
+import threading
 
 from couchdbkit import *
 from couchdbkit.loaders import FileSystemDocsLoader
@@ -29,7 +29,7 @@ from restkit import BasicAuth
 import anyjson
 
 from blofeld.config import cfg
-from blofeld.library.filesystem import load_music_from_dir
+from blofeld.library.filesystem import Scanner
 import blofeld.utils as utils
 from blofeld.log import logger
 
@@ -71,10 +71,13 @@ class Library:
                   db_password=cfg['COUCHDB_PASSWORD']):
         """Sets up the database connection and starts loading songs."""
         # Initiate a connection to the database server
+        self.shutting_down = threading.Event()
+        logger.debug("Initiating the database connection.")
         auth = BasicAuth(db_username, db_password)
         self._server = Server(db_url, filters=[auth])
         # Get a reference to our database
         self.db = self._server.get_or_create_db("blofeld")
+        logger.debug("Loading database design documents.")
         # Load our database views from the filesystem
         loader = FileSystemDocsLoader(os.path.join(cfg['ASSETS_DIR'],
                                       'views/_design'))
@@ -87,18 +90,38 @@ class Library:
         self.salt = self.db["salt"]["value"]
         self.updating = threading.Lock()
         self.cache = BlofeldCache(self.db)
+        self.scanner = Scanner(cfg['MUSIC_PATH'], self.db)
 
     def update(self, verbose=False):
         """Figures out which backend to load and then updates the database"""
-        if not self.updating.acquire(False):
-            logger.warn("Library update requested, but one is already in progress.")
-            return
         logger.info("Starting library update.")
         start_time = time()
-        load_music_from_dir(cfg['MUSIC_PATH'], self.db)
+        self.scanner.update()
         finish_time = time() - start_time
         logger.info("Updated library in %0.2f seconds." % finish_time)
-        self.updating.release()
+        self.cache_thread = threading.Thread(target=self.build_cache)
+        self.cache_thread.start()
+        
+    def stop(self):
+        logger.info("Preventing new library calls.")
+        self.shutting_down.set()
+        self.scanner.stop()
+        
+    def build_cache(self):
+        logger.debug("Building the database cache.")
+        if not self.shutting_down.is_set():
+            self.artists()
+        if not self.shutting_down.is_set():
+            self.albums()
+        if not self.shutting_down.is_set():
+            self.songs(suggest="The")
+        if not self.shutting_down.is_set():
+            self.artists(query="The")
+        if not self.shutting_down.is_set():
+            self.albums(query="The")
+        if not self.shutting_down.is_set():
+            self.songs(query="The")
+        logger.debug("Finished building the database cache.")
 
     def songs(self, artists=None, albums=None, query=None, suggest=None):
         '''Returns a list of songs as dictionary objects.'''
@@ -298,4 +321,3 @@ class Library:
         finish_time = time() - start_time
         logger.debug("Generated list of %d artists in %0.2f seconds." % (len(result), finish_time))
         return result
-

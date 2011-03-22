@@ -117,7 +117,7 @@
                                 <td class="ui-corner-all">Administration</td>
                             </tr> 
                             <tr name="debugging" class="source" >
-                                <td class="ui-corner-all">Debugging</td>
+                                <td class="ui-corner-all">Debugging</td> 
                             </tr> 
                         </tbody>
                     </table>
@@ -208,8 +208,29 @@
                                 </div>
                                 <div class="option">
                                     <input id="html5-audio" type="checkbox">
-                                    <label for="html5-audio">Try to use HTML5 audio</label>
-                                    <div><em>Currently using <span id="player-type"></span></em></div>
+                                    <label for="html5-audio">Prefer HTML5 &lt;audio&gt; over Flash</label>
+                                </div>
+                                <div class="option">
+                                    <button id="apply-player-prefs-button">Apply</button> (will interrupt playback)
+                                </div>
+                                <div class="option">
+                                    <h3>Playback solutions</h3>
+                                    <ul id="jplayer-solutions">
+                                        <li>HTML5
+                                            <ul class="html">
+                                            <li>Available: <span class="available"></span></li>
+                                            <li>Preferred: <span class="preferred"></span></li>
+                                            <li>Used: <span class="used"></span></li>
+                                            <li>Formats: <span class="formats"></span></li>
+                                        </ul></li>
+                                        <li>Flash
+                                            <ul class="flash">
+                                            <li>Available: <span class="available"></span></li>
+                                            <li>Preferred: <span class="preferred"></span></li>
+                                            <li>Used: <span class="used"></span></li>
+                                            <li>Formats: <span class="formats"></span></li>
+                                        </ul></li>
+                                    </ul>
                                 </div>
                                 <div class="option">
                                     <div id="switcher"></div>
@@ -274,6 +295,7 @@
                         </thead>
                         <tbody>
                             <tr><td>
+                                <div id="jplayer-events"></div>
                                 <ul id="jplayer-inspector"></ul>
                             </td></tr>
                         </tbody>
@@ -351,7 +373,7 @@
     <script src="static/js/jquery-ui-1.8.9.min.js"></script>
 
     <!-- jQueryUI Theme Switcher -->
-    <!-- <script src="http://jqueryui.com/themeroller/themeswitchertool/"></script> -->
+    <script src="http://jqueryui.com/themeroller/themeswitchertool/"></script>
 
     <!-- Try to detect IE8 Compatibility Mode and notify the user they need to
     change their settings because that will render this site in a horribly 

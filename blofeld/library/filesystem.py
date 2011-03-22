@@ -15,11 +15,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
+from __future__ import division
 import os
 import hashlib
 from time import time, sleep
 import urllib
-from multiprocessing import Process, Pool, Queue, Event, Lock
+from multiprocessing import Pool
+from Queue import Queue
+import threading
 
 import mutagen
 
@@ -27,225 +30,316 @@ from blofeld.config import cfg
 from blofeld.log import logger
 
 
-def load_music_from_dir(music_path, couchdb):
-    """Scans music_path for songs, adds new/changed songs to couchdb and
-    removes any songs that have gone missing.
-    """
-    # Clean the database of files that no longer exist and get a list of the
-    # remaining songs in the database.
-    records = remove_missing_files(music_path, couchdb,
-                                   couchdb.view('songs/mtime'))
-    start_time = time()
-    logger.debug("Scanning for new files.")
-    # Create queues for songs that need to be read and saved to the DB
-    read_queue = Queue()
-    db_queue = Queue()
-    changed = 0
-    unchanged = 0
-    # Iterate through all the folders and files in music_path
-    for root, dirs, files in os.walk(music_path):
-        for item in files:
-            # Get the file extension, e.g. 'mp3' or 'flac', and see if it's in
-            # the list of extensions we're supposed to look for.
-            extension = os.path.splitext(item)[1].lower()[1:]
-            if extension in cfg['MUSIC_EXTENSIONS']:
-                # Get the full decoded path of the file. The decoding part is
-                # important if the filename includes non-ASCII characters.
-                location = os.path.join(root, item)
-                # Generate a unique ID for this song by making a SHA-1 hash of
-                # its location.
-                id = hashlib.sha1(location.encode('utf-8')).hexdigest()
-                # Get the time that this file was last modified
-                mtime = str(os.stat(os.path.join(root, item))[8])
-                # Find out if this song is already in the database and if so
-                # whether it has been modified since the last time we scanned
-                # it.
-                try:
-                    record_mtime = records[id]['mtime']
-                except:
-                    record_mtime = None
-                if mtime != record_mtime:
-                    try:
-                        revision = records[id]['_rev']
-                    except:
-                        revision = None
-                    # Add the song to the queue to be read
-                    read_queue.put((location, id, mtime, extension, revision))
-                else:
-                    unchanged += 1
-    if read_queue.qsize() < 1:
-        logger.debug("No new files found.")
-        return
-    logger.debug("Queued %d songs for reading." % read_queue.qsize())
-    # This lets us check whether the process that is dealing with the read 
-    # read is still working or not.
-    scanning = Event()
-    # Ditto for the database process
-    db_lock = Lock()
-    # Spawn a new process to handle the queue of files that need read.
-    scanning_process = Process(target=process_read_queue, args=(read_queue,
-                                      db_queue, scanning, start_time, records))
-    scanning_process.start()
-    # Spawn a new process to handle the queue of items that need added to the
-    # database.
-    db_process = Process(target=add_items_to_db,
-                         args=(couchdb, scanning, db_queue, db_lock))
-    db_lock.acquire()
-    db_process.start()
-    # Block while we wait for everything to finish
-    db_lock.acquire()
-    # Join our processes back
-    scanning_process.join()
-    db_process.join()
-    finish_time = time() - start_time
-    logger.debug("Added all new songs in %0.2f seconds." % finish_time)
+class Scanner:
+    def __init__(self, music_path, couchdb):
+        self.music_path = music_path
+        self.couchdb = couchdb
+        # Create the shared objects our various threads and processes will be
+        # using to communicate.
+        self.read_queue = Queue()
+        self.db_queue = Queue()
+        self.scanning = threading.Event()
+        self.updating = threading.Event()
+        self.cleaning = threading.Event()
+        self.reading = threading.Event()
+        self.compacting = threading.Event()
+        self.db_working = threading.Event()
+        self.stopping = threading.Event()
 
-
-def add_items_to_db(couchdb, scanning, db_queue, db_lock):
-    # While the read queue is still being processed or we have stuff waiting
-    # to be added to the database...
-    while (scanning.is_set() or db_queue.qsize() > 0):
-        if db_queue.qsize() == 0:
-            # Files are still being read, but we don't have anything to add to 
-            # the database so we'll try again.
-            sleep(2)
-        else:
-            songs = []
-            while db_queue.qsize() > 0:
-                # Grab all the items out of the database queue
-                songs.extend(db_queue.get())
-            updated = 0
-            new = []
-            for song in songs:
-                if song is None:
-                    # There must've been a problem reading this file so we'll
-                    # remove it from the list
-                    del song
-                else:
-                    # Get the metadata ready to send to the database
-                    new.append(song)
-                    if "_rev" in song:
-                        updated += 1
-            # Make our changes to the database
-            couchdb.bulk_save(new)
-            logger.debug("Added %d songs to the database, %d of which already existed." % (len(new), updated))
-    # Compact the database so it doesn't get too huge. Really only needed
-    # if we've added a bunch of files, maybe we should check for that.
-    couchdb.compact()
-    # Release the lock on the database so the main process knows we're finished
-    db_lock.release()
-
-
-def process_read_queue(read_queue, db_queue, working, start_time, records):
-    # This lets the other processes know that we're working on reading files
-    working.set()
-    # Create a pool of processes to handle the actual reading of tags
-    pool = Pool()
-    queue_size = read_queue.qsize()
-    while read_queue.qsize() > 0:
-        args_list = []
-        # Get 100 songs from the queue
-        for x in range(100):
-            try:
-                args_list.append(read_queue.get(timeout=1))
-            except:
+    def stop(self):
+        if not self.stopping.is_set():
+            logger.debug("Stopping the file scanner.")
+            self.stopping.set()
+        for timeout in range(10):
+            if not self.updating.is_set():
                 break
-        # Read the tags from the 100 songs and then stick the results in the
-        # database queue.
-        db_queue.put(pool.map(read_song, args_list))
-        logger.debug("Processed %d items in %0.2f seconds" % (queue_size - read_queue.qsize(), time() - start_time))
-    pool.close()
-    pool.join()
-    # Let the other processes know we're finished.
-    working.clear()
-
-
-def read_song(args):
-    # Figure out which function we need to use to read the tags from this file
-    # and then call it.
-    if args[3] == 'wma':
-        song = read_wma(args[0], args[1], args[2], args[4])
-    else:
-        song = read_metadata(args[0], args[1], args[2], args[4])
-    # Return a tuple with the song metadata and whether this item was already
-    # in the database.
-    return song
-
-
-def remove_missing_files(music_path, couchdb, records):
-    """Search music_path to find if any of the songs in records have been
-    removed, and then remove them from couchdb.
-    """
-    start_time = time()
-    logger.debug("Searching for changed/removed files.")
-    # Create a list of files that are missing and need to be removed and also
-    # a dict that is going to hold all of the songs from the database whose
-    # corresponding files still exist.
-    remove = []
-    songs = {}
-    removed = 0
-    for song in records:
-        path = song['key']
-        # Check if the file this database record points to is still there, and
-        # add it to the list to be removed if it's not.
-        if not os.path.isfile(path) or not path.startswith(music_path):
-            remove.append(couchdb[song['id']])
-            removed += 1
-            # Once our list of songs to be removed hits 100, delete them all in
-            # a batch. This is much quicker than doing them one at a time.
-            if removed % 100 == 0:
-                couchdb.bulk_delete(remove)
-                remove = []
-                logger.debug("Removed %d songs in %0.2f seconds." % (removed, time() - start_time))
+            sleep(1)
+        if self.updating.is_set():
+            logger.debug("Timed out waiting for file scanner to stop.")
         else:
-            # Add the song to the dict we're going to return
-            songs[song['id']] = song['value']
-    # We ran out of songs without hitting the magic number 100 to trigger a
-    # batch delete, so let's get any stragglers now.
-    couchdb.bulk_delete(remove)
-    logger.debug("Removed %d songs in %0.2f seconds." % (removed, time() - start_time))
-    return songs
+            self.stopping.clear()
+        if not self.stopping.is_set():
+            logger.debug("File scanner has stopped.")
+
+    def exit(self):
+        if self.stopping.is_set() and self.updating.is_set():
+            if self.scanning.is_set() and self.scan_thread.is_alive():
+                self.pool.terminate()
+
+    def update(self):
+        """Initiates the process of updating the database by removing any songs
+        that have gone missing, adding new songs and updating changed songs.
+        """
+        if self.updating.is_set():
+            logger.warn("Library update requested, but one is already in progress.")
+            return False
+        self.updating.set()
+        # Clean the database of files that no longer exist and get a list of the
+        # remaining songs in the database.
+        self.clean_thread = threading.Thread(target=self._clean)
+        self.clean_thread.start()
+        self.cleaning.wait(None)
+        self.clean_thread.join()
+        self.start_time = time()
+        # Create a queue of files from which we need to read metadata.
+        self.scan_thread = threading.Thread(target=self._scan)
+        self.scan_thread.start()
+        self.scanning.wait(None)
+        self.scan_thread.join()
+        if self.read_queue.qsize() > 0:
+            # Spawn a new thread to handle the queue of files that need read.
+            self.read_thread = threading.Thread(target=self._process_read_queue)
+            self.read_thread.start()
+            # Give the read_thread a chance to get going and then spawn a new
+            # thread to handle inserting metadata into the database.
+            sleep(5)
+            self.db_thread = threading.Thread(target=self._add_items_to_db)
+            self.db_thread.start()
+            # Block while we wait for everything to finish
+            self.db_working.wait(None)
+            # Join our threads back
+            self.read_thread.join()
+            self.db_thread.join()
+        # Compact the database so it doesn't get unreasonably large. We do this
+        # in a separate thread so we can go ahead and return since the we've
+        # added everything we need to the database already and we don't want
+        # to wait for this to finish.
+        self.compact_thread = threading.Thread(target=self._compact)
+        self.compact_thread.start()
+        self.updating.clear()
+        finish_time = time() - self.start_time
+        logger.debug("Added all new songs in %0.2f seconds." % finish_time)
+
+    def status(self):
+        if not self.updating.is_set():
+            return {'status': 'Idle'}
+        elif self.scanning.is_set():
+            return {'status': 'Scanning'}
+        elif self.reading.is_set():
+            return {
+                'status': 'Reading',
+                'total_songs': self.songs_total,
+                'remaining_songs': self.read_queue.qsize()
+            }
+        else:
+            return None
+
+    def _compact(self):
+        if self.stopping.is_set():
+            return
+        self.compacting.set()
+        self.couchdb.compact()
+        self.compacting.clear()
+
+    def _scan(self):
+        """Scans the music_path to find songs that need to be added to the
+        database and adds those files to the read_queue.
+        """
+        if self.stopping.is_set():
+            return
+        logger.debug("Scanning for new files.")
+        self.scanning.set()
+        changed = 0
+        unchanged = 0
+        # Iterate through all the folders and files in music_path
+        for root, dirs, files in os.walk(self.music_path):
+            if self.stopping.is_set():
+                break
+            for item in files:
+                # Get the file extension, e.g. 'mp3' or 'flac', and see if it's in
+                # the list of extensions we're supposed to look for.
+                extension = os.path.splitext(item)[1].lower()[1:]
+                if extension in cfg['MUSIC_EXTENSIONS']:
+                    # Get the full decoded path of the file. The decoding part is
+                    # important if the filename includes non-ASCII characters.
+                    location = os.path.join(root, item)
+                    # Generate a unique ID for this song by making a SHA-1 hash of
+                    # its location.
+                    id = hashlib.sha1(location.encode('utf-8')).hexdigest()
+                    # Get the time that this file was last modified
+                    mtime = str(os.stat(os.path.join(root, item))[8])
+                    # Find out if this song is already in the database and if so
+                    # whether it has been modified since the last time we scanned
+                    # it.
+                    try:
+                        record_mtime = self.records[id]['mtime']
+                    except:
+                        record_mtime = None
+                    if mtime != record_mtime:
+                        try:
+                            revision = self.records[id]['_rev']
+                        except:
+                            revision = None
+                        # Add the song to the queue to be read
+                        self.read_queue.put((location, id, mtime, revision))
+                    else:
+                        unchanged += 1
+        self.songs_total = self.read_queue.qsize()
+        self.scanning.clear()
+        if self.read_queue.qsize() < 1:
+            logger.debug("No new files found.")
+            return False
+        logger.debug("Queued %d songs for reading." % self.read_queue.qsize())
+        return True
+
+    def _add_items_to_db(self):
+        """Watches the db_queue for metadata from songs and inserts that data
+        into the database.
+        """
+        # While the read queue is still being processed or we have stuff waiting
+        # to be added to the database...
+        self.db_working.set()
+        while self.reading.is_set() or self.db_queue.qsize() > 0 and not self.stopping.is_set():
+            if self.db_queue.qsize() > 0:
+                songs = []
+                while self.db_queue.qsize() > 0:
+                    # Grab all the items out of the database queue
+                    songs.extend(self.db_queue.get())
+                updated = 0
+                new = []
+                for song in songs:
+                    if song is None:
+                        # There must've been a problem reading this file so 
+                        # we'll skip it.
+                        continue
+                    else:
+                        # Get the metadata ready to send to the database
+                        new.append(song)
+                        if "_rev" in song:
+                            updated += 1
+                # Make our changes to the database
+                self.couchdb.bulk_save(new)
+                logger.debug("Added %d songs to the database, %d of which already existed." % (len(new), updated))
+            sleep(5)
+        self.db_working.clear()
+
+    def _process_read_queue(self):
+        """Spawns a pool of worker processes to handle reading the metadata
+        from all of the files in the read_queue.
+        """
+        self.reading.set()
+        # Create a pool of processes to handle the actual reading of tags.
+        # Using processes instead of threads lets us take full advantage of
+        # multi-core CPUs so this operation doesn't take as long.
+        self.pool = Pool()
+        queue_size = self.read_queue.qsize()
+        while self.read_queue.qsize() > 0 and not self.stopping.is_set():
+            args_list = []
+            # Get 100 songs from the queue
+            for x in range(100):
+                try:
+                    args_list.append(self.read_queue.get(timeout=1))
+                except:
+                    break
+            # Read the tags from the 100 songs and then stick the results in the
+            # database queue.
+            try:
+                self.db_queue.put(self.pool.map(read_metadata, args_list))
+            except:
+                logger.error("Error processing read queue.")
+            logger.debug("Processed %d items in %0.2f seconds" % (queue_size - self.read_queue.qsize(), time() - self.start_time))
+        self.pool.close()
+        self.pool.join()
+        self.reading.clear()
+
+    def _clean(self):
+        """Searches music_path to find if any of the songs in records have been
+        removed, and then remove them from couchdb.
+        """
+        if self.stopping.is_set():
+            return
+        self.cleaning.set()
+        logger.debug("Searching for changed/removed files.")
+        start_time = time()
+        records = self.couchdb.view('songs/mtime')
+        # Create a list of files that are missing and need to be removed and also
+        # a dict that is going to hold all of the songs from the database whose
+        # corresponding files still exist.
+        remove = []
+        songs = {}
+        removed = 0
+        for song in records:
+            if self.stopping.is_set():
+                break
+            path = song['key']
+            # Check if the file this database record points to is still there, and
+            # add it to the list to be removed if it's not.
+            if not os.path.isfile(path) or not path.startswith(self.music_path):
+                remove.append(self.couchdb[song['id']])
+                removed += 1
+                # Once our list of songs to be removed hits 100, delete them all in
+                # a batch. This is much quicker than doing them one at a time.
+                if removed % 100 == 0:
+                    self.couchdb.bulk_delete(remove)
+                    remove = []
+                    logger.debug("Removed %d songs in %0.2f seconds." % (removed, time() - start_time))
+            else:
+                # Add the song to the dict we're going to return
+                songs[song['id']] = song['value']
+        # We ran out of songs without hitting the magic number 100 to trigger a
+        # batch delete, so let's get any stragglers now.
+        self.couchdb.bulk_delete(remove)
+        logger.debug("Removed %d songs in %0.2f seconds." % (removed, time() - start_time))
+        self.records = songs
+        self.cleaning.clear()
 
 
-def read_metadata(location, id, mtime, revision):
-    """Uses Mutagen to read the metadata of a file and returns it as a dict"""
-    # Try to open the file
+def read_metadata((location, id, mtime, revision)):
+    """Uses Mutagen to read the metadata of a file and returns it as a dict."""
+    # Try to open the file and read its tags
     try:
         metadata = mutagen.File(location, None, True)
     except:
         logger.error("%s made Mutagen explode." % location)
         return None
-    # Create the metadata object we're going to return
-    song = {}
-    # Set the '_id' property which CouchDB uses as a UUID
-    song['_id'] = id
-    song['location'] = location
-    song['type'] = 'song'
-    song['mtime'] = mtime
+    # Create the metadata object we're going to return with some default values
+    # filled in. This is just in case there aren't tags for these things so 
+    # we don't run into problems elsewhere with this data not being there.
+    song = {
+        "_id": id,
+        "location": location,
+        "title": os.path.split(location)[1],
+        "mtime": mtime,
+        "artist": "Unknown Artist",
+        "album": "Unknown Album",
+        "genre": [],
+        "date": "",
+        "tracknumber": 0,
+        "bitrate": 0,
+        "length": 0,
+        "type": "song"
+    }
     if revision:
         song['_rev'] = revision
     # Try to set the length of the song in seconds, the bitrate in bps and the
-    # mimetype of the file.
-    try: song['length'] = metadata.info.length
-    except: song['length'] = 0
-    try: song['bitrate'] = metadata.info.bitrate
-    except: song['bitrate'] = 0
-    try: song['mimetype'] = metadata.mime[0]
-    except: pass
+    # mimetype and a default track number of the file.
+    try:
+        song['length'] = metadata.info.length
+    except:
+        pass
+    try:
+        song['bitrate'] = metadata.info.bitrate
+    except:
+        pass
+    try:
+        song['mimetype'] = metadata.mime[0]
+    except:
+        pass
+    # Now we parse all the metadata we read and transfer it to our song object.
+    if os.path.splitext(location)[1].lower()[1:] == 'wma':
+        song = parse_wma(song, metadata)
+    else:
+        song = parse_metadata(song, metadata)
     # Create artist and album IDs which are just SHA-1 hashes of each field
-    try:
-        artist = metadata['artist'][0]
-        song['artist_hash'] = hashlib.sha1(artist.encode('utf-8')).hexdigest()
-    except:
-        artist = "Unknown Artist"
-        song['artist_hash'] = hashlib.sha1(artist.encode('utf-8')).hexdigest()
-    try:
-        album = metadata['album'][0]
-        song['album_hash'] = hashlib.sha1(album.encode('utf-8')).hexdigest()
-    except:
-        album = "Unknown Album"
-        song['album_hash'] = hashlib.sha1(album.encode('utf-8')).hexdigest()
-    # Go through each tag we read from the file and add it to our ojbect.
+    song['artist_hash'] = hashlib.sha1(song['artist'].encode('utf-8')).hexdigest()
+    song['album_hash'] = hashlib.sha1(song['album'].encode('utf-8')).hexdigest()
+    return song
+
+
+def parse_metadata(song, metadata):
+    """Parses a Mutagen metadata object and transfers the data to a song object
+    that is suitable to insert into our database.
+    """
     for tag, value in metadata.iteritems():
         try:
             # Mutagen returns all metadata as lists, so normally we'd just get
@@ -273,50 +367,11 @@ def read_metadata(location, id, mtime, revision):
     return song
 
 
-def read_wma(location, id, mtime, revision):
-    """Uses Mutagen to read the metadata of a WMA file and returns it as a
-    dict. WMA files need special treatment because unlike MP3 and MP4, Mutagen
-    doesn't offer an 'easy' interface to get metadata from WMA files. So, where
-    we'd normally get the album title like song['album'], with WMA we have to
-    use song['WM/AlbumTitle']. So, we use dict called asf_map to map the WMA
-    specific values to what we want them to be in the database.
+def parse_wma(song, metadata):
+    """Parses a Mutagen WMA metadata object and transfers that data to a song
+    object using a dict to map the WMA tag names to ones that we want them to
+    be. This is a specialized version of parse_metadata().
     """
-    # Try to open the file
-    try:
-        metadata = mutagen.File(location, None, True)
-    except:
-        logger.error("%s made Mutagen explode." % location)
-        return None
-    # Create the metadata object we're going to return
-    song = {}
-    # Set the '_id' property which CouchDB uses as a UUID
-    song['_id'] = id
-    song['location'] = location
-    song['type'] = 'song'
-    song['mtime'] = mtime
-    if revision:
-        song['_rev'] = revision
-    # Try to set the length of the song in seconds, the bitrate in bps and the
-    # mimetype of the file.
-    try: song['length'] = metadata.info.length
-    except: song['length'] = 0
-    try: song['bitrate'] = metadata.info.bitrate
-    except: song['bitrate'] = 0
-    try: song['mimetype'] = metadata.mime[0]
-    except: pass
-    # Create artist and album IDs which are just SHA-1 hashes of each field
-    try:
-        artist = metadata['Author'][0]
-        song['artist_hash'] = hashlib.sha1(artist.encode('utf-8')).hexdigest()
-    except:
-        artist = "Unknown Artist"
-        song['artist_hash'] = hashlib.sha1(artist.encode('utf-8')).hexdigest()
-    try:
-        album = metadata['WM/AlbumTitle'][0]
-        song['album_hash'] = hashlib.sha1(album.encode('utf-8')).hexdigest()
-    except:
-        album = "Unknown Album"
-        song['album_hash'] = hashlib.sha1(album.encode('utf-8')).hexdigest()
     for tag, value in metadata.iteritems():
         try:
             # Mutagen returns all metadata as lists, so normally we'd just get
@@ -370,5 +425,6 @@ asf_map = {
     'MusicBrainz/Album Type': 'musicbrainz_albumtype',
     'MusicBrainz/Album Release Country': 'releasecountry',
     'WM/Publisher': 'organization',
-    'WM/PartOfSet': 'discnumber'
+    'WM/PartOfSet': 'discnumber',
+    'WM/OriginalReleaseYear': 'originaldate'
     }
