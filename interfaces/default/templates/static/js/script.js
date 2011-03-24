@@ -33,12 +33,6 @@
         formats = {html: [], flash: []},
         solutions = ["flash", "html"],
         activeSolution = null,
-        ajaxQueue = {
-            artists: null,
-            albums: null,
-            songs: null,
-            tags: null
-        },
         state = {
             selectedAlbums: [],
             selectedArtists: [],
@@ -195,63 +189,46 @@
         listArtists = function (query, highlight) {
             var offset
             $("#artists-container").addClass('ui-state-disabled')
-            $("#artists-container").blofeld("listArtists", query, function (response) {
-                $("#artist-count").html($("#artists .artist").not("#all-artists").size());
-                if (highlight) {
-                    state.selectedArtists = highlight;
-                }
-                if (state.selectedArtists.length > 0) {
-                    $(".artist").removeClass('ui-state-default');
-                    state.selectedArtists.forEach(function (artistHash) {
-                        $('#' + artistHash).addClass('ui-state-default');
+                .blofeld("listArtists", query, function () {
+                    $("#artist-count").html($("#artists .artist").not("#all-artists").size());
+                    if (highlight) {
+                        state.selectedArtists = highlight;
+                    }
+                    if (state.selectedArtists.length > 0) {
+                        $(".artist").removeClass('ui-state-default');
+                        state.selectedArtists.forEach(function (artistHash) {
+                            $('#' + artistHash).addClass('ui-state-default');
+                        });
+                    } else {
+                        $('#all-artists').addClass('ui-state-default');
+                    }
+                    var selectedArtists = [];
+                    $('.artist.ui-state-default').not("#all-artists").each(function () {
+                        selectedArtists.push($(this).attr('id'));
                     });
-                } else {
-                    $('#all-artists').addClass('ui-state-default');
-                }
-                var selectedArtists = [];
-                $('.artist.ui-state-default').not("#all-artists").each(function () {
-                    selectedArtists.push($(this).attr('id'));
+                    if (selectedArtists.length === 0) {
+                        $('#all-artists').addClass('ui-state-default');
+                    }
+                    state.selectedArtists = selectedArtists;
+                    if (state.selectedArtists.length > 0) {
+                        $.address.parameter('artists', state.selectedArtists);
+                    } else {
+                        $.address.parameter('artists', null);
+                    }
+                    offset = $('.artist.ui-state-default').first().position().top - $('#artists-container').height() / 2;
+                    $('#artists-container div').scrollTop(offset);
+                    $("#artists-container").removeClass('ui-state-disabled')
                 });
-                if (selectedArtists.length === 0) {
-                    $('#all-artists').addClass('ui-state-default');
-                }
-                state.selectedArtists = selectedArtists;
-                if (state.selectedArtists.length > 0) {
-                    $.address.parameter('artists', state.selectedArtists);
-                } else {
-                    $.address.parameter('artists', null);
-                }
-                offset = $('.artist.ui-state-default').first().position().top - $('#artists-container').height() / 2;
-                $('#artists-container div').scrollTop(offset);
-                $("#artists-container")
-            }).removeClass('ui-state-disabled');
         },
  
         listAlbums = function (artists, query) {
-            var options = {
-                'output': 'html'
-            };
-            if (ajaxQueue.albums) {
-                ajaxQueue.albums.abort();
-            }
-            if (query) {
-                options.query = query;
-            }
-            if (artists) {
-                options.artists = artists.join(',');
-            }
-            $('#albums-container').addClass("ui-state-disabled");
-            ajaxQueue.albums = $.ajax({
-                url: 'list_albums',
-                data: options,
-                success: function (response) {
+            $('#albums-container').addClass("ui-state-disabled")
+                .blofeld("listAlbums", artists, query, function () {
                     var selectedAlbums = [],
                         selectedArtists = [],
                         position,
                         offset;
-                    $("#albums-container").html(response);
                     $("#album-count").html($("#albums .album").not("#all-albums").size());
-                    ajaxQueue.albums = null;
                     if (state.selectedAlbums.length > 0) {
                         $("#all-albums").removeClass('ui-state-default');
                         state.selectedAlbums.forEach(function (albumHash) {
@@ -277,33 +254,12 @@
                         $('#albums-container div').scrollTop(offset);
                         $('#albums-container').removeClass("ui-state-disabled");
                     }
-                }
-            });
+                });
         },
 
         listSongs = function (artists, albums, query, play) {
-            var options = {
-                'output': 'html'
-            };
-            if (ajaxQueue.songs) {
-                ajaxQueue.songs.abort();
-            }
-            if (query) {
-                options.query = query;
-            }
-            if (artists) {
-                options.artists = artists.join(',');
-            }
-            if (albums) {
-                options.albums = albums.join(',');
-            }
-            $("#songs-container").addClass('ui-state-disabled');
-            ajaxQueue.songs = $.ajax({
-                url: 'list_songs',
-                data: options,
-                success: function (response) {
-                    $("#songs-container").html(response);
-                    ajaxQueue.songs = null;
+            $("#songs-container").addClass('ui-state-disabled')
+                .blofeld("listSongs", artists, albums, query, function () {
                     playlist = [];
                     $('tbody tr.song').each(function (index) {
                         playlist.push($(this).attr('id'));
@@ -339,9 +295,8 @@
                             playingCurrently = $.inArray(state.activeSong, playlist);
                         }
                     });
-                    $("#songs-container").removeClass('ui-state-disabled');
-                }
-            });
+                    $('#songs-container').removeClass("ui-state-disabled");
+                });
         },
 
         stopPlayback = function () {
