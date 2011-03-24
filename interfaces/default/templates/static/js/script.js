@@ -128,6 +128,7 @@
 
         showInfo = function (song) {
             showCover(song);
+            $("#play-time-total").html($("#" + song + " .time").html());
             $('#now-playing-title').html($('#' + song + ' .title').html());
             $('#now-playing-artist').html($('#' + song + ' .artist').html());
             $('#now-playing-album').html($('#' + song + ' .album').html());
@@ -413,7 +414,7 @@
                     "volumeBar" : ".jp-volume-bar",
                     "volumeBarValue" : ".jp-volume-bar-value",
                     "currentTime" : "#play-time-current",
-                    "duration" : "#play-time-total"
+                    "duration" : ".jp-duration" //"#play-time-total"
                 },
                 ready: function (event) {
                     var index;
