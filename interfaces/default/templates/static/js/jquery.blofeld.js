@@ -28,6 +28,8 @@
             songs: null,
             tags: null
     },
+    bitrates = [48, 64, 96, 128, 160, 192, 256, 320],
+    formats = ['mp3', 'ogg', 'oga', 'vorbis'],
     settings = {},
     methods = {
         init: function (options) {
@@ -37,15 +39,18 @@
                 }          
             });
         },
-        listArtists: function (query, callback) {
+        listArtists: function (args, callback) {
+            var options = {
+                query: '',
+                output: 'html'
+            };
             return this.each(function () {
-                var $this = $(this),
-                    options = {output: 'html'};
+                var $this = $(this)
+                if (args) {
+                    $.extend(options, args);
+                }
                 if (ajaxQueue.artists) {
                     ajaxQueue.artists.abort();
-                }
-                if (query) {
-                    options.query = query;
                 }
                 ajaxQueue.artists = $.ajax({
                     url: 'list_artists',
@@ -60,18 +65,24 @@
                 });
             });
         },
-        listAlbums: function (artists, query, callback) {
+        listAlbums: function (args, callback) {
+            var options = {
+                artists: [],
+                query: '',
+                output: 'html'
+            };
             return this.each(function () {
-                var $this = $(this),
-                    options = {output: 'html'};
+                if (args) {
+                    $.extend(options, args);
+                }
+                var $this = $(this);
                 if (ajaxQueue.albums) {
                     ajaxQueue.albums.abort();
                 }
-                if (query) {
-                    options.query = query;
-                }
-                if (artists) {
-                    options.artists = artists.join(',');
+                if (options.artists) {
+                    options.artists = options.artists.join(',');
+                } else {
+                    options.artists = '';
                 }
                 ajaxQueue.artists = $.ajax({
                     url: 'list_albums',
@@ -86,22 +97,32 @@
                 });
             });
         },
-        listSongs: function (artists, albums, query, callback) {
+        listSongs: function (args, callback) {
+            var options = {
+                artists: [],
+                albums: [],
+                query: '',
+                output: 'html'
+            };
             return this.each(function () {
-                var $this = $(this),
-                    options = {output: 'html'};
+                if (args) {
+                    $.extend(options, args);
+                }
+                var $this = $(this);
                 if (ajaxQueue.songs) {
                     ajaxQueue.songs.abort();
                 }
-                if (query) {
-                    options.query = query;
+                if (options.artists) {
+                    options.artists = options.artists.join(',');
+                } else {
+                    options.artists = '';
                 }
-                if (artists) {
-                    options.artists = artists.join(',');
+                if (options.albums) {
+                    options.albums = options.albums.join(',');
+                } else {
+                    options.albums = '';
                 }
-                if (albums) {
-                    options.albums = albums.join(',');
-                }
+                
                 ajaxQueue.songs = $.ajax({
                     url: 'list_songs',
                     data: options,
@@ -110,6 +131,60 @@
                         ajaxQueue.songs = null;
                         if (callback) {
                             callback();
+                        }
+                    }
+                });
+            });
+        },
+        getSongURL: function (args) {
+            var songUrl, options = {
+                songid: '',
+                format: [],
+                bitrate: 320
+            };
+            if (args) {
+                $.extend(options, args);
+            }
+            if (!options.songid) {
+                options.songid = $(this).attr('id');
+            }
+            songUrl = 'get_song?songid=' + options.songid;
+            if (options.format) {
+                if ($.inArray(options.format, formats)) {
+                    songUrl = songUrl + '&format=' + options.format.join(',');
+                } else {
+                    $.error('Format must be null or an array containing one or more of ' + formats.join(', '));
+                }
+                
+            }
+            if (options.bitrate) {
+                if ($.inArray(options.bitrate, bitrates)) {
+                    songUrl = songUrl + '&bitrate=' + parseInt(options.bitrate, 10);
+                } else {
+                    $.error('Bitrate must be one of ' + bitrates.join(', ') + ' or null.');
+                }
+            }
+            return songUrl;
+        },
+        getTags: function(args, callback) {
+            var options = {
+                songid: ''
+            };
+            return this.each(function () {
+                if (args) {
+                    $.extend(options, args);
+                }
+                if (ajaxQueue.tags) {
+                    ajaxQueue.tags.abort();
+                }
+                ajaxQueue.tags = $.ajax({
+                    url: 'get_tags',
+                    data: options,
+                    success: function (response) {
+                        var tags = response.song;
+                        ajaxQueue.tags = null;
+                        if (callback) {
+                            callback(tags);
                         }
                     }
                 });

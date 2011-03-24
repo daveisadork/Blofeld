@@ -151,23 +151,14 @@
             $('.now-playing > .status > .status-icon, .status > .ui-icon').addClass('ui-icon ui-icon-volume-on');
             $("#now-playing, #progress-bar, #play-time").show();
             $.address.title($('#now-playing-artist').text() + " - " + $('#now-playing-title').text());
-            if (ajaxQueue.tags) {
-                ajaxQueue.tags.abort();
-            }
-            ajaxQueue.tags = $.ajax({
-                url: 'get_tags',
-                data: {songid: song},
-                success: function (response) {
-                    var tags = response.song;
-                    ajaxQueue.tags = null;
-                    $('#now-playing-artist').click(function () {
-                        $.address.parameter('query', null).parameter('albums', null).parameter('artists', tags.artist_hash);
-                    });
-                    $('#now-playing-album').click(function () {
-                        $.address.parameter('artists', null).parameter('query', null).parameter('albums', tags.album_hash);
-                    });
-                }
-            });
+            $.fn.blofeld("getTags", {songid: song}, function (tags) {
+                $('#now-playing-artist').click(function () {
+                    $.address.parameter('query', null).parameter('albums', null).parameter('artists', tags.artist_hash);
+                });
+                $('#now-playing-album').click(function () {
+                    $.address.parameter('artists', null).parameter('query', null).parameter('albums', tags.album_hash);
+                });
+            })
         },
 
         playSong = function (songIndex) {
@@ -175,7 +166,11 @@
                 songUrl;
             $("#progress-bar").slider("disable");
             showInfo(song);
-            songUrl = 'get_song?format=' + formats[activeSolution].join(',') + '&songid=' + song + '&bitrate=' + parseInt(bitrate, 10);
+            songUrl = $.fn.blofeld("getSongURL", {
+                songid: song,
+                format: formats[activeSolution],
+                bitrate: bitrate
+            });
             playingCurrently = songIndex;
             $("#jplayer").jPlayer("setMedia", {
                 mp3: songUrl,
@@ -187,10 +182,12 @@
         },
 
         listArtists = function (query, highlight) {
-            var offset
             $("#artists-container").addClass('ui-state-disabled')
-                .blofeld("listArtists", query, function () {
+                .blofeld("listArtists", {
+                    query: query
+                }, function () {
                     $("#artist-count").html($("#artists .artist").not("#all-artists").size());
+                    var offset;
                     if (highlight) {
                         state.selectedArtists = highlight;
                     }
@@ -223,7 +220,10 @@
  
         listAlbums = function (artists, query) {
             $('#albums-container').addClass("ui-state-disabled")
-                .blofeld("listAlbums", artists, query, function () {
+                .blofeld("listAlbums", {
+                    artists: artists,
+                    query: query
+                }, function () {
                     var selectedAlbums = [],
                         selectedArtists = [],
                         position,
@@ -259,7 +259,11 @@
 
         listSongs = function (artists, albums, query, play) {
             $("#songs-container").addClass('ui-state-disabled')
-                .blofeld("listSongs", artists, albums, query, function () {
+                .blofeld("listSongs", {
+                    artists: artists,
+                    albums: albums,
+                    query: query
+                }, function () {
                     playlist = [];
                     $('tbody tr.song').each(function (index) {
                         playlist.push($(this).attr('id'));
