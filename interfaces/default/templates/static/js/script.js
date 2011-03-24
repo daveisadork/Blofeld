@@ -1,4 +1,23 @@
-/* Author: Dave Hayes */
+/*
+ * Blofeld - All-in-one music server
+ * https://github.com/daveisadork/Blofeld
+ * 
+ * Copyright (c) 2010 - 2011 Dave Hayes <dwhayes@gmail.com>
+ * 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 
 (function () {
     "use strict";
@@ -15,10 +34,10 @@
         solutions = ["flash", "html"],
         activeSolution = null,
         ajaxQueue = {
-            'artists': null,
-            'albums': null,
-            'songs': null,
-            'tags': null
+            artists: null,
+            albums: null,
+            songs: null,
+            tags: null
         },
         state = {
             selectedAlbums: [],
@@ -174,52 +193,38 @@
         },
 
         listArtists = function (query, highlight) {
-            var offset, options = {
-                'output': 'html'
-            };
-            if (ajaxQueue.artists) {
-                ajaxQueue.artists.abort();
-            }
-            if (query) {
-                options.query = query;
-            }
-            $("#artists-container").addClass('ui-state-disabled');
-            ajaxQueue.artists = $.ajax({
-                url: 'list_artists',
-                data: options,
-                success: function (response) {
-                    $("#artists-container").html(response);
-                    $("#artist-count").html($("#artists .artist").not("#all-artists").size());
-                    ajaxQueue.artists = null;
-                    if (highlight) {
-                        state.selectedArtists = highlight;
-                    }
-                    if (state.selectedArtists.length > 0) {
-                        $(".artist").removeClass('ui-state-default');
-                        state.selectedArtists.forEach(function (artistHash) {
-                            $('#' + artistHash).addClass('ui-state-default');
-                        });
-                    } else {
-                        $('#all-artists').addClass('ui-state-default');
-                    }
-                    var selectedArtists = [];
-                    $('.artist.ui-state-default').not("#all-artists").each(function () {
-                        selectedArtists.push($(this).attr('id'));
-                    });
-                    if (selectedArtists.length === 0) {
-                        $('#all-artists').addClass('ui-state-default');
-                    }
-                    state.selectedArtists = selectedArtists;
-                    if (state.selectedArtists.length > 0) {
-                        $.address.parameter('artists', state.selectedArtists);
-                    } else {
-                        $.address.parameter('artists', null);
-                    }
-                    offset = $('.artist.ui-state-default').first().position().top - $('#artists-container').height() / 2;
-                    $('#artists-container div').scrollTop(offset);
-                    $("#artists-container").removeClass('ui-state-disabled');
+            var offset
+            $("#artists-container").addClass('ui-state-disabled')
+            $("#artists-container").blofeld("listArtists", query, function (response) {
+                $("#artist-count").html($("#artists .artist").not("#all-artists").size());
+                if (highlight) {
+                    state.selectedArtists = highlight;
                 }
-            });
+                if (state.selectedArtists.length > 0) {
+                    $(".artist").removeClass('ui-state-default');
+                    state.selectedArtists.forEach(function (artistHash) {
+                        $('#' + artistHash).addClass('ui-state-default');
+                    });
+                } else {
+                    $('#all-artists').addClass('ui-state-default');
+                }
+                var selectedArtists = [];
+                $('.artist.ui-state-default').not("#all-artists").each(function () {
+                    selectedArtists.push($(this).attr('id'));
+                });
+                if (selectedArtists.length === 0) {
+                    $('#all-artists').addClass('ui-state-default');
+                }
+                state.selectedArtists = selectedArtists;
+                if (state.selectedArtists.length > 0) {
+                    $.address.parameter('artists', state.selectedArtists);
+                } else {
+                    $.address.parameter('artists', null);
+                }
+                offset = $('.artist.ui-state-default').first().position().top - $('#artists-container').height() / 2;
+                $('#artists-container div').scrollTop(offset);
+                $("#artists-container")
+            }).removeClass('ui-state-disabled');
         },
  
         listAlbums = function (artists, query) {
