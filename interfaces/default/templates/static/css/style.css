@@ -464,6 +464,10 @@ tr.artist, tr.album, tr.song, tr.source, thead > tr {
     height: 2em;
 }
 
+tr.artist > td, tr.album > td {
+    width: 100%;
+}
+
 hr {
     margin-top: 1px;
     margin-bottom: 1px;
