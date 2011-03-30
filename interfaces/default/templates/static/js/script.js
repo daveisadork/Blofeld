@@ -158,7 +158,7 @@
                 $('#now-playing-album').click(function () {
                     $.address.parameter('artists', null).parameter('query', null).parameter('albums', tags.album_hash);
                 });
-            })
+            });
         },
 
         playSong = function (songIndex) {
@@ -187,7 +187,7 @@
                     query: query
                 }, function () {
                     $("#artist-count").html($("#artists .artist").not("#all-artists").size());
-                    var offset;
+                    var offset, selectedArtists = [];
                     if (highlight) {
                         state.selectedArtists = highlight;
                     }
@@ -199,7 +199,6 @@
                     } else {
                         $('#all-artists').addClass('ui-state-default');
                     }
-                    var selectedArtists = [];
                     $('.artist.ui-state-default').not("#all-artists").each(function () {
                         selectedArtists.push($(this).attr('id'));
                     });
@@ -214,10 +213,10 @@
                     }
                     offset = $('.artist.ui-state-default').first().position().top - $('#artists-container').height() / 2;
                     $('#artists-container div').scrollTop(offset);
-                    $("#artists-container").removeClass('ui-state-disabled')
+                    $("#artists-container").removeClass('ui-state-disabled');
                 });
         },
- 
+
         listAlbums = function (artists, query) {
             $('#albums-container').addClass("ui-state-disabled")
                 .blofeld("listAlbums", {
@@ -721,15 +720,6 @@
             }
         }).click(function () {
             $("#shutdown-dialog").dialog("open");
-            if (ajaxQueue.artists) {
-                ajaxQueue.artists.abort();
-            }
-            if (ajaxQueue.albums) {
-                ajaxQueue.albums.abort();
-            }
-            if (ajaxQueue.artists) {
-                ajaxQueue.songs.abort();
-            }
             $.ajax({
                 url: 'shutdown',
                 success: function (response) {
