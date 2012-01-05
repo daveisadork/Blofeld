@@ -1,3 +1,23 @@
+<div data-role="page" data-theme="a" data-url="#albums?artists=$artists.keys[0]" id="albums">
+    <div data-role="header" data-position="fixed">
+        <a href="#artists" data-role="button" data-icon="home">All Artists</a>
+        <h1>$artists.values[0]</h1>
+
+    </div>
+
+    <div data-role="content" id="albums-content">	
+        <ul data-role="listview" id="albums-list" data-filter="true" data-filter-placeholder="Search Albums...">
 #for $album in $albums
-    <li><a href="#songs?id=$album['id']" id="$album['id']">$album['title']</a></li>
+            <li>
+            <img src="get_cover?albumid=$album['id']&size=40" class="li-albumart"/>
+                <a href="#songs?artists=$artists.keys[0]&albums=$album['id']">
+                    
+                    $album['title']
+                </a>
+            </li>
 #end for
+        </ul>
+    </div>
+
+</div>
+

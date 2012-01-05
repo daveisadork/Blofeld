@@ -1,3 +1,14 @@
+<div data-role="page" data-theme="a" data-url="#artists" id="artists">
+    <div data-role="header" data-position="fixed">
+	<h1>Blofeld</h1>
+    </div>
+
+    <div data-role="content" id="artists-content">	
+        <ul data-role="listview" id="artists-list" data-filter="true" data-filter-placeholder="Search Artists...">
 #for $artist in $artists
-    <li><a href="#Albums?id=$artist['id']&name=$artist['name']" id="$artist['id']">$artist['name']</a></li>
+            <li><a href="#albums?artists=$artist['id']">$artist['name']</a></li>
 #end for
+        </ul>
+    </div>
+</div>
+

@@ -61,39 +61,57 @@ class WebInterface:
         return template.respond()
 
     @cherrypy.expose
-    def list_albums(self, artists=None, query=None, output='json'):
-        logger.debug("%s (%s)\tlist_albums(artists=%s, query=%s, output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, artists, query, output, cherrypy.request.headers))
+    def list_albums(self, artists=None, query=None, output='json', extra_info=False):
+        logger.debug("%s (%s)\tlist_albums(artists=%s, query=%s, output=%s, extra_info=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, artists, query, output, extra_info, cherrypy.request.headers))
         if artists:
             artists = artists.split(',')
         albums = self.library.albums(artists, query)
+        if extra_info:
+            req_artists = {}
+            if artists:
+                for artist in self.library.artists(query):
+                    if artist['id'] in artists:
+                        req_artists[artist['id']] = artist['name']
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
-            return anyjson.serialize({'albums': albums})
+            response = {'albums': albums}
+            if extra_info:
+                response['artists'] = req_artists
+                response['query'] = query
+            return anyjson.serialize(response)
         elif output == 'html':
             template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_albums.tmpl'))
             template.albums = albums
+            if extra_info:
+                template.artists = req_artists
+                template.query = query
             return template.respond()
         else:
             raise cherrypy.HTTPError(501,'Not Implemented') 
 
     @cherrypy.expose
-    def list_artists(self, query=None, output='json'):
-        logger.debug("%s (%s)\tlist_artists(query=%s, output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, query, output, cherrypy.request.headers))
+    def list_artists(self, query=None, output='json', extra_info=False):
+        logger.debug("%s (%s)\tlist_artists(query=%s, output=%s, extra_info=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, query, output, extra_info, cherrypy.request.headers))
         artists = self.library.artists(query)
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
-            return anyjson.serialize({'artists': artists})
+            response = {'artists': artists}
+            if extra_info:
+                response['query'] = query
+            return anyjson.serialize(response)
         elif output == 'html':
             template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_artists.tmpl'))
             template.artists = artists
+            if extra_info:
+                template.query = query
             return template.respond()
         else:
             raise cherrypy.HTTPError(501,'Not Implemented') 
 
     @cherrypy.expose
     def list_songs(self, artists=None ,albums=None, start=None, length=None,
-                   query=None, list_all=False, archive=False, output='json'):
-        logger.debug("%s (%s)\tlist_songs(artists=%s, albums=%s, start=%s, length=%s, query=%s, list_all=%s, archive=%s, output=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, artists, albums, start, length, query, list_all, archive, output, cherrypy.request.headers))
+                   query=None, list_all=False, archive=False, output='json', extra_info=False):
+        logger.debug("%s (%s)\tlist_songs(artists=%s, albums=%s, start=%s, length=%s, query=%s, list_all=%s, archive=%s, output=%s, extra_info=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, artists, albums, start, length, query, list_all, archive, output, extra_info, cherrypy.request.headers))
         if not list_all and not artists and not albums and not query and not archive:
             songs = []
         else:
@@ -108,12 +126,32 @@ class WebInterface:
             if len(songs) - 1 < end:
                 end = -1
             songs = songs[start:end]
+        if extra_info:
+            req_artists = {}
+            req_albums = {}
+            if artists:
+                for artist in self.library.artists(query):
+                    if artist['id'] in artists:
+                        req_artists[artist['id']] = artist['name']
+            if albums:
+                for album in self.library.albums(artists, query):
+                    if album['id'] in albums:
+                        req_albums[album['id']] = album['title']
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
-            return anyjson.serialize({'songs': songs})
+            response = {'songs': songs}
+            if extra_info:
+                response['artists'] = req_artists
+                response['albums'] = req_albums
+                response['query'] = query
+            return anyjson.serialize(response)
         elif output == 'html':
             template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_songs.tmpl'))
             template.songs = songs
+            if extra_info:
+                template.artists = req_artists
+                template.albums = req_albums
+                template.query = query
             return template.respond()
         else:
             raise cherrypy.HTTPError(501,'Not Implemented') 
@@ -276,8 +314,10 @@ class WebInterface:
     get_song._cp_config = {'response.stream': True}
 
     @cherrypy.expose
-    def get_cover(self, songid=None, size='original', download=False):
-        logger.debug("%s (%s)\tget_cover(songid=%s, size=%s, download=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, songid, size, download, cherrypy.request.headers))
+    def get_cover(self, songid=None, albumid=None, size='original', download=False):
+        logger.debug("%s (%s)\tget_cover(songid=%s, albumid=%s, size=%s, download=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, songid, albumid, size, download, cherrypy.request.headers))
+        if albumid and not songid:
+            songid = self.library.songs(albums=[albumid])[0]['id']
         try:
             song = self.library.db[songid]
         except:
