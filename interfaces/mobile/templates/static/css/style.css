@@ -1,0 +1,628 @@
+/* 
+  style.css contains a reset, font normalization and some base styles.
+  
+  credit is left where credit is due.
+  additionally, much inspiration was taken from these projects:
+    yui.yahooapis.com/2.8.1/build/base/base.css
+    camendesign.com/design/
+    praegnanz.de/weblog/htmlcssjs-kickstart
+*/
+
+/* 
+  html5doctor.com Reset Stylesheet (Eric Meyer's Reset Reloaded + HTML5 baseline)
+  v1.4 2009-07-27 | Authors: Eric Meyer & Richard Clark
+  html5doctor.com/html-5-reset-stylesheet/
+*/
+
+html, body, div, span, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+abbr, address, cite, code,
+del, dfn, em, img, ins, kbd, q, samp,
+small, strong, sub, sup, var,
+b, i,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section, summary,
+time, mark, audio, video {
+  margin:0;
+  padding:0;
+  border:0;
+  outline:0;
+  font-size:100%;
+  vertical-align:baseline;
+  background:transparent;
+}                  
+
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section { 
+    display:block;
+}
+
+nav ul { list-style:none; }
+
+blockquote, q { quotes:none; }
+
+blockquote:before, blockquote:after,
+q:before, q:after { content:''; content:none; }
+
+a { margin:0; padding:0; font-size:100%; vertical-align:baseline; background:transparent; }
+
+ins { background-color:#ff9; color:#000; text-decoration:none; }
+
+mark { background-color:#ff9; color:#000; font-style:italic; font-weight:bold; }
+
+del { text-decoration: line-through; }
+
+abbr[title], dfn[title] { border-bottom:1px dotted; cursor:help; }
+
+/* tables still need cellspacing="0" in the markup */
+table { border-collapse:collapse; border-spacing:0; }
+
+hr { display:block; height:1px; border:0; border-top:1px solid #ccc; margin:1em 0; padding:0; }
+
+input, select { vertical-align:middle; }
+/* END RESET CSS */
+
+
+/* fonts.css from the YUI Library: developer.yahoo.com/yui/
+   Refer to developer.yahoo.com/yui/3/cssfonts/ for font sizing percentages
+
+  There are three custom edits:
+   * remove arial, helvetica from explicit font stack
+   * we normalize monospace styles ourselves
+   * table font-size is reset in the HTML5 reset above so there is no need to repeat
+*/
+body { font:13px/1.231 sans-serif; *font-size:small; } /* hack retained to preserve specificity */
+
+select, input, textarea, button { font:99% sans-serif; }
+
+/* normalize monospace sizing 
+ * en.wikipedia.org/wiki/MediaWiki_talk:Common.css/Archive_11#Teletype_style_fix_for_Chrome
+ */
+pre, code, kbd, samp { font-family: monospace, sans-serif; }
+ 
+
+/* 
+ * minimal base styles 
+ */
+
+
+body, select, input, textarea { 
+  /* #444 looks better than black: twitter.com/H_FJ/statuses/11800719859 */ 
+  color: #444; 
+  /* set your base font here, to apply evenly */
+  /* font-family: Georgia, serif;  */   
+}
+
+/* Headers (h1,h2,etc) have no default font-size or margin,
+   you'll want to define those yourself. */ 
+h1,h2,h3,h4,h5,h6 { font-weight: bold; }
+
+/* always force a scrollbar in non-IE */ 
+html { overflow-y: scroll; }
+
+ 
+/* Accessible focus treatment: people.opera.com/patrickl/experiments/keyboard/test */
+a:hover, a:active { outline: none; }
+
+a, a:active, a:visited { color: #607890; }
+a:hover { color: #036; }
+
+
+ul, ol { margin-left: 1.8em; }
+ol { list-style-type: decimal; }
+
+small { font-size: 85%; }
+strong, th { font-weight: bold; }
+
+td, td img { vertical-align: top; } 
+
+sub { vertical-align: sub; font-size: smaller; }
+sup { vertical-align: super; font-size: smaller; }
+
+pre { 
+  padding: 15px; 
+  
+  /* www.pathf.com/blogs/2008/05/formatting-quoted-code-in-blog-posts-css21-white-space-pre-wrap/ */
+  white-space: pre; /* CSS2 */
+  white-space: pre-wrap; /* CSS 2.1 */
+  white-space: pre-line; /* CSS 3 (and 2.1 as well, actually) */
+  word-wrap: break-word; /* IE */
+}
+ 
+textarea { overflow: auto; } /* thnx ivannikolic! www.sitepoint.com/blogs/2010/08/20/ie-remove-textarea-scrollbars/ */
+
+.ie6 legend, .ie7 legend { margin-left: -7px; } /* thnx ivannikolic! */
+
+/* align checkboxes, radios, text inputs with their label
+   by: Thierry Koblentz tjkdesign.com/ez-css/css/base.css  */
+input[type="radio"] { vertical-align: text-bottom; }
+input[type="checkbox"] { vertical-align: bottom; }
+.ie7 input[type="checkbox"] { vertical-align: baseline; }
+.ie6 input { vertical-align: text-bottom; }
+
+/* hand cursor on clickable input elements */
+label, input[type=button], input[type=submit], button { cursor: pointer; }
+ 
+/* webkit browsers add a 2px margin outside the chrome of form elements */  
+button, input, select, textarea { margin: 0; }
+
+/* colors for form validity */
+input:valid, textarea:valid   {  }
+input:invalid, textarea:invalid { 
+      border-radius: 1px;
+    -moz-box-shadow: 0px 0px 5px red; 
+ -webkit-box-shadow: 0px 0px 5px red; 
+         box-shadow: 0px 0px 5px red;
+}
+.no-boxshadow input:invalid, 
+.no-boxshadow textarea:invalid { background-color: #f0dddd; }
+
+
+/* These selection declarations have to be separate.
+   No text-shadow: twitter.com/miketaylr/status/12228805301 
+   Also: hot pink. */
+::-moz-selection{ background: #FF5E99; color:#fff; text-shadow: none; }
+::selection { background:#FF5E99; color:#fff; text-shadow: none; } 
+
+/*  j.mp/webkit-tap-highlight-color */
+a:link { -webkit-tap-highlight-color: #FF5E99; } 
+
+/* make buttons play nice in IE:    
+   www.viget.com/inspire/styling-the-button-element-in-internet-explorer/ */
+button {  width: auto; overflow: visible; }
+ 
+/* bicubic resizing for non-native sized IMG: 
+   code.flickr.com/blog/2008/11/12/on-ui-quality-the-little-things-client-side-image-resizing/ */
+.ie7 img { -ms-interpolation-mode: bicubic; }
+
+
+
+/* 
+ * Non-semantic helper classes 
+ */
+
+/* for image replacement */
+.ir { display: block; text-indent: -999em; overflow: hidden; background-repeat: no-repeat; text-align: left; direction: ltr; }
+
+/* Hide for both screenreaders and browsers
+   css-discuss.incutio.com/wiki/Screenreader_Visibility */
+.hidden { display: none; visibility: hidden; } 
+
+/* Hide only visually, but have it available for screenreaders 
+   www.webaim.org/techniques/css/invisiblecontent/ 
+   Solution from: j.mp/visuallyhidden - Thanks Jonathan Neal! */
+.visuallyhidden { position: absolute !important;    
+  clip: rect(1px 1px 1px 1px); /* IE6, IE7 */
+  clip: rect(1px, 1px, 1px, 1px); }
+
+/* Hide visually and from screenreaders, but maintain layout */
+.invisible { visibility: hidden; }
+
+/* >> The Magnificent CLEARFIX << j.mp/phayesclearfix */
+.clearfix:after  { content: "\0020"; display: block; height: 0; clear: both; visibility: hidden; }
+/* Fix clearfix: blueprintcss.lighthouseapp.com/projects/15318/tickets/5-extra-margin-padding-bottom-of-page */
+.clearfix { zoom: 1; }
+
+
+
+
+
+
+ /* Primary Styles
+    Author: Dave Hayes
+ */
+html, html body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+body {
+    padding: 0;
+    font-size: 62.5%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+#background-color {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 0;
+    background-color: inherit;
+    background-image: none;
+}
+
+#splash-background {
+    background: white;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 98;
+}
+
+#splash-text {
+    background-image: url('../images/logo.png');
+    width: 455px;
+    height: 331px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -165px 0 0 -227px;
+    z-index: 99;
+}
+
+#header {
+    padding: 6px 6px 0 6px;
+}
+
+#header-widget {
+    padding: 3px 0 3px 3px;
+    vertical-align: middle;
+    clear: right;
+    margin: 0;
+    line-height: 0px;
+}
+
+#header-widget > div {
+    margin: 0 3px 0 3px;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+#controls {
+    padding: 0;
+}
+
+#bitrate-container {
+    padding: 0 3px;
+    width: 200px;
+    text-align: center;
+}
+
+#bitrate-slider {
+    margin-bottom: 3px;
+}
+
+#progress {
+    line-height: normal;
+    font-size: 0.87em;
+}
+
+#progress-bar {
+    width: 100px;
+    height: 0.8em;
+    margin: 2px 0 2px 0;
+}
+
+#now-playing {
+    display: inline-block;
+    margin: 0;
+    height: 32px;
+    width: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
+
+#now-playing td {
+    padding: 0;
+    margin: 0;
+}
+
+#cover-art {
+    margin: 0 6px 0 6px;
+    width: 32px;
+    height: 32px;
+    background: url('../images/cover.png') no-repeat;
+    cursor: pointer;
+}
+
+.cover-img {
+    position: absolute;
+}
+
+.cover-img.active {
+    z-index: 100;
+}
+
+.cover-img.inactive {
+    z-index: 99;
+}
+
+#now-playing-text {
+    line-height: normal;
+    width: auto;
+}
+
+#now-playing-text * {
+    width: auto;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+#now-playing-title {
+    font-weight: bold;
+}
+
+#now-playing-artist, #now-playing-album {
+    cursor: pointer;
+}
+
+#spacer {
+    display: inline-block;
+    width: 0px;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+}
+
+#search {
+    float: right;
+    position: relative;
+    margin: 0;
+    padding: 3px;
+    height: 24px;
+    overflow: hidden;
+    display: table;
+}
+
+#search-wrapper {
+    display: table-cell;
+    margin: 0;
+    padding: 0;
+    height: 24px;
+}
+
+#search-wrapper > form {
+    display: table-cell;
+    margin: 0;
+    padding: 0;
+    height: 24px;
+}
+
+#search-box {
+    display: inline-block;
+    height: 20px;
+    width: 148px;
+    padding: 0 4px;
+    margin: 1px 3px 0 0;
+}
+
+#clear-search {
+    display: inline-block;
+    float: right;
+    height: 24px;
+    width: 24px;
+    border: none;
+    margin: 0;
+
+}
+
+ul.ui-autocomplete {
+    border-width: 0px 1px 1px;
+    width: 142px;
+}
+
+ul.ui-autocomplete a {
+    width: auto;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.table-container {
+    padding: 0 6px 3px 0;
+}
+
+.scrolling-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    text-align: center;
+    padding: 3px 3px 0 3px;
+    height: 100%;
+    width: 100%;
+}
+
+#albums, #artists, #sources, .content {
+    margin-bottom: 3px;
+}
+
+table {
+    table-layout: fixed;
+    border-collapse: inherit;
+    width: 100%;
+}
+
+td, th {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+    vertical-align: middle;
+    padding: 3px 5px 3px 5px;
+}
+
+.track-number {
+    width: 2.3em;
+}
+
+.time, .year {
+    width: 4em;
+}
+
+tr.artist, tr.album, tr.song, tr.source, thead > tr {
+    height: 2em;
+}
+
+tr.artist > td, tr.album > td {
+    width: 100%;
+}
+
+hr {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+.status {
+    width: 19px;
+}
+
+#sources-pane {
+    padding-left: 6px;
+}
+
+#actions {
+    padding: 0 6px 5px 0;
+}
+
+.content-widget {
+    padding: 0 6px 3px 0;
+    margin: 0;
+    height: 100%; 
+}
+
+#source-list-widget {
+    margin-right: -6px;
+    padding-right: 6px;
+    height: 100%;
+}
+
+.ui-layout-toggler {
+    overflow: hidden;
+    text-align: center;
+}
+
+#jplayer, #content, .ui-layout-resizer {
+    background-color: inherit;
+}
+
+#browser-resizer:active {
+    cursor: w-resize;
+}
+
+#cover-art-dialog {
+    margin: 0;
+    padding: 1em;
+    overflow: hidden;
+}
+
+#play-time-total {
+    float: right;
+}
+
+.option {
+    margin: 12px 3px;
+}
+
+tr.ui-state-default {
+    border: none;
+}
+
+th.header {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.sort-status.ui-icon {
+    display: none;
+    margin: 0;
+    height: 10px;
+    width: 16px;
+}
+
+th.headerSortUp > .sort-status {
+    display: inline-block;
+    background-position: 0 -18px;
+}
+
+th.headerSortDown > .sort-status {
+    display: inline-block;
+    background-position: -64px -18px;
+}
+
+.scrolling-wrapper {
+    
+}
+
+.content-pane {
+    height: 100%;
+    padding: 0;
+}
+
+#content {
+    padding: 0;
+    margin: 0;
+}
+
+
+
+
+
+
+
+
+
+/* 
+ * print styles
+ * inlined to avoid required HTTP connection www.phpied.com/delay-loading-your-print-css/ 
+ */
+@media print {
+  * { background: transparent !important; color: #444 !important; text-shadow: none !important; }
+
+  a, a:visited { color: #444 !important; text-decoration: underline; }
+
+  a:after { content: " (" attr(href) ")"; } 
+
+  abbr:after { content: " (" attr(title) ")"; }
+  
+  .ir a:after { content: ""; }  /* Don't show links for images */
+  
+  pre, blockquote { border: 1px solid #999; page-break-inside: avoid; }
+  
+  thead { display: table-header-group; } /* css-discuss.incutio.com/wiki/Printing_Tables */ 
+  
+  tr, img { page-break-inside: avoid; }
+
+  @page { margin: 0.5cm; }
+
+  p, h2, h3 { orphans: 3; widows: 3; }
+
+  h2, h3{ page-break-after: avoid; }
+}
+
+
+
+/*
+ * Media queries for responsive design
+ */
+
+@media all and (orientation:portrait) { 
+  /* Style adjustments for portrait mode goes here */
+  
+}
+
+@media all and (orientation:landscape) { 
+  /* Style adjustments for landscape mode goes here */
+  
+}
+
+/* Grade-A Mobile Browsers (Opera Mobile, iPhone Safari, Android Chrome)  
+   Consider this: www.cloudfour.com/css-media-query-for-mobile-is-fools-gold/ */
+@media screen and (max-device-width: 480px) {
+  
+  
+  /* Uncomment if you don't want iOS and WinMobile to mobile-optimize the text for you
+     j.mp/textsizeadjust 
+  html { -webkit-text-size-adjust:none; -ms-text-size-adjust:none; } */
+}
+

@@ -1,0 +1,33 @@
+                <div class="scrolling-container">
+                    <table id="songs">
+                        <thead class="ui-widget-header ui-corner-all">
+                            <tr class="song">
+                                <th class="status ui-corner-left"></th>
+                                <th class="track-number"><span>#</span><div class="ui-icon sort-status"></div></th>
+                                <th class="title"><span>Title</span><div class="ui-icon sort-status"></div></th>
+                                <th class="artist"><span>Artist</span><div class="ui-icon sort-status"></div></th>
+                                <th class="album"><span>Album</span><div class="ui-icon sort-status"></div></th>
+                                <th class="genre"><span>Genre</span><div class="ui-icon sort-status"></div></th>
+                                <th class="year"><span>Year</span><div class="ui-icon sort-status"></div></th>
+                                <th class="time ui-corner-right"><span>Time</span><div class="ui-icon sort-status"></div></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+#for $song in $songs
+                            <tr class="song" id="$song['id']">
+                                <td class="status ui-corner-left"><div class="status-icon"></div></td>
+                                <td class="track-number">#try#$song['tracknumber']#except# #end try#</td>
+                                <td class="title">#try#$song['title']#except#Unknown Title#end try#</td>
+                                <td class="artist">#try#$song['artist']#except#Unknown Artist#end try#</td>
+                                <td class="album">#try#$song['album']#except#Unknown Album#end try#</td>
+                                <td class="genre">#try##echo ', '.join($song['genre'])##except# #end try#</td>
+                                <td class="year">#try##echo $song['date'][:4] ##except# #end try#</td>
+                                <td class="time ui-corner-right">#try#
+                                #echo '%d:%02d' % ($song['length'] / 60, $song['length'] % 60)#
+                                #except# 
+                                #end try#</td>
+                            </tr>
+#end for
+                        </tbody>
+                    </table>
+                </div>
