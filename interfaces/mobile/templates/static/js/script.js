@@ -41,7 +41,7 @@
             // want to handle URLs that request the data for a specific
             // category.
             var u = $.mobile.path.parseUrl( data.toPage ),
-                re = /^#Albums/;
+                re = /^#(Albums|Artists|Songs|Home)/;
 
             if ( u.hash.search(re) !== -1 ) {
 
@@ -55,13 +55,14 @@
                     
                 // Make sure to tell changePage() we've handled this call so it doesn't
                 // have to do anything.
-                e.preventDefault();
+                
                 loadPage("Albums", {artists: [data.options.pageData.id]});
+		e.preventDefault();
             }
         }
     });
 
     $(document).bind( "pageinit", function (e, data) {
-        loadPage("Artists");
+        //loadPage("Artists");
     });
 }());
