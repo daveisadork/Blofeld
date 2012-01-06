@@ -7,6 +7,7 @@
 	<link rel="stylesheet" href="static/css/style.css" />
 	<script type="text/javascript" src="http://code.jquery.com/jquery-1.6.4.min.js"></script>
 	<script type="text/javascript" src="static/js/jquery.jplayer.min.js"></script>
+	<script type="text/javascript" src="static/js/jplayer.playlist.min.js"></script>
 	<script type="text/javascript" src="static/js/jquery.jplayer.inspector.js"></script>
 	<script type="text/javascript" src="http://code.jquery.com/mobile/1.0/jquery.mobile-1.0.js"></script>
 	<script type="text/javascript" src="static/js/jqm.page.params.js"></script>
@@ -28,10 +29,21 @@
 	</div>
 </div>
 
-<div data-role="page" data-theme="a" id="player">
-	<div data-role="content" id="player-content">
-		<p id="play-time-current"></p>
-		<div id="inspector"></div>
+<div data-role="page" data-theme="a" id="player" class="player-page" data-add-back-btn="true">
+	<div data-role="header" data-position="fixed">
+		<h1>Playing</h1>
+	</div>
+	<div class="big-cover"><img src="" /></div>
+	<div data-role="content">
+		<p><span class="jp-current-time"></span> / <span class="jp-duration"></span></p>
+	</div>
+	<div data-role="footer" data-id="playercontrols" data-position="fixed">
+		<h4>
+			<a href="#" data-role="none" class="jp-prev"><img src="static/images/media-skip-backward.png" /></a>
+			<a href="#" data-role="none" class="jp-pause"><img src="static/images/media-playback-pause.png" /></a>
+			<a href="#" data-role="none" class="jp-play"><img src="static/images/media-playback-start.png" /></a>
+			<a href="#" data-role="none" class="jp-next"><img src="static/images/media-skip-forward.png" /></a>
+		</h4>
 	</div>
 </div>
 

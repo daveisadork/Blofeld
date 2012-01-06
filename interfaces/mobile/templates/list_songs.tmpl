@@ -1,8 +1,6 @@
-<div data-role="page" data-theme="a" data-url="#songs?albums=$albums.keys[0]&artists=$artists.keys[0]" id="songs">
+<div data-role="page" data-theme="a" data-url="#songs?albums=$albums.keys[0]&artists=$artists.keys[0]" data-add-back-btn="true" id="songs">
     <div data-role="header" data-position="fixed">
-        <a href="#artists" data-role="button" data-icon="home" data-direction="reverse">All Artists</a>
-        <a href="#albums?artists=$artists.keys[0]" data-role="button" data-icon="arrow-l" data-direction="reverse">$artists.values[0]</a>
-        <h1>$albums.values[0]</h1>
+         <h1>$albums.values[0]</h1>
 
     </div>
 
@@ -11,7 +9,18 @@
 #for $song in $songs
             <li>
                 <img src="get_cover?albumid=$song['album_hash']&size=40" class="li-albumart"/>
-                <a href="#player?songid=$song['id']">#try#$song['title']#except#unknown title#end try#<p class="ui-li-aside">#try#
+                <a href="#player?songid=$song['id']" class="li-song"
+                                data-songid="$song['id']"
+                                data-title="#try#$song['title']#except#Unknown Title#end try#"
+                                data-artistid="$song['artist_hash']"
+                                data-artist="#try#$song['artist']#except#Unknown Artist#end try#"
+                                data-albumid="$song['album_hash']"
+                                data-album="#try#$song['album']#except#Unknown Album#end try#"
+                                data-length="#echo '%d:%02d' % ($song['length'] / 60, $song['length'] % 60)#"
+                                data-tracknumber="#try#$song['tracknumber']#except# #end try#"
+                                >
+                                
+                                #try#$song['title']#except#unknown title#end try#<p class="ui-li-aside">#try#
                                 #echo '%d:%02d' % ($song['length'] / 60, $song['length'] % 60)#
                                 #except# 
                                 #end try#&nbsp;</p></a></li>

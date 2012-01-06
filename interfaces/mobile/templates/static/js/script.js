@@ -21,8 +21,13 @@
 
 (function () {
     "use strict";
+    var ajaxQueue = {};
+    ajaxQueue.tags = null;
     
-    var breadcrumb = []
+    var playlist = [];
+    var currentSong = null;
+    var playlist_info = {};
+    
     
     var loadPage = function (type, url, options) {
 	var args = $.extend({output: 'html', extra_info: true}, options);
@@ -40,19 +45,50 @@
 	*/
     };
     
-    var playSong = function (data) {
+    var playSong = function (songid) {
 	
+	if ($.inArray(songid, playlist) === -1) {
+	    playlist = [];
+	    $(".li-song").each(function (index) {
+		playlist.push($(this).data().songid);
+		playlist_info[$(this).data().songid] = $(this).data()
+	    });
+	}
+	var song = playlist_info[songid];
+	var player = $("#player").clone(true).attr('id', "player-" + songid).data('id', "player-" + songid);
+	$('body').append(player);
+	var iwidth = $("#player").width();
+	$("#" + player.attr('id') + " h1").text(song.tracknumber + ". " + song.title);
+	$("#" + player.attr('id') + " .big-cover").html('<img src="get_cover?albumid=' + song.albumid + '&size=' + iwidth + '" width="' + iwidth + '"/>');
 	var songUrl = $.fn.blofeld("getSongURL", {
-                songid: data.options.pageData.songid,
-                format: ['mp3', 'oga'],
-                bitrate: 160
+                songid: songid,
+                format: ['mp3'],
+                bitrate: 320
         });
-	$("#jplayer").jPlayer("setMedia", {
+	$("#jplayer").jPlayer( "option", "cssSelectorAncestor", "#" + player.attr('id'))
+	.jPlayer("setMedia", {
 	    mp3: songUrl,
 	    oga: songUrl
 	}).jPlayer("play");
-	$.mobile.changePage($("#player"));
+	currentSong = $.inArray(songid, playlist);
+	
+	$.mobile.changePage(player, {'data-url': "#player?songid=" + song});
+
     };
+    
+    var nextSong = function() {
+	if (currentSong < playlist.length - 1) {
+	    $.mobile.changePage("#player?songid=" + (playlist[currentSong + 1]));
+	}
+    }
+    
+    var prevSong = function() {
+	if (currentSong > 0) {
+	    $.mobile.changePage("#player?songid=" + (playlist[currentSong - 1]));
+	} else {
+	    $.mobile.changePage("#player?songid=" + (playlist[currentSong]));
+	}
+    }
     
     $(document).bind( "pagebeforechange", function( e, data ) {
 
@@ -79,7 +115,7 @@
 		var info = {}
 		switch (type) {
 		    case "player":
-			playSong(data);
+			playSong(data.options.pageData.songid);
 			break;
 		    default:
 			loadPage(type, data.options.dataUrl, options, info);
@@ -88,6 +124,14 @@
             }
         }
     });
+    
+    $(document).bind("pagechange", function ( e, data ) {
+	if ($.mobile.activePage.hasClass("player-page")) {
+	    $(".player-page:not(#player)").not($.mobile.activePage).remove();
+	}
+    });
+    
+    
 
     $(document).ready(function () {
         $.mobile.changePage("#artists");
@@ -97,11 +141,10 @@
 	    solution: "flash,html",
 	    supplied: "mp3,oga",
 	    preload: "auto",
-
-	    cssSelectorAncestor: "body",
+	    cssSelectorAncestor: ".player-page",
 	    cssSelector: {
-		"play": "#play-button",
-		"pause": "#pause-button",
+		"play": ".jp-play",
+		"pause": ".jp-pause",
 		"stop" : ".jp-stop",
 		"videoPlay" : ".jp-video-play",
 		"seekBar" : ".jp-seek-bar",
@@ -110,11 +153,17 @@
 		"unmute" : ".jp-unmute",
 		"volumeBar" : ".jp-volume-bar",
 		"volumeBarValue" : ".jp-volume-bar-value",
-		"currentTime" : "#play-time-current",
+		"currentTime" : ".jp-current-time",
 		"duration" : ".jp-duration" //"#play-time-total"
-	    }
+	    },
+	    ended: nextSong
 	});
-	$("#inspector").jPlayerInspector({jPlayer:$("#jplayer")});
-
+	$(".big-cover").height($("body").width());
+	$(".jp-next").click(function () {
+	    nextSong();
+	})
+	$(".jp-prev").click(function () {
+	    prevSong();
+	})
     });
 }());

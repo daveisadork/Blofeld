@@ -185,7 +185,7 @@
             }
             ajaxQueue.tags = $.ajax({
                 url: 'get_tags',
-                data: options,
+                data: args,
                 success: function (response) {
                     var tags = response.song;
                     ajaxQueue.tags = null;
