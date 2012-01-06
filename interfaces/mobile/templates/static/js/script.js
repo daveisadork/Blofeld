@@ -59,6 +59,10 @@
 	$('body').append(player);
 	var iwidth = $("#player").width();
 	$("#" + player.attr('id') + " h1").text(song.tracknumber + ". " + song.title);
+	$("#" + player.attr('id') + " .title").text(song.title);
+	$("#" + player.attr('id') + " .artist").text(song.artist);
+	$("#" + player.attr('id') + " .album").text(song.album);
+	$("#" + player.attr('id') + " .duration").text(song.length);
 	$("#" + player.attr('id') + " .big-cover").html('<img src="get_cover?albumid=' + song.albumid + '&size=' + iwidth + '" width="' + iwidth + '"/>');
 	var songUrl = $.fn.blofeld("getSongURL", {
                 songid: songid,
