@@ -51,7 +51,7 @@ class WebInterface:
         # Create a library object to run queries against
         self.library = library
         # Do a startup scan for new music
-        thread.start_new_thread(self.library.update, ())
+        #self.library.update()
         self.transcoder = transcoder
 
     @cherrypy.expose
@@ -336,21 +336,16 @@ class WebInterface:
     download._cp_config = {'response.stream': True}
 
     @cherrypy.expose
-    def update_library(self):
+    def update_library(self, ticket=None):
         logger.debug("%s (%s)\tupdate()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, cherrypy.request.headers))
         if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['GROUPS']['admin']:
             logger.warn("%(user)s (%(ip)s) requested a library update, but was denied because %(user)s is not a member of the admin group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
             raise cherrypy.HTTPError(401,'Not Authorized')
-        def update():
-            yield "Updating library...\n"
-            thread.start_new_thread(self.library.update, ())
-            while not self.library.updating.acquire(False):
-                yield ".\n"
-                sleep(1)
-            self.library.updating.release()
-            yield "Done.\n"
-        return update()
-    update_library._cp_config = {'response.stream': True}
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+        if not ticket:
+            return anyjson.serialize({"ticket": self.library.update()})
+        else:
+            return anyjson.serialize(self.library.update(ticket=ticket))
 
     @cherrypy.expose
     def random(self, songs=None, artists=None ,albums=None, query=None, limit=None):

@@ -45,6 +45,9 @@ class Scanner:
         self.compacting = threading.Event()
         self.db_working = threading.Event()
         self.stopping = threading.Event()
+        self.finished = threading.Event()
+        self.jobs = {}
+        self.current_job = None
 
     def stop(self):
         if not self.stopping.is_set():
@@ -72,8 +75,24 @@ class Scanner:
         """
         if self.updating.is_set():
             logger.warn("Library update requested, but one is already in progress.")
-            return False
+            return self.current_job
         self.updating.set()
+        self.update_thread = threading.Thread(target=self._update)
+        ticket = hashlib.sha1(str(time())).hexdigest()
+        self.jobs[ticket] = {
+            'status': 'Initiating',
+            'current_item': self.music_path,
+            'removed_items': 0,
+            'new_items': 0,
+            'changed_items': 0,
+            'total_time': 0
+            }
+        self.current_job = ticket
+        logger.info("Starting library update.")
+        self.update_thread.start()
+        return ticket
+    
+    def _update(self):
         # Clean the database of files that no longer exist and get a list of the
         # remaining songs in the database.
         self.clean_thread = threading.Thread(target=self._clean)
@@ -106,9 +125,15 @@ class Scanner:
         # to wait for this to finish.
         self.compact_thread = threading.Thread(target=self._compact)
         self.compact_thread.start()
+        self.jobs[self.current_job]['status'] = 'Compacting'
         self.updating.clear()
+        self.finished.set()
         finish_time = time() - self.start_time
+        self.jobs[self.current_job]['current_item'] = ''
+        self.jobs[self.current_job]['status'] = 'Finished'
+        self.jobs[self.current_job]['total_time'] = finish_time
         logger.debug("Added all new songs in %0.2f seconds." % finish_time)
+        logger.info("Updated library in %0.2f seconds." % finish_time)
 
     def status(self):
         if not self.updating.is_set():
@@ -139,6 +164,7 @@ class Scanner:
             return
         logger.debug("Scanning for new files.")
         self.scanning.set()
+        self.jobs[self.current_job]['status'] = 'Scanning'
         changed = 0
         unchanged = 0
         # Iterate through all the folders and files in music_path
@@ -153,6 +179,7 @@ class Scanner:
                     # Get the full decoded path of the file. The decoding part is
                     # important if the filename includes non-ASCII characters.
                     location = os.path.join(root, item)
+                    self.jobs[self.current_job]['current_item'] = location
                     # Generate a unique ID for this song by making a SHA-1 hash of
                     # its location.
                     id = hashlib.sha1(location.encode('utf-8')).hexdigest()
@@ -207,8 +234,11 @@ class Scanner:
                         new.append(song)
                         if "_rev" in song:
                             updated += 1
+                        self.jobs[self.current_job]['current_item'] = song['path']
                 # Make our changes to the database
                 self.couchdb.bulk_save(new)
+                self.jobs[self.current_job]['new_items'] += len(new) - updated
+                self.jobs[self.current_job]['changed_items'] += updated
                 logger.debug("Added %d songs to the database, %d of which already existed." % (len(new), updated))
             sleep(5)
         self.db_working.clear()
@@ -218,6 +248,7 @@ class Scanner:
         from all of the files in the read_queue.
         """
         self.reading.set()
+        self.jobs[self.current_job]['status'] = 'Importing'
         # Create a pool of processes to handle the actual reading of tags.
         # Using processes instead of threads lets us take full advantage of
         # multi-core CPUs so this operation doesn't take as long.
@@ -249,6 +280,7 @@ class Scanner:
         if self.stopping.is_set():
             return
         self.cleaning.set()
+        self.jobs[self.current_job]['status'] = 'Cleaning'
         logger.debug("Searching for changed/removed files.")
         start_time = time()
         records = self.couchdb.view('songs/mtime')
@@ -262,6 +294,7 @@ class Scanner:
             if self.stopping.is_set():
                 break
             path = song['key']
+            self.jobs[self.current_job]['current_item'] = os.path.split(path)[1]
             # Check if the file this database record points to is still there, and
             # add it to the list to be removed if it's not.
             if not os.path.isfile(path) or not path.startswith(self.music_path):
@@ -271,6 +304,7 @@ class Scanner:
                 # a batch. This is much quicker than doing them one at a time.
                 if removed % 100 == 0:
                     self.couchdb.bulk_delete(remove)
+                    self.jobs[self.current_job]['removed_items'] = removed
                     remove = []
                     logger.debug("Removed %d songs in %0.2f seconds." % (removed, time() - start_time))
             else:
@@ -279,6 +313,7 @@ class Scanner:
         # We ran out of songs without hitting the magic number 100 to trigger a
         # batch delete, so let's get any stragglers now.
         self.couchdb.bulk_delete(remove)
+        self.jobs[self.current_job]['removed_items'] = removed
         logger.debug("Removed %d songs in %0.2f seconds." % (removed, time() - start_time))
         self.records = songs
         self.cleaning.clear()
