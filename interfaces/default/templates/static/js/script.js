@@ -301,6 +301,35 @@
                     $('#songs-container').removeClass("ui-state-disabled");
                 });
         },
+        
+        monitorLibraryUpdate = function (ticket) {
+            if ($("#library-update-dialog").is(":visible")) {
+                $.ajax({
+                    url: 'update_library',
+                    data: {'ticket': ticket},
+                    success: function (response) {
+                        var progress = parseInt((response.processed_items / response.queued_items) * 100)
+                        $("#library-update-status").text(response.status);
+                        $("#library-update-current-item").text(response.current_item);
+                        $("#library-update-removed-items").text(response.removed_items);
+                        $("#library-update-new-items").text(response.new_items);
+                        $("#library-update-changed-items").text(response.changed_items);
+                        $("#library-update-unchanged-items").text(response.unchanged_items);
+                        $("#library-update-elapsed-time").text(parseInt(response.total_time) + ' seconds');
+                        $("#library-update-progress").progressbar({
+                            value: progress 
+                        });
+                        if (response.status != 'Finished') {
+                            monitorLibraryUpdate(ticket);
+                        } else {
+                            $("#library-update-progress").progressbar({
+                                value: 100
+                            });
+                        }
+                    }
+                });
+            }
+        },
 
         stopPlayback = function () {
             state.activeSong = null;
@@ -729,12 +758,35 @@
                 }
             });
         });
+        $('#update-library-button').button({
+            icons: {
+                primary: 'ui-icon-power'
+            }
+        }).click(function () {
+            $("#library-update-dialog").dialog("open");
+            $.ajax({
+                url: 'update_library',
+                success: function (response) {
+                    monitorLibraryUpdate(response.ticket);
+                }
+            });
+        });
         $(".ui-layout-toggler").button();
         $("#shutdown-dialog").dialog({
             autoOpen: false,
             resizable: false,
             draggable: false,
             modal: true
+        });
+        $("#library-update-dialog").dialog({
+            autoOpen: false,
+            resizable: true,
+            draggable: true,
+            width: 500,
+            modal: false
+        });
+        $("#library-update-progress").progressbar({
+            value: 0
         });
         $("#cover-art-dialog").dialog({
             autoOpen: false,

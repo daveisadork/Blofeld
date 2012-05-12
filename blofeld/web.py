@@ -337,7 +337,7 @@ class WebInterface:
 
     @cherrypy.expose
     def update_library(self, ticket=None):
-        logger.debug("%s (%s)\tupdate()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, cherrypy.request.headers))
+        #logger.debug("%s (%s)\tupdate()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, cherrypy.request.headers))
         if cfg['REQUIRE_LOGIN'] and cherrypy.request.login not in cfg['GROUPS']['admin']:
             logger.warn("%(user)s (%(ip)s) requested a library update, but was denied because %(user)s is not a member of the admin group." % {'user': cherrypy.request.login, 'ip': utils.find_originating_host(cherrypy.request.headers)})
             raise cherrypy.HTTPError(401,'Not Authorized')

@@ -564,11 +564,17 @@ th.headerSortDown > .sort-status {
     margin: 0;
 }
 
+#library-update-dialog {
+    overflow: hidden;
+}
 
+.library-update-label {
+    width: 10em;
+}
 
-
-
-
+#library-update-progress {
+    height: 1em;
+}
 
 
 

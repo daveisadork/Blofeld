@@ -91,12 +91,17 @@ class Library:
     def update(self, verbose=False, ticket=None):
         """Figures out which backend to load and then updates the database"""
         if ticket:
-            return self.scanner.jobs[self.scanner.current_job]
+            status = self.scanner.jobs[self.scanner.current_job]
+            if self.scanner.updating.is_set():
+                status['total_time'] = time() - self.scanner.start_time
+            return status
         else:
             if not self.scanner.updating.is_set():
                 self.cache_thread = threading.Thread(target=self.build_cache)
                 self.cache_thread.start()
-            return self.scanner.update()
+            ticket = self.scanner.update()
+            self.scanner.updating.wait(None)
+            return ticket
         
     def stop(self):
         logger.info("Preventing new library calls.")
@@ -104,7 +109,7 @@ class Library:
         self.scanner.stop()
         
     def build_cache(self):
-        self.scanner.finished.wait()
+        self.scanner.finished.wait(None)
         self.scanner.finished.clear()
         logger.debug("Building the database cache.")
         if not self.shutting_down.is_set():

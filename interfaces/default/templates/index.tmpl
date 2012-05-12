@@ -271,6 +271,11 @@
                         <tbody>
                             <tr><td>
                                 <div class="option">
+                                    <button id="update-library-button">Update Library</button>
+                                </div>
+                            </td></tr>
+                            <tr><td>
+                                <div class="option">
                                     <button id="shutdown-button">Shutdown</button>
                                 </div>
                             </td></tr>
@@ -325,6 +330,47 @@
     <div id="footer"></div>
     <div id="cover-art-dialog">
         <img src="static/images/blank.png">
+    </div>
+    <div id="library-update-dialog" title="Library Update">
+        <table>
+            <tbody>
+                <tr>
+                    <td class="library-update-label">Status:</td>
+                    <td id="library-update-status"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><hr></td>
+                </tr>
+                <tr>
+                    <td class="library-update-label">Progress:</td>
+                    <td><div id="library-update-progress"></div></td>
+                </tr>
+                <tr>
+                    <td class="library-update-label">Current Item:</td>
+                    <td id="library-update-current-item"></td>
+                </tr>
+                <tr>
+                    <td class="library-update-label">Removed Items:</td>
+                    <td id="library-update-removed-items"></td>
+                </tr>
+                <tr>
+                    <td class="library-update-label">New Items:</td>
+                    <td id="library-update-new-items"></td>
+                </tr>
+                <tr>
+                    <td class="library-update-label">Changed Items:</td>
+                    <td id="library-update-changed-items"></td>
+                </tr>
+                <tr>
+                    <td class="library-update-label">Unchanged Items:</td>
+                    <td id="library-update-unchanged-items"></td>
+                </tr>
+                <tr>
+                    <td class="library-update-label">Elapsed Time:</td>
+                    <td id="library-update-elapsed-time"></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
     <div id="shutdown-dialog" title="Shutdown">
         <p>The Blofeld server is shutting down... <span></span></p>

@@ -48,6 +48,8 @@ class Scanner:
         self.finished = threading.Event()
         self.jobs = {}
         self.current_job = None
+        self.total_items = 0
+        self.processed_items = 0
 
     def stop(self):
         if not self.stopping.is_set():
@@ -85,6 +87,9 @@ class Scanner:
             'removed_items': 0,
             'new_items': 0,
             'changed_items': 0,
+            'unchanged_items': 0,
+            'queued_items': 0,
+            'processed_items': 0,
             'total_time': 0
             }
         self.current_job = ticket
@@ -95,16 +100,18 @@ class Scanner:
     def _update(self):
         # Clean the database of files that no longer exist and get a list of the
         # remaining songs in the database.
-        self.clean_thread = threading.Thread(target=self._clean)
-        self.clean_thread.start()
-        self.cleaning.wait(None)
-        self.clean_thread.join()
+        #self.clean_thread = threading.Thread(target=self._clean)
+        #self.clean_thread.start()
+        #self.cleaning.wait(None)
+        #self.clean_thread.join()
         self.start_time = time()
+        self._clean()
         # Create a queue of files from which we need to read metadata.
-        self.scan_thread = threading.Thread(target=self._scan)
-        self.scan_thread.start()
-        self.scanning.wait(None)
-        self.scan_thread.join()
+        #self.scan_thread = threading.Thread(target=self._scan)
+        #self.scan_thread.start()
+        #self.scanning.wait(None)
+        #self.scan_thread.join()
+        self._scan()
         if self.read_queue.qsize() > 0:
             # Spawn a new thread to handle the queue of files that need read.
             self.read_thread = threading.Thread(target=self._process_read_queue)
@@ -119,6 +126,7 @@ class Scanner:
             # Join our threads back
             self.read_thread.join()
             self.db_thread.join()
+        self.jobs[self.current_job]['current_item'] = 'None'
         # Compact the database so it doesn't get unreasonably large. We do this
         # in a separate thread so we can go ahead and return since the we've
         # added everything we need to the database already and we don't want
@@ -129,7 +137,7 @@ class Scanner:
         self.updating.clear()
         self.finished.set()
         finish_time = time() - self.start_time
-        self.jobs[self.current_job]['current_item'] = ''
+        
         self.jobs[self.current_job]['status'] = 'Finished'
         self.jobs[self.current_job]['total_time'] = finish_time
         logger.debug("Added all new songs in %0.2f seconds." % finish_time)
@@ -179,7 +187,7 @@ class Scanner:
                     # Get the full decoded path of the file. The decoding part is
                     # important if the filename includes non-ASCII characters.
                     location = os.path.join(root, item)
-                    self.jobs[self.current_job]['current_item'] = location
+                    self.jobs[self.current_job]['current_item'] = os.path.split(location)[1]
                     # Generate a unique ID for this song by making a SHA-1 hash of
                     # its location.
                     id = hashlib.sha1(location.encode('utf-8')).hexdigest()
@@ -201,7 +209,8 @@ class Scanner:
                         self.read_queue.put((location, id, mtime, revision))
                     else:
                         unchanged += 1
-        self.songs_total = self.read_queue.qsize()
+                        self.jobs[self.current_job]['unchanged_items'] = unchanged
+        self.jobs[self.current_job]['queued_items'] = self.read_queue.qsize()
         self.scanning.clear()
         if self.read_queue.qsize() < 1:
             logger.debug("No new files found.")
@@ -234,9 +243,10 @@ class Scanner:
                         new.append(song)
                         if "_rev" in song:
                             updated += 1
-                        self.jobs[self.current_job]['current_item'] = song['path']
+                        self.jobs[self.current_job]['current_item'] = os.path.split(song['location'])[1]
                 # Make our changes to the database
                 self.couchdb.bulk_save(new)
+                self.jobs[self.current_job]['current_item'] = 'None'
                 self.jobs[self.current_job]['new_items'] += len(new) - updated
                 self.jobs[self.current_job]['changed_items'] += updated
                 logger.debug("Added %d songs to the database, %d of which already existed." % (len(new), updated))
@@ -266,6 +276,7 @@ class Scanner:
             # database queue.
             try:
                 self.db_queue.put(self.pool.map(read_metadata, args_list))
+                self.jobs[self.current_job]['processed_items'] += len(args_list)
             except:
                 logger.error("Error processing read queue.")
             logger.debug("Processed %d items in %0.2f seconds" % (queue_size - self.read_queue.qsize(), time() - self.start_time))
@@ -310,6 +321,7 @@ class Scanner:
             else:
                 # Add the song to the dict we're going to return
                 songs[song['id']] = song['value']
+        self.jobs[self.current_job]['current_item'] = 'None'
         # We ran out of songs without hitting the magic number 100 to trigger a
         # batch delete, so let's get any stragglers now.
         self.couchdb.bulk_delete(remove)
