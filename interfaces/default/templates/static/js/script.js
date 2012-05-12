@@ -307,6 +307,7 @@
                 $.ajax({
                     url: 'update_library',
                     data: {'ticket': ticket},
+                    timeout: 1000,
                     success: function (response) {
                         var progress = parseInt((response.processed_items / response.queued_items) * 100)
                         $("#library-update-status").text(response.status);
@@ -320,12 +321,19 @@
                             value: progress 
                         });
                         if (response.status != 'Finished') {
-                            monitorLibraryUpdate(ticket);
+                            setTimeout(function () {
+                                monitorLibraryUpdate(ticket);
+                                }, 250);
                         } else {
                             $("#library-update-progress").progressbar({
                                 value: 100
                             });
                         }
+                    },
+                    error: function () {
+                        setTimeount(function () {
+                            monitorLibraryUpdate(ticket);
+                        }, 1000);       
                     }
                 });
             }
