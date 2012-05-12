@@ -93,7 +93,15 @@ class Library:
         if ticket:
             status = self.scanner.jobs[self.scanner.current_job]
             if self.scanner.updating.is_set():
-                status['total_time'] = time() - self.scanner.start_time
+                total_time = time() - self.scanner.start_time
+            else:
+                total_time = status['total_time'] 
+            minutes = total_time / 60
+            hours = minutes / 60
+            if hours:
+                minutes = minutes % 60
+            seconds = total_time % 60
+            status['total_time'] = "%02d:%02d:%02d" % (hours, minutes, seconds)
             return status
         else:
             if not self.scanner.updating.is_set():

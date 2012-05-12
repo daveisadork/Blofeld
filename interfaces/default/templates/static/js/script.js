@@ -315,7 +315,7 @@
                         $("#library-update-new-items").text(response.new_items);
                         $("#library-update-changed-items").text(response.changed_items);
                         $("#library-update-unchanged-items").text(response.unchanged_items);
-                        $("#library-update-elapsed-time").text(parseInt(response.total_time) + ' seconds');
+                        $("#library-update-elapsed-time").text(response.total_time);
                         $("#library-update-progress").progressbar({
                             value: progress 
                         });
