@@ -760,9 +760,12 @@
         });
         $('#update-library-button').button({
             icons: {
-                primary: 'ui-icon-power'
+                primary: 'ui-icon-arrowrefresh-1-e'
             }
         }).click(function () {
+            $("#library-update-progress").progressbar({
+                value: 0
+            });
             $("#library-update-dialog").dialog("open");
             $.ajax({
                 url: 'update_library',
