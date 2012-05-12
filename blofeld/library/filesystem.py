@@ -82,7 +82,7 @@ class Scanner:
         self.update_thread = threading.Thread(target=self._update)
         ticket = hashlib.sha1(str(time())).hexdigest()
         self.jobs[ticket] = {
-            'status': 'Initiating',
+            'status': 'Initializing',
             'current_item': self.music_path,
             'removed_items': 0,
             'new_items': 0,
@@ -131,9 +131,9 @@ class Scanner:
         # in a separate thread so we can go ahead and return since the we've
         # added everything we need to the database already and we don't want
         # to wait for this to finish.
-        self.compact_thread = threading.Thread(target=self._compact)
-        self.compact_thread.start()
-        self.jobs[self.current_job]['status'] = 'Compacting'
+        #self.compact_thread = threading.Thread(target=self._compact)
+        #self.compact_thread.start()
+        self._compact()
         self.updating.clear()
         self.finished.set()
         finish_time = time() - self.start_time
@@ -161,6 +161,7 @@ class Scanner:
         if self.stopping.is_set():
             return
         self.compacting.set()
+        self.jobs[self.current_job]['status'] = 'Compacting the database'
         self.couchdb.compact()
         self.compacting.clear()
 
@@ -172,7 +173,7 @@ class Scanner:
             return
         logger.debug("Scanning for new files.")
         self.scanning.set()
-        self.jobs[self.current_job]['status'] = 'Scanning'
+        self.jobs[self.current_job]['status'] = 'Scanning for new files'
         changed = 0
         unchanged = 0
         # Iterate through all the folders and files in music_path
@@ -246,7 +247,6 @@ class Scanner:
                         self.jobs[self.current_job]['current_item'] = os.path.split(song['location'])[1]
                 # Make our changes to the database
                 self.couchdb.bulk_save(new)
-                self.jobs[self.current_job]['current_item'] = 'None'
                 self.jobs[self.current_job]['new_items'] += len(new) - updated
                 self.jobs[self.current_job]['changed_items'] += updated
                 logger.debug("Added %d songs to the database, %d of which already existed." % (len(new), updated))
@@ -258,7 +258,7 @@ class Scanner:
         from all of the files in the read_queue.
         """
         self.reading.set()
-        self.jobs[self.current_job]['status'] = 'Importing'
+        self.jobs[self.current_job]['status'] = 'Importing songs to the library'
         # Create a pool of processes to handle the actual reading of tags.
         # Using processes instead of threads lets us take full advantage of
         # multi-core CPUs so this operation doesn't take as long.
@@ -291,7 +291,7 @@ class Scanner:
         if self.stopping.is_set():
             return
         self.cleaning.set()
-        self.jobs[self.current_job]['status'] = 'Cleaning'
+        self.jobs[self.current_job]['status'] = 'Searching for changed/removed files'
         logger.debug("Searching for changed/removed files.")
         start_time = time()
         records = self.couchdb.view('songs/mtime')
