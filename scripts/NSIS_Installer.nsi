@@ -2,17 +2,17 @@
 ;
 ; Blofeld - All-in-one music server
 ; Copyright 2010 Dave Hayes <dwhayes@gmail.com>
-; 
+;
 ; This program is free software; you can redistribute it and/or
 ; modify it under the terms of the GNU General Public License
 ; as published by the Free Software Foundation; either version 2
 ; of the License, or (at your option) any later version.
-; 
+;
 ; This program is distributed in the hope that it will be useful,
 ; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ; GNU General Public License for more details.
-; 
+;
 ; You should have received a copy of the GNU General Public License
 ; along with this program; if not, write to the Free Software
 ; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -162,15 +162,15 @@ WriteUninstaller "$INSTDIR\Uninstall.exe"
 
 SectionEnd ; end of default section
 
-Section /o "Apache CouchDB 1.0.1" couchdb
+Section /o "Apache CouchDB 1.2.0" couchdb
     SetOutPath $INSTDIR\lib
     ; IfFileExists "$PROGRAMFILES\Apache Software Foundation\CouchDB\bin\couchjs.exe" endCouchDB beginCouchDB
     ; Goto endCouchDB
     ; beginCouchDB:
     ; MessageBox MB_YESNO "Blofeld requires Apache CouchDB and you don't appear to have it installed. Would you like to install it now?" /SD IDYES IDNO endCouchDB
-    File "setup-couchdb-1.0.1.exe"
-    ExecWait "$INSTDIR\lib\setup-couchdb-1.0.1.exe"
-    Delete "$INSTDIR\lib\setup-couchdb-1.0.1.exe"
+    File "setup-couchdb-1.2.0_otp_R15B.exe"
+    ExecWait "$INSTDIR\lib\setup-couchdb-1.2.0_otp_R15B.exe"
+    Delete "$INSTDIR\lib\setup-couchdb-1.2.0_otp_R15B.exe"
 SectionEnd
 
 Section /o "GStreamer v0.10.7" gstreamer
@@ -179,9 +179,9 @@ Section /o "GStreamer v0.10.7" gstreamer
     ; Goto endGStreamer
     ; beginGStreamer:
     ; MessageBox MB_YESNO "Blofeld requires GStreamer and you don't appear to have it installed. Would you like to install it now?" /SD IDYES IDNO endGStreamer
-    File "GStreamer-WinBuilds-GPL-x86-Beta02-0.10.7.msi"
-    ExecWait '"msiexec" /i "$INSTDIR\lib\GStreamer-WinBuilds-GPL-x86-Beta02-0.10.7.msi"'
-    Delete "$INSTDIR\lib\GStreamer-WinBuilds-GPL-x86-Beta02-0.10.7.msi"
+    File "GStreamer-WinBuilds-GPL-x86-Beta04-0.10.7.msi"
+    ExecWait '"msiexec" /i "$INSTDIR\lib\GStreamer-WinBuilds-GPL-x86-Beta04-0.10.7.msi"'
+    Delete "$INSTDIR\lib\GStreamer-WinBuilds-GPL-x86-Beta04-0.10.7.msi"
 SectionEnd
 
 Section /o $(MsgRunAtStart) startup
