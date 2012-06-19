@@ -75,7 +75,7 @@ class Library:
         auth = BasicAuth(db_username, db_password)
         self._server = Server(db_url, filters=[auth])
         # Get a reference to our database
-        self.db = self._server.get_or_create_db(cfg['COUCHDB_PASSWORD'])
+        self.db = self._server.get_or_create_db(cfg['DATABASE_NAME'])
         logger.debug("Loading database design documents.")
         # Load our database views from the filesystem
         loader = FileSystemDocsLoader(os.path.join(cfg['ASSETS_DIR'],

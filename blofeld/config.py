@@ -176,8 +176,11 @@ class Config(dict):
                                                            'groups'))
         self['COUCHDB_URL'] = self._cfg.get('database',
                                             'couchdb_url')
-        self['DATABASE_NAME'] = self._cfg.get('database',
-                                              'database_name')
+        try:
+            self['DATABASE_NAME'] = self._cfg.get('database',
+                                                  'database_name')
+        except:
+            self['DATABASE_NAME'] = 'blofeld'
         self['COUCHDB_USER'] = self._cfg.get('database',
                                              'couchdb_user')
         self['COUCHDB_PASSWORD'] = self._cfg.get('database',
