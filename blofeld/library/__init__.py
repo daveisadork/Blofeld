@@ -61,7 +61,7 @@ class BlofeldCache(dict):
 
 class Library:
     """This is the Blofeld library module. It handles loading songs from the
-    various backends (such as the filesystem or Rhythmbox) and inserting 
+    various backends (such as the filesystem or Rhythmbox) and inserting
     their metadata into the database. It also handles making calls to the
     database.
     """
@@ -75,7 +75,7 @@ class Library:
         auth = BasicAuth(db_username, db_password)
         self._server = Server(db_url, filters=[auth])
         # Get a reference to our database
-        self.db = self._server.get_or_create_db("blofeld")
+        self.db = self._server.get_or_create_db(cfg['COUCHDB_PASSWORD'])
         logger.debug("Loading database design documents.")
         # Load our database views from the filesystem
         loader = FileSystemDocsLoader(os.path.join(cfg['ASSETS_DIR'],
@@ -87,6 +87,7 @@ class Library:
         logger.debug("Initializing the database cache.")
         self.cache = BlofeldCache(self.db)
         self.scanner = Scanner(cfg['MUSIC_PATH'], self.db)
+        self.update()
 
     def update(self, verbose=False, ticket=None):
         """Figures out which backend to load and then updates the database"""
@@ -95,7 +96,7 @@ class Library:
             if self.scanner.updating.is_set():
                 total_time = time() - self.scanner.start_time
             else:
-                total_time = status['total_time'] 
+                total_time = status['total_time']
             minutes = total_time / 60
             hours = minutes / 60
             if hours:
@@ -110,12 +111,12 @@ class Library:
             ticket = self.scanner.update()
             self.scanner.updating.wait(None)
             return ticket
-        
+
     def stop(self):
         logger.info("Preventing new library calls.")
         self.shutting_down.set()
         self.scanner.stop()
-        
+
     def build_cache(self):
         self.scanner.finished.wait(None)
         self.scanner.finished.clear()
@@ -176,7 +177,7 @@ class Library:
                 # Replace the existing results with our refined ones
                 result = temp_result
             # Since our results are empty, make sure that's not because the
-            # search just didn't have any results, in which case we want to 
+            # search just didn't have any results, in which case we want to
             # return an empty list.
             elif not artists:
                 # Grab the songs from the specified album(s) from the database
@@ -233,7 +234,7 @@ class Library:
             for album in self.cache.view('albums/all', group="true"):
                 result.append({'id': album['value'], 'title': album['key']})
         if query and artists:
-            # Clean up the search term 
+            # Clean up the search term
             query = utils.clean_text(query).split(' ')
             for artist in artists:
                 # Get all the albums from the database using the search view
@@ -252,7 +253,7 @@ class Library:
                     if match:
                         result.append(entry)
         if query and not artists:
-            # Clean up the search term 
+            # Clean up the search term
             query = utils.clean_text(query).split(' ')
             # Get all the albums from the database using the search view
             for album in self.cache.view('albums/search'):

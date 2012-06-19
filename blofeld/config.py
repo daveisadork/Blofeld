@@ -35,7 +35,7 @@ __all__ = ['cfg']
 
 class Config(dict):
 
-    def __init__(self, installed=False, system=False, program_dir=None, 
+    def __init__(self, installed=False, system=False, program_dir=None,
                                                                     path=None):
         dict.__init__(self)
         # Get the user supplied config file path
@@ -151,6 +151,7 @@ class Config(dict):
                 music_path = os.path.join(os.path.expanduser("~"), "Music")
             self._cfg.set('database', 'path', music_path)
             self._cfg.set('database', 'couchdb_url', 'http://localhost:5984')
+            self._cfg.set('database', 'database_name', 'blofeld')
             self._cfg.set('database', 'couchdb_user', '')
             self._cfg.set('database', 'couchdb_password', '')
             self._cfg.add_section('interface')
@@ -167,14 +168,16 @@ class Config(dict):
         if not os.path.isdir(self['MUSIC_PATH']):
             raise Exception("Music path does not exist!")
 
-        self['REQUIRE_LOGIN'] = self._cfg.getboolean('security', 
+        self['REQUIRE_LOGIN'] = self._cfg.getboolean('security',
                                                      'require_login')
         self['USERS'] = anyjson.deserialize(self._cfg.get('security',
                                                           'users'))
-        self['GROUPS'] = anyjson.deserialize(self._cfg.get('security', 
+        self['GROUPS'] = anyjson.deserialize(self._cfg.get('security',
                                                            'groups'))
         self['COUCHDB_URL'] = self._cfg.get('database',
                                             'couchdb_url')
+        self['DATABASE_NAME'] = self._cfg.get('database',
+                                              'database_name')
         self['COUCHDB_USER'] = self._cfg.get('database',
                                              'couchdb_user')
         self['COUCHDB_PASSWORD'] = self._cfg.get('database',
