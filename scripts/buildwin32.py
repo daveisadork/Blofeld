@@ -196,7 +196,7 @@ options = dict(
       url = 'http://github.com/daveisadork/Blofeld',
       author = 'Dave Hayes',
       author_email = 'dwhayes@gmail.com',
-      scripts = ['Blofeld.py'], 
+      scripts = ['Blofeld.py'],
       packages = ['blofeld', 'blofeld.library'],
       platforms = ['posix'],
       license = 'GNU General Public License 2 (GPL2)',
@@ -210,7 +210,7 @@ program = [ {'script' : 'Blofeld.py', 'icon_resources' : [(0, "blofeld.ico")] } 
 options['options'] = {"py2exe":
                             {
                             "bundle_files": 3,
-                            "packages": ["gst", "cjson", "jsonlib", "simplejson", "Cheetah.DummyTransaction", "email.mime", "win32com.shell", "mutagen"],
+                            "packages": ["gst", "jsonlib", "simplejson", "Cheetah.DummyTransaction", "email.mime", "win32com.shell", "mutagen"],
                             "excludes": ["pywin", "pywin.debugger", "pywin.debugger.dbgcon", "pywin.dialogs",
                                             "pywin.dialogs.list", "Tkconstants", "Tkinter", "tcl"],
                             "optimize": 2,
@@ -255,7 +255,7 @@ rename_file('dist', w32_temp_name, w32_window_name)
 shutil.copyfile(os.path.abspath('dist/lib/gst._gst.pyd'), os.path.abspath('dist/lib/_gst.pyd'))
 for doc in ['AUTHORS', 'ChangeLog', 'COPYING', 'INSTALL', 'NEWS', 'README']:
     try:
-        os.rename(os.path.abspath('dist/%s' % doc), 
+        os.rename(os.path.abspath('dist/%s' % doc),
                   os.path.abspath('dist/%s.txt'% doc))
         unix2dos(os.path.abspath('dist/%s.txt'% doc))
     except:
