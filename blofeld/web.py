@@ -74,7 +74,7 @@ class WebInterface:
             template.albums = albums
             return template.respond()
         else:
-            raise cherrypy.HTTPError(501,'Not Implemented') 
+            raise cherrypy.HTTPError(501,'Not Implemented')
 
     @cherrypy.expose
     def list_artists(self, query=None, output='json'):
@@ -88,7 +88,7 @@ class WebInterface:
             template.artists = artists
             return template.respond()
         else:
-            raise cherrypy.HTTPError(501,'Not Implemented') 
+            raise cherrypy.HTTPError(501,'Not Implemented')
 
     @cherrypy.expose
     def list_songs(self, artists=None ,albums=None, start=None, length=None,
@@ -116,7 +116,7 @@ class WebInterface:
             template.songs = songs
             return template.respond()
         else:
-            raise cherrypy.HTTPError(501,'Not Implemented') 
+            raise cherrypy.HTTPError(501,'Not Implemented')
 
     @cherrypy.expose
     def get_playlist(self, artists=None, albums=None, query=None, format=None,
@@ -154,7 +154,7 @@ class WebInterface:
         else:
             raise cherrypy.HTTPError(404, "That song doesn't exist in the database.")
 
-        
+
     @cherrypy.expose
     def get_song(self, songid=None, format=False, bitrate=False):
         logger.debug("%s (%s)\tget_song(songid=%s, format=%s, bitrate=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, songid, format, bitrate, cherrypy.request.headers))
@@ -272,7 +272,7 @@ class WebInterface:
                 #cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
                 return self.transcoder.transcode(path, 'm4a', bitrate)
         else:
-            raise cherrypy.HTTPError(501) 
+            raise cherrypy.HTTPError(501)
     get_song._cp_config = {'response.stream': True}
 
     @cherrypy.expose
@@ -281,14 +281,14 @@ class WebInterface:
         try:
             song = self.library.db[songid]
         except:
-            raise cherrypy.HTTPError(404) 
+            raise cherrypy.HTTPError(404)
         try:
             size = int(size)
         except:
             size = 'original'
         cover = find_cover(song)
         if cover is None:
-            raise cherrypy.HTTPError(404,'Not Found') 
+            raise cherrypy.HTTPError(404,'Not Found')
         if download:
             return serve_file(cover,
                         mimetypes.guess_type(cover)[0], "attachment", os.path.basename(cover))
@@ -308,7 +308,7 @@ class WebInterface:
             raise cherrypy.HTTPError(401,'Not Authorized')
         file_list = []
         if not songs and not artists and not albums and not query:
-            raise cherrypy.HTTPError(501) 
+            raise cherrypy.HTTPError(501)
         elif songs:
             songs = songs.split(',')
             if len(songs) > 100:
@@ -411,7 +411,7 @@ class WebInterface:
             return anyjson.serialize({'config': {get_option: cfg[get_option]}})
         cherrypy.response.headers['Content-Type'] = 'application/json'
         return anyjson.serialize({'config': cfg})
-        
+
     @cherrypy.expose
     def shutdown(self):
         logger.debug("%s (%s)\tshutdown()\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, cherrypy.request.headers))
@@ -427,6 +427,7 @@ class WebInterface:
         except:
             pass
         finally:
+            shutting_down.set()
             logger.debug("Stopping CherryPy.")
             cherrypy.engine.exit()
 
@@ -448,14 +449,14 @@ class WebInterface:
 
 def start():
     """Starts the CherryPy web server"""
-    
+
     def cleartext(password):
         return password
-    
+
     cherrypy.config.update({
         'server.socket_host': cfg['HOSTNAME'],
         'server.socket_port': cfg['PORT'],
-        'tools.encode.on': True, 
+        'tools.encode.on': True,
         'tools.encode.encoding': 'utf-8',
         'tools.gzip.on': True,
         'log.screen': cfg['CHERRYPY_OUTPUT'],
@@ -476,7 +477,7 @@ def start():
         }
 
     application = cherrypy.tree.mount(WebInterface(), '/', config=conf)
-    
+
     if hasattr(cherrypy.engine, 'signal_handler'):
         cherrypy.engine.signal_handler.subscribe()
         del cherrypy.engine.signal_handler.handlers['SIGTERM']
@@ -502,4 +503,3 @@ def stop():
     logger.debug("Stopping web server.")
     shutting_down.set()
     cherrypy.engine.exit()
-        
