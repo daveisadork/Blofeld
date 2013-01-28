@@ -71,6 +71,7 @@ class Library:
         """Sets up the database connection and starts loading songs."""
         # Initiate a connection to the database server
         self.shutting_down = threading.Event()
+        self.building_cache = threading.Event()
         logger.debug("Initiating the database connection.")
         auth = BasicAuth(db_username, db_password)
         self._server = Server(db_url, filters=[auth])
@@ -105,10 +106,8 @@ class Library:
             status['total_time'] = "%02d:%02d:%02d" % (hours, minutes, seconds)
             return status
         else:
-            if not self.scanner.updating.is_set():
-                self.cache_thread = threading.Thread(target=self.build_cache)
-                self.cache_thread.start()
             ticket = self.scanner.update()
+            self.build_cache()
             self.scanner.updating.wait(None)
             return ticket
 
@@ -118,22 +117,36 @@ class Library:
         self.scanner.stop()
 
     def build_cache(self):
-        self.scanner.finished.wait(None)
-        self.scanner.finished.clear()
+        if not self.building_cache.is_set():
+            self.cache_thread = threading.Thread(target=self._build_cache)
+            self.cache_thread.start()
+        else:
+            logger.debug("Database cache build requested, but already in progress.")
+
+    def _build_cache(self):
+        if self.scanner.updating.is_set():
+            self.scanner.finished.wait(None)
+            self.scanner.finished.clear()
         logger.debug("Building the database cache.")
-        if not self.shutting_down.is_set():
+        self.building_cache.set()
+        start_time = time()
+        if not (self.shutting_down.is_set() or self.scanner.updating.is_set()):
             self.artists()
-        if not self.shutting_down.is_set():
+        if not (self.shutting_down.is_set() or self.scanner.updating.is_set()):
             self.albums()
-        if not self.shutting_down.is_set():
+        if not (self.shutting_down.is_set() or self.scanner.updating.is_set()):
             self.songs(suggest="The")
-        if not self.shutting_down.is_set():
+        if not (self.shutting_down.is_set() or self.scanner.updating.is_set()):
             self.artists(query="The")
-        if not self.shutting_down.is_set():
+        if not (self.shutting_down.is_set() or self.scanner.updating.is_set()):
             self.albums(query="The")
-        if not self.shutting_down.is_set():
+        if not (self.shutting_down.is_set() or self.scanner.updating.is_set()):
             self.songs(query="The")
-        logger.debug("Finished building the database cache.")
+        self.building_cache.clear()
+        if not (self.shutting_down.is_set() or self.scanner.updating.is_set()):
+            logger.debug("Finished building the database cache in %0.2d seconds." % (time() - start_time))
+        else:
+            logger.debug("Database cache building was interrupted after %0.2d seconds." % (time.time() - start_time))
 
     def songs(self, artists=None, albums=None, query=None, suggest=None):
         '''Returns a list of songs as dictionary objects.'''
@@ -152,6 +165,8 @@ class Library:
             else:
                 for song in self.cache.view('search/suggestion', group="true"):
                     result.append(song['key'])
+            finish_time = time() - start_time
+            logger.debug("Generated list of %d songs in %0.2f seconds." % (len(result), finish_time))
             return result
         # If the client didn't supply any arguments, we just get all the songs
         # from the database

@@ -50,8 +50,6 @@ class WebInterface:
     def __init__(self):
         # Create a library object to run queries against
         self.library = library
-        # Do a startup scan for new music
-        self.library.update()
         self.transcoder = transcoder
 
     @cherrypy.expose

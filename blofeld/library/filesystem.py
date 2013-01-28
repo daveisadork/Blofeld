@@ -352,6 +352,9 @@ def read_metadata((location, id, mtime, revision)):
         "genre": [],
         "date": "",
         "tracknumber": 0,
+        "totaltracks": 0,
+        "discnumber": 0,
+        "totaldiscs": 0,
         "bitrate": 0,
         "length": 0,
         "type": "song"
@@ -398,14 +401,14 @@ def parse_metadata(song, metadata):
             # Mutagen returns the tracknumber in a format like '2/12'. We're
             # only interested in the track number, not the total number of
             # tracks.
-            elif tag == 'tracknumber':
+            elif tag in ['tracknumber', 'totaltracks', 'discnumber', 'totaldiscs']:
                 try:
                     song[tag] = int(value[0].split('/')[0])
                 except:
                     song[tag] = 0
             # We need to ignore tags that contain cover art data so we don't
             # end up inserting giant binary blobs into our database.
-            elif tag != 'coverart' and tag != 'APIC:':
+            elif tag not in ['coverart', 'covr', 'APIC:', 'metadata_block_picture', 'pictures', 'WM/Picture']:
                 song[tag] = value[0]
         except TypeError:
             pass
