@@ -16,12 +16,52 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
+import base64
+import struct
 import hashlib
 import Image
 import mutagen
 
 from blofeld.config import cfg
 from blofeld.log import logger
+
+
+def unpack_image(data):
+    """
+    Helper function to unpack image data from a WM/Picture tag.
+
+    The data has the following format:
+    1 byte: Picture type (0-20), see ID3 APIC frame specification at http://www.id3.org/id3v2.4.0-frames
+    4 bytes: Picture data length in LE format
+    MIME type, null terminated UTF-16-LE string
+    Description, null terminated UTF-16-LE string
+    The image data in the given length
+    """
+    (type, size) = struct.unpack_from("<bi", data)
+    pos = 5
+    mime = ""
+    while data[pos:pos+2] != "\x00\x00":
+        mime += data[pos:pos+2]
+        pos += 2
+    pos += 2
+    description = ""
+    while data[pos:pos+2] != "\x00\x00":
+        description += data[pos:pos+2]
+        pos += 2
+    pos += 2
+    image_data = data[pos:pos+size]
+    return (mime.decode("utf-16-le"), image_data, type, description.decode("utf-16-le"))
+
+def pack_image(mime, data, type=3, description=""):
+    """
+    Helper function to pack image data for a WM/Picture tag.
+    See unpack_image for a description of the data format.
+    """
+    tag_data = struct.pack("<bi", type, len(data))
+    tag_data += mime.encode("utf-16-le") + "\x00\x00"
+    tag_data += description.encode("utf-16-le") + "\x00\x00"
+    tag_data += data
+    return tag_data
 
 
 def find_cover(song):
@@ -43,23 +83,36 @@ def find_cover(song):
     # Try to get embedded cover art
     song_location = unicode(song['location'])
     metadata = mutagen.File(song_location)
-    for tag, value in metadata.iteritems():
-        if tag in ['coverart', 'WM/Picture', 'APIC:', 'covr']:
-            try:
-                image = open(img_path, "wb")
-                if type(value) == type(list()):
-                    raise(TypeError)
-                    try:
-                        image.write(value[0].value)
-                    except:
-                        image.write(value[0].encode('utf-8'))
-                else:
-                    image.write(value.data)
-                logger.debug("Using cover image embedded in %s" % song['location'])
-                return img_path
-            except:
-                pass
-            finally:
+    pic = None
+    if 'APIC:' in metadata.keys():
+        pic = metadata.get('APIC:').data
+    elif 'covr' in metadata.keys():
+        pic = metadata.get('covr')[0]
+    elif 'coverart' in metadata.keys():
+        data = metadata.get('coverart')[0]
+        pic = base64.b64decode(data)
+    elif 'metadata_block_picture' in metadata.keys():
+        data = metadata.get('metadata_block_picture')[0]
+        pic = mutagen.flac.Picture(base64.b64decode(data)).data
+    elif 'pictures' in metadata.keys():
+        pic = metadata.get('pictures')[0].data
+    elif 'WM/Picture' in metadata.keys():
+        data = metadata.get('WM/Picture')[0].value
+        pic = unpack_image(data)[1]
+    else:
+        try:
+            pic = metadata.pictures[0].data
+        except:
+            pass
+    if pic:
+        try:
+            image = open(img_path, "wb")
+            image.write(pic)
+            logger.debug("Using cover image embedded in %s" % song['location'])
+            return img_path
+        except:
+            pass
+        finally:
                 image.close()
                 if os.stat(img_path).st_size == 0:
                     os.remove(img_path)
