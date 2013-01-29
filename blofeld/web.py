@@ -17,11 +17,14 @@
 
 import os
 import sys
+import json
 import anyjson
 import thread
 import hashlib
 import mimetypes
 mimetypes.init()
+import shlex
+import fnmatch
 import types
 import time
 from random import shuffle
@@ -345,6 +348,9 @@ class WebInterface:
         else:
             return anyjson.serialize(self.library.update(ticket=ticket))
 
+    scan = update_library
+    scan.exposed = True
+
     @cherrypy.expose
     def random(self, songs=None, artists=None ,albums=None, query=None, limit=None):
         logger.debug("%s (%s)\trandom(songs=%s, artists=%s, albums=%s, query=%s, limit=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, songs, artists, albums, query, limit,  cherrypy.request.headers))
@@ -443,6 +449,104 @@ class WebInterface:
             pass
         finally:
             self.library.db.flush()
+
+    @cherrypy.expose
+    def query(self, object_type, query=None, include=None, offset=0, limit=0, sort=None):
+        logger.debug("%s (%s)\tquery(object_type=%s, query=%s, include=%s, offset=%s, limit=%s, sort=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, object_type, query, include, offset, limit, sort, cherrypy.request.headers))
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+        if object_type not in ('artists', 'albums', 'songs'):
+            raise cherrypy.HTTPError(501,'The requested option does not exist')
+        retval = {'offset': offset, object_type: []}
+        offset = int(offset)
+        limit = int(limit)
+        if query:
+            query = shlex.split(query.lower())
+        if include:
+            include = include.lower().split(' ')
+        tree = {}
+        for item in self.library.cache.view('query/songs'):
+            song = item['value']
+            if query:
+                match = True
+                for term in query:
+                    field = term.split(':', 1)
+                    if len(field) == 1:
+                        if term not in song['query']:
+                            match = False
+                            break
+                    else:
+                        field, word = field
+                        if field not in song.keys():
+                            match = False
+                            break
+                        else:
+                            data = song[field]
+                            if type(data) is not list:
+                                data = [data]
+                            if not data:
+                                match = False
+                                break
+                            for entry in data:
+                                if not fnmatch.fnmatch(entry.lower(), word):
+                                    match = False
+                                    break
+                if not match:
+                    continue
+            if object_type == 'songs':
+                retval[object_type].append(song)
+                continue
+            if song.has_key('albumartist') and not (song['albumartist'].lower() in ('various', 'various artists', 'va')):
+                artist = song['albumartist']
+            else:
+                artist = song['artist']
+            if not tree.has_key(artist):
+                tree[artist] = {}
+            if not tree[artist].has_key(song['album']):
+                tree[artist][song['album']] = []
+            tree[artist][song['album']].append(song)
+        if object_type in ('albums', 'artists'):
+            artists = []
+            for artist, albums in tree.iteritems():
+                item = {'artist': artist}
+                if (include and 'albums' in include) or object_type == 'albums':
+                    item['albums'] = []
+                    for album, songs in albums.iteritems():
+                        album_item = {'album': album}
+                        for key in ('date', 'year', 'genre', 'totaltracks', 'tracktotal', 'totaldiscs', 'disctotal'):
+                            try:
+                                album_item[key] = songs[0][key]
+                            except:
+                                continue
+                        if include and ('songs' in include):
+                            album_item['songs'] = songs
+                        item['albums'].append(album_item)
+                elif include and ('songs' in include):
+                    item['songs'] = []
+                    for album, songs in albums.iteritems():
+                        item['songs'] += songs
+                artists.append(item)
+        if object_type == 'albums':
+            for artist in artists:
+                retval[object_type] += artist['albums']
+            if include and ('artists' in include):
+                retval['artists'] = tree.keys()
+        if object_type == 'artists':
+            retval[object_type] = artists
+        retval['total'] = len(retval[object_type])
+        if limit:
+            retval[object_type] = retval[object_type][offset:offset+limit]
+        else:
+            retval[object_type] = retval[object_type][offset:]
+        return json.dumps(retval, indent=4)
+
+    @cherrypy.expose
+    def song(self, songid, bitrate=None):
+        logger.debug("%s (%s)\tsong(songid=%s, bitrate=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, songid, bitrate, cherrypy.request.headers))
+        try:
+            songid, format = songid.split('.')
+        except:
+            format = None
+        return self.get_song(songid, format, bitrate)
 
 
 def start():

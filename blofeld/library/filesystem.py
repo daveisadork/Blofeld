@@ -25,6 +25,7 @@ from Queue import Queue
 import threading
 
 import mutagen
+from mutagen.easyid3 import EasyID3
 
 from blofeld.config import cfg
 from blofeld.log import logger
@@ -50,6 +51,8 @@ class Scanner:
         self.current_job = None
         self.total_items = 0
         self.processed_items = 0
+        
+
 
     def stop(self):
         if not self.stopping.is_set():
@@ -193,7 +196,7 @@ class Scanner:
                     # its location.
                     id = hashlib.sha1(location.encode('utf-8')).hexdigest()
                     # Get the time that this file was last modified
-                    mtime = str(os.stat(os.path.join(root, item))[8])
+                    mtime = os.stat(os.path.join(root, item))[8]
                     # Find out if this song is already in the database and if so
                     # whether it has been modified since the last time we scanned
                     # it.
@@ -352,9 +355,7 @@ def read_metadata((location, id, mtime, revision)):
         "genre": [],
         "date": "",
         "tracknumber": 0,
-        "totaltracks": 0,
-        "discnumber": 0,
-        "totaldiscs": 0,
+        "discnumber": 1,
         "bitrate": 0,
         "length": 0,
         "type": "song"
@@ -396,16 +397,37 @@ def parse_metadata(song, metadata):
             # value[0], but 'genre' gets special treatment because we want to
             # save a list to the database. That way we can support multiple
             # genre tags.
-            if tag == 'genre':
+            if tag in ('genre', 'mood'):
                 song[tag] = value
             # Mutagen returns the tracknumber in a format like '2/12'. We're
             # only interested in the track number, not the total number of
             # tracks.
-            elif tag in ['tracknumber', 'totaltracks', 'discnumber', 'totaldiscs']:
+            elif tag in ['track', 'tracknumber']:
                 try:
-                    song[tag] = int(value[0].split('/')[0])
+                    tracknumber, totaltracks = str(value[0]).split('/')
+                    song['tracknumber'] = int(tracknumber)
+                    song['totaltracks'] = int(totaltracks)
+                    song['tracktotal'] = int(totaltracks)
                 except:
-                    song[tag] = 0
+                    song[tag] = int(value[0])
+            elif tag in ['totaltracks', 'tracktotal']:
+                song['totaltracks'] = int(value[0])
+                song['tracktotal'] = int(value[0])
+            elif tag in ['disc', 'discnumber']:
+                try:
+                    discnumber, totaldiscs = str(value[0]).split('/')
+                    song['discnumber'] = int(discnumber)
+                    song['totaldiscs'] = int(totaldiscs)
+                    song['disctotal'] = int(totaldiscs)
+                except:
+                    song[tag] = int(value[0])
+            elif tag in ['totaldiscs', 'disctotal']:
+                song['totaldiscs'] = int(value[0])
+                song['disctotal'] = int(value[0])
+            elif tag == 'compilation':
+                song[tag] = bool(int(value[0]))
+            elif tag in ['replaygain_album_peak', 'replaygain_track_peak']:
+                song[tag] = float(value[0])
             # We need to ignore tags that contain cover art data so we don't
             # end up inserting giant binary blobs into our database.
             elif tag not in ['coverart', 'covr', 'APIC:', 'metadata_block_picture', 'pictures', 'WM/Picture']:
@@ -428,7 +450,7 @@ def parse_wma(song, metadata):
             # value[0], but 'genre' gets special treatment because we want to
             # save a list to the database. That way we can support multiple
             # genre tags.
-            if tag == 'WM/Genre':
+            if tag in ('WM/Genre', 'WM/Mood'):
                 song[asf_map[tag]] = []
                 for genre in value:
                     song[asf_map[tag]].append(genre.value)
@@ -437,12 +459,25 @@ def parse_wma(song, metadata):
             # tracks.
             elif tag == 'WM/TrackNumber':
                 try:
-                    song[asf_map[tag]] = int(str(value[0]).split('/')[0])
+                    tracknumber, totaltracks = str(value[0].value).split('/')
+                    song['tracknumber'] = int(tracknumber)
+                    song['totaltracks'] = int(totaltracks)
+                    song['tracktotal'] = int(totaltracks)
                 except:
-                    song[asf_map[tag]] = 0
+                    song['tracknumber'] = int(value[0].value)
+            elif tag == 'WM/PartOfSet':
+                try:
+                    discnumber, totaldiscs = str(value[0].value).split('/')
+                    song['discnumber'] = int(discnumber)
+                    song['totaldiscs'] = int(totaldiscs)
+                    song['disctotal'] = int(totaldiscs)
+                except:
+                    song['discnumber'] = int(value[0].value)
+            elif tag == 'WM/IsCompilation':
+                song['compilation'] = bool(value[0])
             # We need to ignore tags that contain cover art data so we don't
             # end up inserting giant binary blobs into our database.
-            elif tag != 'WM/Picture':
+            elif not tag == 'WM/Picture':
                 if type(value[0]) is unicode:
                     song[asf_map[tag]] = value[0]
                 else:
@@ -461,26 +496,64 @@ def parse_wma(song, metadata):
     return song
 
 
+EasyID3.RegisterTextKey('albumartist', 'TPE2')
+EasyID3.RegisterTXXXKey('albumartistsort', 'ALBUMARTISTSORT')
+
+
 # This dict maps Windows Media tag names to ones we can actually use.
 asf_map = {
-    'Title': 'title',
-    'WM/AlbumTitle': 'album',
-    'WM/TrackNumber': 'tracknumber',
-    'Author': 'artist',
-    'WM/AlbumArtist': 'albumartist',
-    'WM/Year': 'date',
-    'WM/Genre': 'genre',
-    'WM/AlbumArtistSortOrder': 'albumartistsort',
-    'WM/ArtistSortOrder': 'artistsort',
-    'MusicBrainz/Artist Id': 'musicbrainz_artistid',
-    'MusicBrainz/Track Id': 'musicbrainz_trackid',
-    'MusicBrainz/Album Id': 'musicbrainz_albumid',
-    'MusicBrainz/Album Artist Id': 'musicbrainz_albumartistid',
-    'MusicIP/PUID': 'musicip_puid',
-    'MusicBrainz/Album Status': 'musicbrainz_albumstatus',
-    'MusicBrainz/Album Type': 'musicbrainz_albumtype',
-    'MusicBrainz/Album Release Country': 'releasecountry',
-    'WM/Publisher': 'organization',
-    'WM/PartOfSet': 'discnumber',
-    'WM/OriginalReleaseYear': 'originaldate'
-    }
+    'WM/AlbumTitle': 'album', 
+    'Copyright': 'copyright', 
+    'Author': 'artist', 
+    'WM/ContentGroupDescription': 'grouping', 
+    'WM/AlbumArtist': 'albumartist', 
+    'WM/Lyrics': 'lyrics:description', 
+    'MusicBrainz/TRM Id': 'musicbrainz_trmid', 
+    'WM/Year': 'date', 
+    'WM/SubTitle': 'subtitle', 
+    'WM/Composer': 'composer', 
+    'MusicBrainz/Disc Id': 'musicbrainz_discid', 
+    'WM/TitleSortOrder': 'titlesort', 
+    'WM/PartOfSet': 'discnumber', 
+    'MusicBrainz/Track Id': 'musicbrainz_trackid', 
+    'MusicBrainz/Album Release Country': 'releasecountry', 
+    'WM/TrackNumber': 'tracknumber', 
+    'MusicBrainz/Artist Id': 'musicbrainz_artistid', 
+    'LICENSE': 'license', 
+    'WM/Comments': 'comment:description', 
+    'WM/Script': 'script', 
+    'WM/SetSubTitle': 'discsubtitle', 
+    'WM/Conductor': 'conductor', 
+    'MusicBrainz/Album Type': 'releasetype', 
+    'Title': 'title', 
+    'WM/AlbumArtistSortOrder': 'albumartistsort', 
+    'MusicBrainz/Album Artist Id': 'musicbrainz_albumartistid', 
+    'WM/Media': 'media', 
+    'WM/Writer': 'lyricist', 
+    'MusicBrainz/Album Id': 'musicbrainz_albumid', 
+    'WM/SharedUserRating': '_rating', 
+    'WM/Language': 'language', 
+    'MusicBrainz/Work Id': 'musicbrainz_workid', 
+    'WM/OriginalReleaseYear': 'originaldate', 
+    'WM/Barcode': 'barcode', 
+    'MusicIP/PUID': 'musicip_puid', 
+    'Acoustid/Id': 'acoustid_id',
+    'WM/IsCompilation': 'compilation',
+    'WM/AlbumSortOrder': 'albumsort', 
+    'WM/EncodedBy': 'encodedby', 
+    'WM/Producer': 'producer', 
+    'WM/Publisher': 'label', 
+    'WM/Mood': 'mood', 
+    'MusicBrainz/Album Status': 'releasestatus', 
+    'WM/ArtistSortOrder': 'artistsort', 
+    'WM/CatalogNo': 'catalognumber', 
+    'MusicBrainz/Release Group Id': 'musicbrainz_releasegroupid', 
+    'WM/ModifiedBy': 'remixer', 
+    'WM/BeatsPerMinute': 'bpm', 
+    'WM/Genre': 'genre', 
+    'WM/ISRC': 'isrc',
+    'replaygain_track_gain': 'replaygain_track_gain',
+    'replaygain_album_gain': 'replaygain_album_gain',
+    'replaygain_track_peak': 'replaygain_track_peak',
+    'replaygain_album_peak': 'replaygain_album_peak'
+}
