@@ -27,6 +27,7 @@ import shlex
 import fnmatch
 import types
 import time
+from operator import itemgetter
 from random import shuffle
 from threading import Event
 
@@ -465,6 +466,8 @@ class WebInterface:
             include = include.lower().split(' ')
         if sort:
             sort = shlex.split(sort.lower())
+        else:
+            sort = ('albumartist', 'album', 'year', 'discnumber', 'tracknumber')
         tree = {}
         for item in self.library.cache.view('query/songs'):
             song = item['value']
@@ -489,7 +492,7 @@ class WebInterface:
                                 match = False
                                 break
                             for entry in data:
-                                if not fnmatch.fnmatch(entry.lower(), word):
+                                if not fnmatch.fnmatch(unicode(entry).lower(), word):
                                     match = False
                                     break
                 if not match:
@@ -501,7 +504,7 @@ class WebInterface:
             if object_type == 'songs':
                 retval[object_type].append(song)
                 continue
-            if song.has_key('albumartist') and not (song['albumartist'].lower() in ('various', 'various artists', 'va')):
+            if song.has_key('albumartist'):# and not (song['albumartist'].lower() in ('various', 'various artists', 'va')):
                 artist = song['albumartist']
             else:
                 artist = song['artist']
@@ -518,29 +521,34 @@ class WebInterface:
                     item['albums'] = []
                     for album, songs in albums.iteritems():
                         album_item = {'album': album}
-                        for key in ('date', 'year', 'genre', 'totaltracks', 'tracktotal', 'totaldiscs', 'disctotal'):
+                        # fields = ('date', 'year', 'genre', 'totaltracks',
+                        #           'tracktotal', 'totaldiscs', 'disctotal',
+                        #           'compilation', 'albumartist')
+                        fields = ('date', 'year')
+                        for key in fields:
                             try:
                                 album_item[key] = songs[0][key]
                             except:
                                 continue
                         if include and ('songs' in include):
-                            album_item['songs'] = sorted(songs, key=itemgetter('discnumber', 'tracknumber'))
-                        item['albums'].append(album_item)
-                    item['albums'] = sorted(item['albums'], key=lambda album: album['album'])
+                            utils.complex_sort(album_item['songs'], *sort)
+                        if album_item not in item['albums']:
+                            item['albums'].append(album_item)
+                    utils.complex_sort(item['albums'], *sort)
                 elif include and ('songs' in include):
                     item['songs'] = []
                     for album, songs in albums.iteritems():
                         item['songs'] += songs
-                    item['songs'].sort(key=itemgetter('discnumber', 'tracknumber'))
+                    utils.complex_sort(item['songs'], *sort)
                 artists.append(item)
-        if object_type == 'albums':
-            for artist in artists:
-                retval[object_type] += artist['albums']
-            if include and ('artists' in include):
-                retval['artists'] = sorted(tree.keys())
-            retval['albums'].sort(key=itemgetter('album'))
-        if object_type == 'artists':
-            retval[object_type] = sorted(artists, key=itemgetter('artist'))
+            if object_type == 'albums':
+                for artist in artists:
+                    retval[object_type] += artist['albums']
+                if include and ('artists' in include):
+                    retval['artists'] = sorted(tree.keys())
+            else:
+                retval['artists'] = artists
+        utils.complex_sort(retval[object_type], *sort)
         retval['total'] = len(retval[object_type])
         if limit:
             retval[object_type] = retval[object_type][offset:offset+limit]

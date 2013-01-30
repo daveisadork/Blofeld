@@ -19,10 +19,23 @@ import os
 import sys
 import imp
 import unicodedata
+from operator import itemgetter
 
 
 __all__ = ['clean_text', 'detect_cpus', 'find_originating_host', 
            'main_is_frozen', 'get_main_dir', '_stdout']
+
+
+def complex_sort(item, *args):
+    for field in sorted(args, reverse=True):
+        rev = field.startswith('-')
+        if rev:
+            field = field[1:]
+        try:
+            item.sort(key=itemgetter(field), reverse=rev)
+        except:
+            continue
+    return item
 
 
 def clean_text(text, encoding='utf-8'):

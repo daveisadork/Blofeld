@@ -41,6 +41,7 @@ function (doc) {
                 genre: doc.genre,
                 mimetype: doc.mimetype,
                 query: query,
+                compilation: doc.compilation,
                 replaygain_track_gain: doc.replaygain_track_gain,
                 replaygain_album_gain: doc.replaygain_album_gain,
                 replaygain_track_peak: doc.replaygain_track_peak,
