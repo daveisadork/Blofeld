@@ -221,10 +221,10 @@ class Config(dict):
         ]
 
         self['COVER_NAMES'] = [
-            "folder",
             "cover",
             "front",
-            "coverart"
+            "coverart",
+            "folder"
         ]
 
         self['CHERRYPY_OUTPUT'] = False

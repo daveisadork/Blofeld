@@ -18,14 +18,14 @@
 
 import os
 import time
-from multiprocessing import Process, Pipe
+from multiprocessing import Event, Process, Pipe
 from Queue import Queue
 
 from blofeld.config import cfg
 from blofeld.log import logger
 
 
-def transcode_process(conn, path, format='mp3', bitrate=False):
+def transcode_process(conn, path, stop, format='mp3', bitrate=False):
     import pygst
     pygst.require('0.10')
     import gst
@@ -72,7 +72,7 @@ def transcode_process(conn, path, format='mp3', bitrate=False):
             # Grab a bit of encoded data and yield it to the client
             while True:
                 output_buffer = output.emit('pull-buffer')
-                if output_buffer:
+                if output_buffer and not stop.is_set():
                     conn.send(output_buffer.data)
                 else:
                     break
@@ -86,36 +86,39 @@ def transcode_process(conn, path, format='mp3', bitrate=False):
             transcoder.set_state(gst.STATE_NULL)
         except:
             pass
-        conn.send(False)
-        conn.close()
+        if not stop.is_set():
+            conn.send(False)
+            conn.close()
 
 class Transcoder:
     def __init__(self):
-        self.stopping = False
+        self.stopping = Event()
     
     def stop(self):
         logger.debug("Preventing new transcoding processes.")
-        self.stopping = True
+        self.stopping.set()
         
     def transcode(self, path, format='mp3', bitrate=False):
-        if self.stopping:
+        if self.stopping.is_set():
             return
         try:
+            stop = Event()
             start_time = time.time()
             parent_conn, child_conn = Pipe()
-            process = Process(target=transcode_process, args=(child_conn, path, format, bitrate))
+            process = Process(target=transcode_process,
+                    args=(child_conn, path, stop, format, bitrate))
             process.start()
-            while True:
+            while not (self.stopping.is_set() or stop.is_set()):
                 data = parent_conn.recv()
                 if not data:
                     break
                 yield data
             logger.debug("Transcoded %s in %0.2f seconds." % (path.encode(cfg['ENCODING']), time.time() - start_time))
         except GeneratorExit:
-            process.terminate()
+            stop.set()
             logger.debug("User canceled the request during transcoding.")
         except:
-            process.terminate()
+            stop.set()
             logger.warn("Some type of error occured during transcoding.")
         finally:
             parent_conn.close()
