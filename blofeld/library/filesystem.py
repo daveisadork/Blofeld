@@ -365,10 +365,10 @@ def read_metadata((location, id, mtime, revision)):
         'subtitle': '',
         'discsubtitle': '',
         'compilation': False,
-        'replaygain_track_gain': '0.00 dB',
-        'replaygain_album_gain': '0.00 dB',
-        'replaygain_track_peak': 0.0,
-        'replaygain_album_peak': 0.0,
+        'replaygain_track_gain': None,
+        'replaygain_album_gain': None,
+        'replaygain_track_peak': None,
+        'replaygain_album_peak': None,
         'type': 'song'
     }
     if revision:

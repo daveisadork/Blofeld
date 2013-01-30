@@ -453,7 +453,7 @@ td, th {
 }
 
 .track-number {
-    width: 2.3em;
+    width: 3em;
 }
 
 .time, .year {
@@ -574,6 +574,10 @@ th.headerSortDown > .sort-status {
 
 #library-update-progress {
     height: 1em;
+}
+
+.hidden {
+  display: none;
 }
 
 

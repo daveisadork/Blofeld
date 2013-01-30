@@ -163,7 +163,7 @@
 
         playSong = function (songIndex) {
             var song = playlist[songIndex],
-                songUrl;
+                songUrl, db, gain;
             $("#progress-bar").slider("disable");
             showInfo(song);
             songUrl = $.fn.blofeld("getSongURL", {
@@ -171,11 +171,15 @@
                 format: formats[activeSolution],
                 bitrate: bitrate
             });
+            db = parseFloat($('#'+song+' .replaygain_track_gain').text());
+            gain = Math.pow(10,db/20);
             playingCurrently = songIndex;
             $("#jplayer").jPlayer("setMedia", {
                 mp3: songUrl,
                 oga: songUrl
-            }).jPlayer("play");
+            })
+            .jPlayer("volume", gain)
+            .jPlayer("play");
             
             $.address.parameter('song', song);
             playerState = 'playing';

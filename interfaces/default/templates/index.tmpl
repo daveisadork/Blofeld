@@ -207,6 +207,22 @@
                                     Streaming bitrate: <span id="amount">320</span>kbps
                                 </div>
                                 <div class="option">
+                                    <input id="enable-replaygain" type="checkbox">
+                                    <label for="enable-replaygain">Enable ReplayGain</label>
+                                </div>
+                                <div class="option">
+                                    <input name="replaygain" value="album" type="radio">
+                                    <label for="replaygain">Use album level gain</label>
+                                </div>
+                                <div class="option">
+                                    <input name="replaygain" value="track" type="radio">
+                                    <label for="replaygain">Use track level gain</label>
+                                </div>
+                                <div class="option">
+                                    <div id="default-loudness"></div>
+                                    Gain for songs with no ReplayGain information.
+                                </div>
+                                <div class="option">
                                     <input id="html5-audio" type="checkbox">
                                     <label for="html5-audio">Prefer HTML5 &lt;audio&gt; over Flash</label>
                                 </div>

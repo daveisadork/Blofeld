@@ -110,6 +110,7 @@ class WebInterface:
             if len(songs) - 1 < end:
                 end = -1
             songs = songs[start:end]
+        songs.sort(key=itemgetter('albumartist', 'album', 'date', 'discnumber', 'tracknumber'))
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
             return anyjson.serialize({'songs': songs})
