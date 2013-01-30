@@ -1,20 +1,22 @@
 function (doc) {
     if (doc.type == 'song') {
-        var artist, various = ['various artists', 'various', 'va'];
-        if (various.indexOf(doc.albumartist.toLowerCase()) < 0 || doc.compilation) {
-            artist = doc.artist;
+        var artist, isvarious,
+            various = ['various artists', 'various', 'va'];
+        isvarious = various.indexOf(doc.albumartist.toLowerCase()) > -1;
+        if (isvarious || doc.compilation) {
+            artist = doc.artistsort;
         } else {
-            artist = doc.albumartist;
+            artist = doc.albumartistsort;
         }
         query = [doc.artist, doc.album, doc.title].join(' ').toLowerCase();
         emit(
             [
                 artist,
-                doc.date,
                 doc.album,
+                doc.date,
                 doc.discnumber,
                 doc.tracknumber,
-                doc.title
+                doc.titlesort
             ],
             {
                 id: doc._id,
@@ -34,14 +36,15 @@ function (doc) {
                 date: doc.date,
                 year: doc.date.substring(0,4),
                 duration: doc.length,
+                length: doc.length,
                 bitrate: doc.bitrate,
                 genre: doc.genre,
                 mimetype: doc.mimetype,
-                query: query
-                // replaygain_track_gain: doc.replaygain_track_gain,
-                // replaygain_album_gain: doc.replaygain_album_gain,
-                // replaygain_track_peak: doc.replaygain_track_peak,
-                // replaygain_album_peak: doc.replaygain_album_peak
+                query: query,
+                replaygain_track_gain: doc.replaygain_track_gain,
+                replaygain_album_gain: doc.replaygain_album_gain,
+                replaygain_track_peak: doc.replaygain_track_peak,
+                replaygain_album_peak: doc.replaygain_album_peak
             }
         );
     }

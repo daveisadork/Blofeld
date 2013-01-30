@@ -365,6 +365,10 @@ def read_metadata((location, id, mtime, revision)):
         'subtitle': '',
         'discsubtitle': '',
         'compilation': False,
+        'replaygain_track_gain': '0.00 dB',
+        'replaygain_album_gain': '0.00 dB',
+        'replaygain_track_peak': 0.0,
+        'replaygain_album_peak': 0.0,
         'type': 'song'
     }
     if revision:
@@ -388,6 +392,12 @@ def read_metadata((location, id, mtime, revision)):
         song = parse_wma(song, metadata)
     else:
         song = parse_metadata(song, metadata)
+    # Fill in some needed tags if they're not present
+    if not song.has_key('albumartist'):
+        song['albumartist'] = song['artist']
+    for field in ('title', 'artist', 'album', 'albumartist'):
+        if not song.has_key('%ssort' % field):
+            song['%ssort' % field] = song[field]
     # Create artist and album IDs which are just SHA-1 hashes of each field
     for field in ('artist', 'album'):
         value = song[field].encode('utf-8')
@@ -448,8 +458,6 @@ def parse_metadata(song, metadata):
             pass
         except AttributeError:
             pass
-    if not song.has_key('albumartist'):
-        song['albumartist'] = song['artist']
     return song
 
 
@@ -533,64 +541,65 @@ EasyID3.RegisterTXXXKey('albumartistsort', 'ALBUMARTISTSORT')
 
 # This dict maps Windows Media tag names to ones we can actually use.
 asf_map = {
-    'WM/AlbumTitle': 'album', 
-    'Copyright': 'copyright', 
-    'Author': 'artist', 
-    'WM/ContentGroupDescription': 'grouping', 
-    'WM/AlbumArtist': 'albumartist', 
-    'WM/Lyrics': 'lyrics:description', 
-    'MusicBrainz/TRM Id': 'musicbrainz_trmid', 
-    'WM/Year': 'date', 
-    'WM/SubTitle': 'subtitle', 
-    'WM/Composer': 'composer', 
-    'MusicBrainz/Disc Id': 'musicbrainz_discid', 
-    'WM/TitleSortOrder': 'titlesort', 
-    'WM/PartOfSet': 'discnumber', 
-    'MusicBrainz/Track Id': 'musicbrainz_trackid', 
-    'MusicBrainz/Album Release Country': 'releasecountry', 
-    'WM/TrackNumber': 'tracknumber', 
-    'MusicBrainz/Artist Id': 'musicbrainz_artistid', 
-    'LICENSE': 'license', 
-    'WM/Comments': 'comment:description', 
-    'WM/Script': 'script', 
-    'WM/SetSubTitle': 'discsubtitle', 
-    'WM/Conductor': 'conductor', 
-    'MusicBrainz/Album Type': 'releasetype', 
-    'Title': 'title', 
-    'WM/AlbumArtistSortOrder': 'albumartistsort', 
-    'MusicBrainz/Album Artist Id': 'musicbrainz_albumartistid', 
-    'WM/Media': 'media', 
-    'WM/Writer': 'lyricist', 
-    'MusicBrainz/Album Id': 'musicbrainz_albumid', 
-    'WM/SharedUserRating': '_rating', 
-    'WM/Language': 'language', 
-    'MusicBrainz/Work Id': 'musicbrainz_workid', 
-    'WM/OriginalReleaseYear': 'originaldate', 
-    'WM/Barcode': 'barcode', 
-    'MusicIP/PUID': 'musicip_puid', 
-    'Acoustid/Id': 'acoustid_id',
-    'WM/IsCompilation': 'compilation',
-    'WM/AlbumSortOrder': 'albumsort', 
-    'WM/EncodedBy': 'encodedby', 
-    'WM/Producer': 'producer', 
-    'WM/Publisher': 'label', 
-    'WM/Mood': 'mood', 
-    'MusicBrainz/Album Status': 'releasestatus', 
-    'WM/ArtistSortOrder': 'artistsort', 
-    'WM/CatalogNo': 'catalognumber', 
-    'MusicBrainz/Release Group Id': 'musicbrainz_releasegroupid', 
-    'WM/ModifiedBy': 'remixer', 
-    'WM/BeatsPerMinute': 'bpm', 
-    'WM/Genre': 'genre', 
-    'WM/ISRC': 'isrc',
-    'TotalTracks': 'totaltracks',
-    'TotalDiscs': 'totaldiscs',
+'Acoustid/Id': 'acoustid_id',
+    'Author': 'artist',
+    'Copyright': 'copyright',
+    'LICENSE': 'license',
     'MusicBrainz/ASIN': 'asin',
-    'beets/Artist Credit': 'artist_credit,
-    'beets/Album Artist Credit': 'albumartist_credit'
+    'MusicBrainz/Album Artist Id': 'musicbrainz_albumartistid',
+    'MusicBrainz/Album Comment': 'musicbrainz_albumcomment',
+    'MusicBrainz/Album Id': 'musicbrainz_albumid',
+    'MusicBrainz/Album Release Country': 'releasecountry',
+    'MusicBrainz/Album Status': 'musicbrainz_albumstatus',
+    'MusicBrainz/Album Type': 'musicbrainz_releasetype',
+    'MusicBrainz/Artist Id': 'musicbrainz_artistid',
+    'MusicBrainz/Disc Id': 'musicbrainz_discid',
+    'MusicBrainz/Release Group Id': 'musicbrainz_releasegroupid',
+    'MusicBrainz/TRM Id': 'musicbrainz_trmid',
+    'MusicBrainz/Track Id': 'musicbrainz_trackid',
+    'MusicBrainz/Work Id': 'musicbrainz_workid',
+    'MusicIP/PUID': 'musicip_puid',
+    'Title': 'title',
+    'TotalDiscs': 'totaldiscs',
+    'TotalTracks': 'totaltracks',
+    'WM/AlbumArtist': 'albumartist',
+    'WM/AlbumArtistSortOrder': 'albumartistsort',
+    'WM/AlbumSortOrder': 'albumsort',
+    'WM/AlbumTitle': 'album',
+    'WM/ArtistSortOrder': 'artistsort',
+    'WM/Barcode': 'barcode',
+    'WM/BeatsPerMinute': 'bpm',
+    'WM/CatalogNo': 'catalognumber',
+    'WM/Comments': 'comment:description',
+    'WM/Composer': 'composer',
+    'WM/Conductor': 'conductor',
+    'WM/ContentGroupDescription': 'grouping',
+    'WM/EncodedBy': 'encodedby',
+    'WM/Genre': 'genre',
+    'WM/ISRC': 'isrc',
+    'WM/IsCompilation': 'compilation',
+    'WM/Language': 'language',
+    'WM/Lyrics': 'lyrics:description',
+    'WM/Media': 'media',
+    'WM/ModifiedBy': 'remixer',
+    'WM/Mood': 'mood',
+    'WM/OriginalReleaseYear': 'originaldate',
+    'WM/PartOfSet': 'discnumber',
+    'WM/Producer': 'producer',
+    'WM/Publisher': 'label',
+    'WM/Script': 'script',
+    'WM/SetSubTitle': 'discsubtitle',
+    'WM/SharedUserRating': '_rating',
+    'WM/SubTitle': 'subtitle',
+    'WM/TitleSortOrder': 'titlesort',
+    'WM/TrackNumber': 'tracknumber',
+    'WM/Writer': 'lyricist',
+    'WM/Year': 'date',
+    'beets/Album Artist Credit': 'albumartist_credit',
+    'beets/Artist Credit': 'artist_credit',
     'foobar2000/TOTALDISCS': 'totaldiscs',
-    'replaygain_track_gain': 'replaygain_track_gain',
     'replaygain_album_gain': 'replaygain_album_gain',
+    'replaygain_album_peak': 'replaygain_album_peak',
+    'replaygain_track_gain': 'replaygain_track_gain',
     'replaygain_track_peak': 'replaygain_track_peak',
-    'replaygain_album_peak': 'replaygain_album_peak'
 }
