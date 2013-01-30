@@ -537,6 +537,10 @@ def parse_wma(song, metadata):
 # Register some tags we need that Mutagen doesn't already map.
 EasyID3.RegisterTextKey('albumartist', 'TPE2')
 EasyID3.RegisterTXXXKey('albumartistsort', 'ALBUMARTISTSORT')
+EasyID3.RegisterTXXXKey('replaygain_album_peak', 'replaygain_album_peak')
+EasyID3.RegisterTXXXKey('replaygain_album_gain', 'replaygain_album_gain')
+EasyID3.RegisterTXXXKey('replaygain_track_gain', 'replaygain_track_gain')
+EasyID3.RegisterTXXXKey('replaygain_track_peak', 'replaygain_track_peak')
 
 
 # This dict maps Windows Media tag names to ones we can actually use.
