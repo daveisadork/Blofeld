@@ -22,7 +22,7 @@ from time import time, sleep
 import urllib
 from multiprocessing import Pool
 from Queue import Queue
-import threading
+from threading import Event, Thread
 
 import mutagen
 from mutagen.easyid3 import EasyID3
@@ -39,20 +39,18 @@ class Scanner:
         # using to communicate.
         self.read_queue = Queue()
         self.db_queue = Queue()
-        self.scanning = threading.Event()
-        self.updating = threading.Event()
-        self.cleaning = threading.Event()
-        self.reading = threading.Event()
-        self.compacting = threading.Event()
-        self.db_working = threading.Event()
-        self.stopping = threading.Event()
-        self.finished = threading.Event()
+        self.scanning = Event()
+        self.updating = Event()
+        self.cleaning = Event()
+        self.reading = Event()
+        self.compacting = Event()
+        self.db_working = Event()
+        self.stopping = Event()
+        self.finished = Event()
         self.jobs = {}
         self.current_job = None
         self.total_items = 0
         self.processed_items = 0
-        
-
 
     def stop(self):
         if not self.stopping.is_set():
@@ -75,14 +73,15 @@ class Scanner:
                 self.pool.terminate()
 
     def update(self):
-        """Initiates the process of updating the database by removing any songs
-        that have gone missing, adding new songs and updating changed songs.
+        """Initiates the process of updating the database by removing any 
+        songs that have gone missing, adding new songs and updating changed
+        songs.
         """
         if self.updating.is_set():
-            logger.warn("Library update requested, but one is already in progress.")
+            logger.warn("Library update requested, but already updating.")
             return self.current_job
         self.updating.set()
-        self.update_thread = threading.Thread(target=self._update)
+        self.update_thread = Thread(target=self._update)
         ticket = hashlib.sha1(str(time())).hexdigest()
         self.jobs[ticket] = {
             'status': 'Initializing',
@@ -101,28 +100,20 @@ class Scanner:
         return ticket
     
     def _update(self):
-        # Clean the database of files that no longer exist and get a list of the
-        # remaining songs in the database.
-        #self.clean_thread = threading.Thread(target=self._clean)
-        #self.clean_thread.start()
-        #self.cleaning.wait(None)
-        #self.clean_thread.join()
         self.start_time = time()
+        # Clean the database of files that no longer exist and get a list 
+        # of the remaining songs in the database.
         self._clean()
         # Create a queue of files from which we need to read metadata.
-        #self.scan_thread = threading.Thread(target=self._scan)
-        #self.scan_thread.start()
-        #self.scanning.wait(None)
-        #self.scan_thread.join()
         self._scan()
         if self.read_queue.qsize() > 0:
             # Spawn a new thread to handle the queue of files that need read.
-            self.read_thread = threading.Thread(target=self._process_read_queue)
+            self.read_thread = Thread(target=self._process_read_queue)
             self.read_thread.start()
-            # Give the read_thread a chance to get going and then spawn a new
-            # thread to handle inserting metadata into the database.
+            # Give the read_thread a chance to get going and then spawn a 
+            # new thread to handle inserting metadata into the database.
             sleep(5)
-            self.db_thread = threading.Thread(target=self._add_items_to_db)
+            self.db_thread = Thread(target=self._add_items_to_db)
             self.db_thread.start()
             # Block while we wait for everything to finish
             self.db_working.wait(None)
@@ -130,17 +121,16 @@ class Scanner:
             self.read_thread.join()
             self.db_thread.join()
         self.jobs[self.current_job]['current_item'] = 'None'
-        # Compact the database so it doesn't get unreasonably large. We do this
-        # in a separate thread so we can go ahead and return since the we've
-        # added everything we need to the database already and we don't want
-        # to wait for this to finish.
-        #self.compact_thread = threading.Thread(target=self._compact)
-        #self.compact_thread.start()
+        # Compact the database so it doesn't get unreasonably large. We do 
+        # this in a separate thread so we can go ahead and return since the
+        # we've added everything we need to the database already and we 
+        # don't want to wait for this to finish.
+        self.compact_thread = Thread(target=self._compact)
+        self.compact_thread.start()
         self._compact()
         self.updating.clear()
         self.finished.set()
         finish_time = time() - self.start_time
-        
         self.jobs[self.current_job]['status'] = 'Finished'
         self.jobs[self.current_job]['total_time'] = finish_time
         logger.debug("Added all new songs in %0.2f seconds." % finish_time)
@@ -177,29 +167,30 @@ class Scanner:
         logger.debug("Scanning for new files.")
         self.scanning.set()
         self.jobs[self.current_job]['status'] = 'Scanning for new files'
-        changed = 0
-        unchanged = 0
+        self.jobs[self.current_job]['unchanged_items'] = 0
         # Iterate through all the folders and files in music_path
         for root, dirs, files in os.walk(self.music_path):
             if self.stopping.is_set():
                 break
             for item in files:
-                # Get the file extension, e.g. 'mp3' or 'flac', and see if it's in
-                # the list of extensions we're supposed to look for.
+                # Get the file extension, e.g. 'mp3' or 'flac', and see if 
+                # it's in the list of extensions we're supposed to look for.
                 extension = os.path.splitext(item)[1].lower()[1:]
                 if extension in cfg['MUSIC_EXTENSIONS']:
-                    # Get the full decoded path of the file. The decoding part is
-                    # important if the filename includes non-ASCII characters.
+                    # Get the full decoded path of the file. The decoding 
+                    # part is important if the filename includes non-ASCII 
+                    # characters.
                     location = os.path.join(root, item)
-                    self.jobs[self.current_job]['current_item'] = os.path.split(location)[1]
-                    # Generate a unique ID for this song by making a SHA-1 hash of
-                    # its location.
+                    filename = os.path.split(location)[1]
+                    self.jobs[self.current_job]['current_item'] = filename
+                    # Generate a unique ID for this song by making a SHA-1 
+                    # hash of its location.
                     id = hashlib.sha1(location.encode('utf-8')).hexdigest()
                     # Get the time that this file was last modified
                     mtime = os.stat(os.path.join(root, item))[8]
-                    # Find out if this song is already in the database and if so
-                    # whether it has been modified since the last time we scanned
-                    # it.
+                    # Find out if this song is already in the database and 
+                    # if so whether it has been modified since the last time 
+                    # we scanned it.
                     try:
                         record_mtime = self.records[id]['mtime']
                     except:
@@ -212,24 +203,24 @@ class Scanner:
                         # Add the song to the queue to be read
                         self.read_queue.put((location, id, mtime, revision))
                     else:
-                        unchanged += 1
-                        self.jobs[self.current_job]['unchanged_items'] = unchanged
+                        self.jobs[self.current_job]['unchanged_items'] += 1
         self.jobs[self.current_job]['queued_items'] = self.read_queue.qsize()
         self.scanning.clear()
         if self.read_queue.qsize() < 1:
             logger.debug("No new files found.")
             return False
-        logger.debug("Queued %d songs for reading." % self.read_queue.qsize())
+        logger.debug("Queued %d songs to be read." % self.read_queue.qsize())
         return True
 
     def _add_items_to_db(self):
         """Watches the db_queue for metadata from songs and inserts that data
         into the database.
         """
-        # While the read queue is still being processed or we have stuff waiting
-        # to be added to the database...
+        # While the read queue is still being processed or we have stuff 
+        # waiting to be added to the database...
         self.db_working.set()
-        while self.reading.is_set() or self.db_queue.qsize() > 0 and not self.stopping.is_set():
+        while self.reading.is_set() or self.db_queue.qsize() > 0 \
+              and not self.stopping.is_set():
             if self.db_queue.qsize() > 0:
                 songs = []
                 while self.db_queue.qsize() > 0:
@@ -238,21 +229,23 @@ class Scanner:
                 updated = 0
                 new = []
                 for song in songs:
-                    if song is None:
+                    if not song:
                         # There must've been a problem reading this file so 
                         # we'll skip it.
                         continue
-                    else:
-                        # Get the metadata ready to send to the database
-                        new.append(song)
-                        if "_rev" in song:
-                            updated += 1
-                        self.jobs[self.current_job]['current_item'] = os.path.split(song['location'])[1]
+                    # Get the metadata ready to send to the database
+                    new.append(song)
+                    if "_rev" in song:
+                        updated += 1
+                    filename = os.path.split(song['location'])[1]
+                    self.jobs[self.current_job]['current_item'] = filename
                 # Make our changes to the database
                 self.couchdb.bulk_save(new)
-                self.jobs[self.current_job]['new_items'] += len(new) - updated
+                new_items = len(new) - updated
+                self.jobs[self.current_job]['new_items'] += new_items
                 self.jobs[self.current_job]['changed_items'] += updated
-                logger.debug("Added %d songs to the database, %d of which already existed." % (len(new), updated))
+                logger.debug("Added %d songs to the database, %d of which\
+                             already existed." % (len(new), updated))
             sleep(5)
         self.db_working.clear()
 
@@ -261,7 +254,8 @@ class Scanner:
         from all of the files in the read_queue.
         """
         self.reading.set()
-        self.jobs[self.current_job]['status'] = 'Importing songs to the library'
+        status = 'Importing songs to the library'
+        self.jobs[self.current_job]['status'] = status
         # Create a pool of processes to handle the actual reading of tags.
         # Using processes instead of threads lets us take full advantage of
         # multi-core CPUs so this operation doesn't take as long.
@@ -275,32 +269,36 @@ class Scanner:
                     args_list.append(self.read_queue.get(timeout=1))
                 except:
                     break
-            # Read the tags from the 100 songs and then stick the results in the
-            # database queue.
+            # Read the tags from the 100 songs and then stick the results in 
+            # the database queue.
             try:
                 self.db_queue.put(self.pool.map(read_metadata, args_list))
-                self.jobs[self.current_job]['processed_items'] += len(args_list)
+                n_items = len(args_list)
+                self.jobs[self.current_job]['processed_items'] += n_items
             except:
                 logger.error("Error processing read queue.")
-            logger.debug("Processed %d items in %0.2f seconds" % (queue_size - self.read_queue.qsize(), time() - self.start_time))
+            logger.debug("Processed %d items in %0.2f seconds" % 
+                         (queue_size - self.read_queue.qsize(),
+                         time() - self.start_time))
         self.pool.close()
         self.pool.join()
         self.reading.clear()
 
     def _clean(self):
-        """Searches music_path to find if any of the songs in records have been
-        removed, and then remove them from couchdb.
+        """Searches music_path to find if any of the songs in records have 
+        been removed, and then remove them from couchdb.
         """
         if self.stopping.is_set():
             return
         self.cleaning.set()
-        self.jobs[self.current_job]['status'] = 'Searching for changed/removed files'
-        logger.debug("Searching for changed/removed files.")
+        status = 'Searching for changed/removed files'
+        self.jobs[self.current_job]['status'] = status
+        logger.debug(status)
         start_time = time()
         records = self.couchdb.view('songs/mtime')
-        # Create a list of files that are missing and need to be removed and also
-        # a dict that is going to hold all of the songs from the database whose
-        # corresponding files still exist.
+        # Create a list of files that are missing and need to be removed 
+        # and also a dict that is going to hold all of the songs from the 
+        # database whose corresponding files still exist.
         remove = []
         songs = {}
         removed = 0
@@ -308,62 +306,71 @@ class Scanner:
             if self.stopping.is_set():
                 break
             path = song['key']
-            self.jobs[self.current_job]['current_item'] = os.path.split(path)[1]
-            # Check if the file this database record points to is still there, and
-            # add it to the list to be removed if it's not.
-            if not os.path.isfile(path) or not path.startswith(self.music_path):
+            filename = os.path.split(path)[1]
+            self.jobs[self.current_job]['current_item'] = filename
+            # Check if the file this database record points to is still 
+            # there, and add it to the list to be removed if it's not.
+            if not (os.path.isfile(path) or
+                    path.startswith(self.music_path)):
                 remove.append(self.couchdb[song['id']])
                 removed += 1
-                # Once our list of songs to be removed hits 100, delete them all in
-                # a batch. This is much quicker than doing them one at a time.
+                # Once our list of songs to be removed hits 100, delete 
+                # them all in a batch. This is much quicker than doing them 
+                # one at a time.
                 if removed % 100 == 0:
                     self.couchdb.bulk_delete(remove)
                     self.jobs[self.current_job]['removed_items'] = removed
                     remove = []
-                    logger.debug("Removed %d songs in %0.2f seconds." % (removed, time() - start_time))
+                    logger.debug("Removed %d songs in %0.2f seconds." % 
+                                 (removed, time() - start_time))
             else:
                 # Add the song to the dict we're going to return
                 songs[song['id']] = song['value']
         self.jobs[self.current_job]['current_item'] = 'None'
-        # We ran out of songs without hitting the magic number 100 to trigger a
-        # batch delete, so let's get any stragglers now.
+        # We ran out of songs without hitting the magic number 100 to  
+        # trigger a batch delete, so let's get any stragglers now.
         self.couchdb.bulk_delete(remove)
         self.jobs[self.current_job]['removed_items'] = removed
-        logger.debug("Removed %d songs in %0.2f seconds." % (removed, time() - start_time))
+        logger.debug("Removed %d songs in %0.2f seconds." % 
+                     (removed, time() - start_time))
         self.records = songs
         self.cleaning.clear()
 
 
 def read_metadata((location, id, mtime, revision)):
-    """Uses Mutagen to read the metadata of a file and returns it as a dict."""
+    """Read the metadata of a file and return it as a dict."""
     # Try to open the file and read its tags
     try:
         metadata = mutagen.File(location, None, True)
     except:
         logger.error("%s made Mutagen explode." % location)
         return None
-    # Create the metadata object we're going to return with some default values
-    # filled in. This is just in case there aren't tags for these things so 
-    # we don't run into problems elsewhere with this data not being there.
+    # Create the metadata object we're going to return with some default 
+    # values filled in. This is just in case there aren't tags for these 
+    # things so we don't run into problems elsewhere with this data not 
+    # being there.
     song = {
-        "_id": id,
-        "location": location,
-        "title": os.path.split(location)[1],
-        "mtime": mtime,
-        "artist": "Unknown Artist",
-        "album": "Unknown Album",
-        "genre": [],
-        "date": "",
-        "tracknumber": 0,
-        "discnumber": 1,
-        "bitrate": 0,
-        "length": 0,
-        "type": "song"
+        '_id': id,
+        'location': location,
+        'title': os.path.split(location)[1],
+        'mtime': mtime,
+        'artist': 'Unknown Artist',
+        'album': 'Unknown Album',
+        'genre': [],
+        'date': '',
+        'tracknumber': 0,
+        'discnumber': 1,
+        'bitrate': 0,
+        'length': 0,
+        'subtitle': '',
+        'discsubtitle': '',
+        'compilation': False,
+        'type': 'song'
     }
     if revision:
         song['_rev'] = revision
-    # Try to set the length of the song in seconds, the bitrate in bps and the
-    # mimetype and a default track number of the file.
+    # Try to set the length of the song in seconds, the bitrate in bps and 
+    # the mimetype and a default track number of the file.
     try:
         song['length'] = metadata.info.length
     except:
@@ -376,32 +383,33 @@ def read_metadata((location, id, mtime, revision)):
         song['mimetype'] = metadata.mime[0]
     except:
         pass
-    # Now we parse all the metadata we read and transfer it to our song object.
-    if os.path.splitext(location)[1].lower()[1:] == 'wma':
+    # Now we parse all the metadata and transfer it to our song object.
+    if os.path.splitext(location)[1].lower()[1:] in ('wma', 'asf'):
         song = parse_wma(song, metadata)
     else:
         song = parse_metadata(song, metadata)
     # Create artist and album IDs which are just SHA-1 hashes of each field
-    song['artist_hash'] = hashlib.sha1(song['artist'].encode('utf-8')).hexdigest()
-    song['album_hash'] = hashlib.sha1(song['album'].encode('utf-8')).hexdigest()
+    for field in ('artist', 'album'):
+        value = song[field].encode('utf-8')
+        song['%s_hash' % field] = hashlib.sha1(value).hexdigest()
     return song
 
 
 def parse_metadata(song, metadata):
-    """Parses a Mutagen metadata object and transfers the data to a song object
-    that is suitable to insert into our database.
+    """Parses a Mutagen metadata object and transfers the data to a song 
+    object that is suitable to insert into our database.
     """
     for tag, value in metadata.iteritems():
         try:
-            # Mutagen returns all metadata as lists, so normally we'd just get
-            # value[0], but 'genre' gets special treatment because we want to
-            # save a list to the database. That way we can support multiple
-            # genre tags.
+            # Mutagen returns all metadata as lists, so normally we'd just 
+            # get value[0], but 'genre' and 'mood' get special treatment 
+            # because we want to save a list to the database. That way we 
+            # can support multiple genre/mood tags.
             if tag in ('genre', 'mood'):
                 song[tag] = value
-            # Mutagen returns the tracknumber in a format like '2/12'. We're
-            # only interested in the track number, not the total number of
-            # tracks.
+            # Sometimes tracknumbers are packed along with the totaltracks
+            # using a '/', e.g. 2/11 and sometimes it's just the tracknumber.
+            # We need to account for both cases.
             elif tag in ['track', 'tracknumber']:
                 try:
                     tracknumber, totaltracks = str(value[0]).split('/')
@@ -413,6 +421,7 @@ def parse_metadata(song, metadata):
             elif tag in ['totaltracks', 'tracktotal']:
                 song['totaltracks'] = int(value[0])
                 song['tracktotal'] = int(value[0])
+            # Disc numbers work the same way as track numbers.
             elif tag in ['disc', 'discnumber']:
                 try:
                     discnumber, totaldiscs = str(value[0]).split('/')
@@ -430,12 +439,17 @@ def parse_metadata(song, metadata):
                 song[tag] = float(value[0])
             # We need to ignore tags that contain cover art data so we don't
             # end up inserting giant binary blobs into our database.
-            elif tag not in ['coverart', 'covr', 'APIC:', 'metadata_block_picture', 'pictures', 'WM/Picture']:
+            elif tag in ['coverart', 'covr', 'APIC:', 
+                         'metadata_block_picture', 'pictures', 'WM/Picture']:
+                continue
+            else:
                 song[tag] = value[0]
         except TypeError:
             pass
         except AttributeError:
             pass
+    if not song.has_key('albumartist'):
+        song['albumartist'] = song['artist']
     return song
 
 
@@ -446,17 +460,17 @@ def parse_wma(song, metadata):
     """
     for tag, value in metadata.iteritems():
         try:
-            # Mutagen returns all metadata as lists, so normally we'd just get
-            # value[0], but 'genre' gets special treatment because we want to
-            # save a list to the database. That way we can support multiple
-            # genre tags.
+            # Mutagen returns all metadata as lists, so normally we'd just 
+            # get value[0], but 'genre' and 'mood' get special treatment 
+            # because we want to save a list to the database. That way we 
+            # can support multiple genre/mood tags.
             if tag in ('WM/Genre', 'WM/Mood'):
                 song[asf_map[tag]] = []
                 for genre in value:
                     song[asf_map[tag]].append(genre.value)
-            # Mutagen returns the tracknumber in a format like '2/12'. We're
-            # only interested in the track number, not the total number of
-            # tracks.
+            # Sometimes tracknumbers are packed along with the totaltracks
+            # using a '/', e.g. 2/11 and sometimes it's just the tracknumber.
+            # We need to account for both cases.
             elif tag == 'WM/TrackNumber':
                 try:
                     tracknumber, totaltracks = str(value[0].value).split('/')
@@ -465,6 +479,7 @@ def parse_wma(song, metadata):
                     song['tracktotal'] = int(totaltracks)
                 except:
                     song['tracknumber'] = int(value[0].value)
+            # Disc numbers work the same way as track numbers.
             elif tag == 'WM/PartOfSet':
                 try:
                     discnumber, totaldiscs = str(value[0].value).split('/')
@@ -473,11 +488,21 @@ def parse_wma(song, metadata):
                     song['disctotal'] = int(totaldiscs)
                 except:
                     song['discnumber'] = int(value[0].value)
+            elif tag == 'TotalTracks':
+                song['tracktotal'] = int(value[0].value)
+                song['totaltracks'] = int(value[0].value)
+            elif tag in ('foobar2000/TOTALDISCS', 'TotalDiscs'):
+                song['disctotal'] = int(value[0].value)
+                song['totaldiscs'] = int(value[0].value)
             elif tag == 'WM/IsCompilation':
                 song['compilation'] = bool(value[0])
+            elif tag in ['replaygain_album_peak', 'replaygain_track_peak']:
+                song[tag] = float(value[0])
             # We need to ignore tags that contain cover art data so we don't
             # end up inserting giant binary blobs into our database.
-            elif not tag == 'WM/Picture':
+            elif tag == 'WM/Picture':
+                continue
+            else:
                 if type(value[0]) is unicode:
                     song[asf_map[tag]] = value[0]
                 else:
@@ -487,15 +512,21 @@ def parse_wma(song, metadata):
         except AttributeError:
             pass
         except KeyError:
-            # We encountered a tag that wasn't in asf_map. Print it out to the
-            # console so that hopefully someone will tell us and we can add it.
+            # We encountered a tag that wasn't in asf_map. Print it out to 
+            # the console so that hopefully someone will tell us and we can
+            # add it.
             try:
-                logger.warn("Skipping unrecognized tag %s with data %s in file %s" % (tag, value[0], song['location']))
+                logger.warn("Skipping unrecognized tag %s with data %s in \
+                            file %s" % (tag, value[0], song['location']))
             except:
-                logger.warn("Skipping unrecognized tag %s with un-printable data in file %s" % (tag, song['location']))
+                logger.warn("Skipping unrecognized tag %s with un-printable \
+                            data in file %s" % (tag, song['location']))
+    if not song.has_key('albumartist'):
+        song['albumartist'] = song['artist']
     return song
 
 
+# Register some tags we need that Mutagen doesn't already map.
 EasyID3.RegisterTextKey('albumartist', 'TPE2')
 EasyID3.RegisterTXXXKey('albumartistsort', 'ALBUMARTISTSORT')
 
@@ -552,6 +583,12 @@ asf_map = {
     'WM/BeatsPerMinute': 'bpm', 
     'WM/Genre': 'genre', 
     'WM/ISRC': 'isrc',
+    'TotalTracks': 'totaltracks',
+    'TotalDiscs': 'totaldiscs',
+    'MusicBrainz/ASIN': 'asin',
+    'beets/Artist Credit': 'artist_credit,
+    'beets/Album Artist Credit': 'albumartist_credit'
+    'foobar2000/TOTALDISCS': 'totaldiscs',
     'replaygain_track_gain': 'replaygain_track_gain',
     'replaygain_album_gain': 'replaygain_album_gain',
     'replaygain_track_peak': 'replaygain_track_peak',

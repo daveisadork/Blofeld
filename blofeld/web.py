@@ -463,6 +463,8 @@ class WebInterface:
             query = shlex.split(query.lower())
         if include:
             include = include.lower().split(' ')
+        if sort:
+            sort = shlex.split(sort.lower())
         tree = {}
         for item in self.library.cache.view('query/songs'):
             song = item['value']
@@ -492,6 +494,10 @@ class WebInterface:
                                     break
                 if not match:
                     continue
+            try:
+                del song['query']
+            except:
+                pass
             if object_type == 'songs':
                 retval[object_type].append(song)
                 continue
@@ -518,20 +524,23 @@ class WebInterface:
                             except:
                                 continue
                         if include and ('songs' in include):
-                            album_item['songs'] = songs
+                            album_item['songs'] = sorted(songs, key=itemgetter('discnumber', 'tracknumber'))
                         item['albums'].append(album_item)
+                    item['albums'] = sorted(item['albums'], key=lambda album: album['album'])
                 elif include and ('songs' in include):
                     item['songs'] = []
                     for album, songs in albums.iteritems():
                         item['songs'] += songs
+                    item['songs'].sort(key=itemgetter('discnumber', 'tracknumber'))
                 artists.append(item)
         if object_type == 'albums':
             for artist in artists:
                 retval[object_type] += artist['albums']
             if include and ('artists' in include):
-                retval['artists'] = tree.keys()
+                retval['artists'] = sorted(tree.keys())
+            retval['albums'].sort(key=itemgetter('album'))
         if object_type == 'artists':
-            retval[object_type] = artists
+            retval[object_type] = sorted(artists, key=itemgetter('artist'))
         retval['total'] = len(retval[object_type])
         if limit:
             retval[object_type] = retval[object_type][offset:offset+limit]
