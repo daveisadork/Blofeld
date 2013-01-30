@@ -101,7 +101,10 @@ def find_cover(song):
         pic = unpack_image(data)[1]
     else:
         try:
-            pic = metadata.pictures[0].data
+            for picture in metadata.pictures:
+                if picture.type == 3:
+                    pic = picture.data
+                    break
         except:
             pass
     if pic:
