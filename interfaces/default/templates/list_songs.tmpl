@@ -20,8 +20,8 @@
                             <tr class="song" id="$song['id']">
                                 <td class="status ui-corner-left"><div class="status-icon"></div></td>
                                 <td class="albumartist hidden">#try#$song['albumnumber']#except##try#$song['artist']#except#Unknown Artist#end try##end try#</td>
-                                <td class="replaygain_album_gain hidden">#try#$song['replaygain_album_gain'][:-3]#except#-10.0#end try#</td>
-                                <td class="replaygain_track_gain hidden">#try#$song['replaygain_track_gain'][:-3]#except#-10.0#end try#</td>
+                                <td class="replaygain_album_gain hidden">#try#$song['replaygain_album_gain'].lower().strip(' \tdb')#except#-10.0#end try#</td>
+                                <td class="replaygain_track_gain hidden">#try#$song['replaygain_track_gain'].lower().strip(' \tdb')#except#-10.0#end try#</td>
                                 <td class="track-number">#try##if $song['totaldiscs']>1#$song['discnumber']-#end if##except# #end try##try#$song['tracknumber']#except# #end try#</td>
                                 <td class="title">#try#$song['title']#except#Unknown Title#end try#</td>
                                 <td class="artist">#try#$song['artist']#except#Unknown Artist#end try#</td>
