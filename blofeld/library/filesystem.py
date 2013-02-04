@@ -605,7 +605,7 @@ asf_map = {
     'beets/Album Artist Credit': 'albumartist_credit',
     'beets/Artist Credit': 'artist_credit',
     'foobar2000/TOTALDISCS': 'totaldiscs',
-    'replaygain_reference_loudness': 'replaygain_reference_loudness'
+    'replaygain_reference_loudness': 'replaygain_reference_loudness',
     'replaygain_album_gain': 'replaygain_album_gain',
     'replaygain_album_peak': 'replaygain_album_peak',
     'replaygain_track_gain': 'replaygain_track_gain',
