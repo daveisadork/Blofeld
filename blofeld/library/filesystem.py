@@ -310,7 +310,7 @@ class Scanner:
             self.jobs[self.current_job]['current_item'] = filename
             # Check if the file this database record points to is still 
             # there, and add it to the list to be removed if it's not.
-            if not (os.path.isfile(path) or
+            if not (os.path.isfile(path) and
                     path.startswith(self.music_path)):
                 remove.append(self.couchdb[song['id']])
                 removed += 1
@@ -539,10 +539,10 @@ EasyID3.RegisterTextKey('albumartist', 'TPE2')
 EasyID3.RegisterTXXXKey('albumartistsort', 'ALBUMARTISTSORT')
 EasyID3.RegisterTXXXKey('replaygain_reference_loudness',
                         'replaygain_reference_loudness')
-EasyID3.RegisterTXXXKey('replaygain_album_peak', 'replaygain_album_peak')
-EasyID3.RegisterTXXXKey('replaygain_album_gain', 'replaygain_album_gain')
-EasyID3.RegisterTXXXKey('replaygain_track_gain', 'replaygain_track_gain')
-EasyID3.RegisterTXXXKey('replaygain_track_peak', 'replaygain_track_peak')
+EasyID3.RegisterTXXXKey('replaygain_album_peak', 'REPLAYGAIN_ALBUM_PEAK')
+EasyID3.RegisterTXXXKey('replaygain_album_gain', 'REPLAYGAIN_ALBUM_GAIN')
+EasyID3.RegisterTXXXKey('replaygain_track_gain', 'REPLAYGAIN_TRACK_GAIN')
+EasyID3.RegisterTXXXKey('replaygain_track_peak', 'REPLAYGAIN_TRACK_PEAK')
 
 
 # This dict maps Windows Media tag names to ones we can actually use.
