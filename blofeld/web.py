@@ -185,6 +185,8 @@ class WebInterface:
         except:
             pass
         try:
+            if bitrate:
+                bitrate = str(bitrate)
             force_transcode = False
             if bitrate and \
                (int(bitrate) in [8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112,
@@ -217,7 +219,7 @@ class WebInterface:
             return serve_file(path, song_mime,
                                 "inline", os.path.split(path)[1])
         if format:
-            format = format.split(',')
+            format = str(format).split(',')
         else:
             format = song_format
         logger.debug("The client wants %s and the file is %s" % (format, song_format))
@@ -233,7 +235,7 @@ class WebInterface:
                                 "inline", os.path.split(path)[1])
         else:
             if bitrate:
-                log_message += " The client requested %s kbps %s, but the file is %s kbps %s, so we're transcoding the file for them." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
+                log_message = " The client requested %s kbps %s, but the file is %s kbps %s, so we're transcoding the file for them." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
             else:
                 log_message += " The client requested %s, but the file %s, so we're transcoding the file for them." % (format, str(song_format))
             logger.info(log_message)

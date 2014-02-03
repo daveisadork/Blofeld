@@ -17,10 +17,11 @@
 
 
 from operator import itemgetter, attrgetter
-from time import time
+from time import sleep,time
 import urlparse
 import os
 import threading
+import sys
 
 from couchdbkit import *
 from couchdbkit.loaders import FileSystemDocsLoader
@@ -75,8 +76,20 @@ class Library:
         logger.debug("Initiating the database connection.")
         auth = BasicAuth(db_username, db_password)
         self._server = Server(db_url, filters=[auth])
-        # Get a reference to our database
-        self.db = self._server.get_or_create_db(cfg['DATABASE_NAME'])
+        connect_retries = 0
+        while True:
+            try:
+                # Get a reference to our database
+                self.db = self._server.get_or_create_db(cfg['DATABASE_NAME'])
+                break
+            except:
+                if connect_retries < 3:
+                    logger.error("Error connecting to CouchDB.")
+                    connect_retries += 1
+                    sleep(3)
+                else:
+                    logger.error("Could not connect to CouchDB. Quitting.")
+                    sys.exit(1)
         logger.debug("Loading database design documents.")
         # Load our database views from the filesystem
         loader = FileSystemDocsLoader(os.path.join(cfg['ASSETS_DIR'],
