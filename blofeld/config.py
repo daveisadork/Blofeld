@@ -82,8 +82,8 @@ class Config(dict):
         # all the program data in that directory so the app is portable.
         else:
             self['CONFIG_DIR'] = base_dir
-            self['LOG_DIR'] = os.path.join(self['PROGRAM_DIR'], 'log')
-            self['CACHE_DIR'] = os.path.join(self['PROGRAM_DIR'], 'cache')
+            self['LOG_DIR'] = os.path.join(self['CONFIG_DIR'], 'log')
+            self['CACHE_DIR'] = os.path.join(self['CONFIG_DIR'], 'cache')
         # Create the directories we determined above if we need to.
         if not os.path.isdir(self['CONFIG_DIR']):
             os.mkdir(self['CONFIG_DIR'])
