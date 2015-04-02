@@ -26,9 +26,12 @@ from blofeld.log import logger
 
 
 def transcode_process(conn, path, stop, format='mp3', bitrate=False):
-    import pygst
-    pygst.require('0.10')
-    import gst
+    import gi
+    gi.require_version('Gst', '1.0')
+    from gi.repository import GObject, Gst
+
+    GObject.threads_init()
+    Gst.init(None)
 
     # If we were passed a bitrate argument, make sure it's actually a number
     try:
@@ -38,7 +41,7 @@ def transcode_process(conn, path, stop, format='mp3', bitrate=False):
     log_message = "Transcoding %s to %s" % (path.encode(cfg['ENCODING']), format)
     # Create our transcoding pipeline using one of the strings at the end of
     # this module.
-    transcoder = gst.parse_launch(pipeline[format])
+    transcoder = Gst.parse_launch(pipeline[format])
     # Set the bitrate we were asked for
     if bitrate in [8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192,
                                                                 224, 256, 320]:
@@ -66,24 +69,28 @@ def transcode_process(conn, path, stop, format='mp3', bitrate=False):
         output = transcoder.get_by_name('output')
         output.set_property("sync", False)
         # Start the pipeline running so we can start grabbing data out of it
-        transcoder.set_state(gst.STATE_PLAYING)
-        transcoder.get_state()
+        transcoder.set_state(Gst.State.PLAYING)
+        #transcoder.get_state()
         try:
             # Grab a bit of encoded data and yield it to the client
             while True:
-                output_buffer = output.emit('pull-buffer')
-                if output_buffer and not stop.is_set():
-                    conn.send(output_buffer.data)
+                sample = output.emit('pull-sample')
+                if sample and not stop.is_set():
+                    buf = sample.get_buffer()
+                    data = buf.extract_dup(0, buf.get_size())
+                    conn.send(data)
                 else:
                     break
-        except:
+        except Exception as e:
+            logger.warn(str(e))
             logger.warn("Some type of error occured during transcoding.")
-    except:
+    except Exception as e:
+        logger.error(str(e))
         logger.error("Could not open the file for transcoding. This is probably happening because there are non-ASCII characters in the filename.")
     finally:
         try:
             # I think this is supposed to free the memory used by the transcoder
-            transcoder.set_state(gst.STATE_NULL)
+            transcoder.set_state(Gst.State.NULL)
         except:
             pass
         if not stop.is_set():
@@ -93,11 +100,11 @@ def transcode_process(conn, path, stop, format='mp3', bitrate=False):
 class Transcoder:
     def __init__(self):
         self.stopping = Event()
-    
+
     def stop(self):
         logger.debug("Preventing new transcoding processes.")
         self.stopping.set()
-        
+
     def transcode(self, path, format='mp3', bitrate=False):
         if self.stopping.is_set():
             return
@@ -131,10 +138,10 @@ pipeline = {
     #'mp3': "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! id3v2mux ! appsink name=output",
     'mp3': "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! id3mux name=muxer ! appsink name=output",
     'ogg': "filesrc name=source ! decodebin ! audioconvert ! vorbisenc name=encoder ! oggmux name=muxer ! appsink name=output",
-    'm4a': "filesrc name=source ! decodebin ! audioconvert ! ffenc_aac name=encoder ! ffmux_mp4 name=muxer ! appsink name=output"
+    'm4a': "filesrc name=source ! decodebin ! audioconvert ! avenc_aac name=encoder ! avmux_mp4 name=muxer ! appsink name=output"
 }
 
-# The win32 port of gstreamer apparently doesn't have id3mux or id3v2mux so we have to use 
+# The win32 port of gstreamer apparently doesn't have id3mux or id3v2mux so we have to use
 # ffmux_mp3 instead.
 if os.name == "nt":
-    pipeline['mp3'] = "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! ffmux_mp3 name=muxer ! appsink name=output"
+    pipeline['mp3'] = "filesrc name=source ! decodebin ! audioconvert ! lamemp3enc name=encoder ! avmux_mp3 name=muxer ! appsink name=output"
