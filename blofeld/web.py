@@ -31,6 +31,8 @@ from operator import itemgetter
 from random import shuffle
 from threading import Event
 
+import httpagentparser
+
 import cherrypy
 from cherrypy.lib.static import serve_file
 
@@ -55,6 +57,7 @@ class WebInterface:
         # Create a library object to run queries against
         self.library = library
         self.transcoder = transcoder
+        self.multi_requests = {}
 
     @cherrypy.expose
     def index(self):
@@ -104,6 +107,17 @@ class WebInterface:
             if albums:
                 albums = albums.split(',')
             songs = self.library.songs(artists, albums, query)
+        #log_message = "%s (%s) is " % (cherrypy.request.login, utils.find_originating_host(cherrypy.request.headers))
+        #if query:
+        #    log_message += 'searching for "%s".' % query
+        #elif artists or albums:
+        #    log_message += "browsing "
+        #    if artists and not albums:
+        #        log_message += "albums by %s." % ', '.join(self.library.artists(artists, query))
+        #    elif albums:
+        #        log_message += "%s by %s." % (', '.join(self.library.albums(artists, query)), ', '.join(self.library.artists(artists, albums, query)))
+        #if not archive and not list_all:
+        #    logger.info(log_message)
         if start and length:
             start = int(start)
             end = int(length) + start
@@ -161,7 +175,12 @@ class WebInterface:
     @cherrypy.expose
     def get_song(self, songid=None, format=False, bitrate=False):
         logger.debug("%s (%s)\tget_song(songid=%s, format=%s, bitrate=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, songid, format, bitrate, cherrypy.request.headers))
-        log_message = "%s (%s) requested " % (cherrypy.request.login, utils.find_originating_host(cherrypy.request.headers))
+        log_message = "%s (%s) is listening to " % (cherrypy.request.login, utils.find_originating_host(cherrypy.request.headers))
+        last = self.multi_requests.get(songid, None)
+        show_log = False
+        if not last or (last and time.time() > (last + 30)):
+            show_log = True
+        self.multi_requests[songid] = time.time()
         try:
             range_request = cherrypy.request.headers['Range']
         except:
@@ -173,17 +192,17 @@ class WebInterface:
             log_message += "a song ID which could not be found: %s" % str(songid)
             logger.error(log_message)
             raise cherrypy.HTTPError(404)
-        log_message += "%s by %s from %s " % (song['title'].encode(cfg['ENCODING']), song['artist'].encode(cfg['ENCODING']), song['album'].encode(cfg['ENCODING']))
+        log_message += '"%s" by %s from %s ' % (song['title'].encode(cfg['ENCODING']), song['artist'].encode(cfg['ENCODING']), song['album'].encode(cfg['ENCODING']))
         try:
-            b = False
-            #b = self.bc(cherrypy.request.headers['User-Agent'])
-            if b:
-                browser = "%s %s.%s on %s" % (b.name(), b.version()[0], b.version()[1], b.get("platform"))
-            else:
-                browser = cherrypy.request.headers['User-Agent']
-            log_message += "using %s." % browser
+            client_os, client_browser = httpagentparser.simple_detect(cherrypy.request.headers['User-Agent'])
+        #    b = self.bc(cherrypy.request.headers['User-Agent'])
+        #    if b:
+        #        browser = "%s %s.%s on %s" % (b.name(), b.version()[0], b.version()[1], b.get("platform"))
+        #    else:
+        #        browser = cherrypy.request.headers['User-Agent']
+        #    log_message += "using %s." % browser
         except:
-            pass
+            client_os, client_browser = None
         try:
             if bitrate:
                 bitrate = str(bitrate)
@@ -212,7 +231,12 @@ class WebInterface:
         else:
             song_mime = 'application/octet-stream'
         if not (format or bitrate):
-            log_message += " The client did not request any specific format or bitrate so the file is being sent as-is (%s kbps %s)." % (str(song['bitrate'] / 1000), str(song_format))
+            #log_message += " The client did not request any specific format or bitrate so the file is being sent as-is (%s kbps %s)." % (str(song['bitrate'] / 1000), str(song_format))
+            log_message += "(%skbps %s)" % (str(song['bitrate']), song_format[0])
+            if client_os and client_browser:
+                log_message += " using %s on %s." % (client_browser, client_os)
+            else:
+                log_message += "."
             logger.info(log_message)
             if not os.name == 'nt':
                 path = path.encode(cfg['ENCODING'])
@@ -224,21 +248,33 @@ class WebInterface:
             format = song_format
         logger.debug("The client wants %s and the file is %s" % (format, song_format))
         if True in [True for x in format if x in song_format] and not force_transcode:
-            if bitrate:
-                log_message += " The client requested %s kbps %s, but the file is already %s kbps %s, so the file is being sent as-is." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
+            #if bitrate:
+            #    log_message += " The client requested %s kbps %s, but the file is already %s kbps %s, so the file is being sent as-is." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
+            #else:
+            #    log_message += " The client requested %s, but the file is already %s, so the file is being sent as-is." % (format, str(song_format))
+            log_message += "(%skbps %s)" % (str(song['bitrate'] / 1000), song_format[0])
+            if client_os and client_browser:
+                log_message += " using %s on %s." % (client_browser, client_os)
             else:
-                log_message += " The client requested %s, but the file is already %s, so the file is being sent as-is." % (format, str(song_format))
-            logger.info(log_message)
+                log_message += "."
+            if show_log:
+                logger.info(log_message)
             if not os.name == 'nt':
                 path = path.encode(cfg['ENCODING'])
             return serve_file(path, song_mime,
                                 "inline", os.path.split(path)[1])
         else:
-            if bitrate:
-                log_message = " The client requested %s kbps %s, but the file is %s kbps %s, so we're transcoding the file for them." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
+            #if bitrate:
+            #    log_message = " The client requested %s kbps %s, but the file is %s kbps %s, so we're transcoding the file for them." % (bitrate, format, str(song['bitrate'] / 1000), str(song_format))
+            #else:
+            #    log_message += " The client requested %s, but the file %s, so we're transcoding the file for them." % (format, str(song_format))
+            log_message += "(transcoded from %skbps %s to %skbps %s)" % (str(song['bitrate'] / 1000), song_format[0], str(bitrate), format[0])
+            if client_os and client_browser:
+                log_message += " using %s on %s." % (client_browser, client_os)
             else:
-                log_message += " The client requested %s, but the file %s, so we're transcoding the file for them." % (format, str(song_format))
-            logger.info(log_message)
+                log_message += "."
+            if show_log:
+                logger.info(log_message)
         # If we're transcoding audio and the client is trying to make range
         # requests, we have to throw an error 416. This sucks because it breaks
         # <audio> in all the WebKit browsers I've tried, but at least it stops
