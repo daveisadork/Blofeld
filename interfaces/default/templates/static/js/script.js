@@ -163,7 +163,7 @@
 
         playSong = function (songIndex) {
             var song = playlist[songIndex],
-                songUrl, db, gain;
+                songUrl, db, gain, gainType, gainClass;
             $("#progress-bar").slider("disable");
             showInfo(song);
             songUrl = $.fn.blofeld("getSongURL", {
@@ -171,8 +171,16 @@
                 format: formats[activeSolution],
                 bitrate: bitrate
             });
-            db = parseFloat($('#'+song+' .replaygain_track_gain').text());
-            gain = Math.pow(10,db/20);
+            if ($('#enable-replaygain').is(':checked')) {
+                gainType = $('input[name="replaygain"]:checked').val();
+                gainClass = ' .replaygain_' + gainType + '_gain';
+                db = parseFloat($('#' + song + gainClass).text());
+                gain = Math.pow(10,db/20);
+                console.log('Gain type: ' + gainType + ', value: ' + gain);
+            } else {
+                console.log('Ignoring ReplayGain, gain: 1');
+                gain = 1;
+            }
             playingCurrently = songIndex;
             $("#jplayer").jPlayer("setMedia", {
                 mp3: songUrl,
