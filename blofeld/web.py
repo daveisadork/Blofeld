@@ -205,7 +205,8 @@ class WebInterface:
         #        browser = cherrypy.request.headers['User-Agent']
         #    log_message += "using %s." % browser
         except:
-            client_os, client_browser = None
+            client_os = 'an OS'
+            client_browser = 'a browser'
         try:
             if bitrate:
                 bitrate = str(bitrate)
