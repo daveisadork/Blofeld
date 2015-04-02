@@ -74,15 +74,18 @@ class Library:
         self.shutting_down = threading.Event()
         self.building_cache = threading.Event()
         logger.debug("Initiating the database connection.")
-        auth = BasicAuth(db_username, db_password)
-        self._server = Server(db_url, filters=[auth])
+        filters = []
+        if db_username or db_password:
+            filters.append(BasicAuth(db_username, db_password))
+        self._server = Server(db_url, filters=filters)
         connect_retries = 0
         while True:
             try:
                 # Get a reference to our database
                 self.db = self._server.get_or_create_db(cfg['DATABASE_NAME'])
                 break
-            except:
+            except Exception as e:
+                logger.error(str(e))
                 if connect_retries < 3:
                     logger.error("Error connecting to CouchDB.")
                     connect_retries += 1
@@ -159,7 +162,7 @@ class Library:
         if not (self.shutting_down.is_set() or self.scanner.updating.is_set()):
             logger.debug("Finished building the database cache in %0.2d seconds." % (time() - start_time))
         else:
-            logger.debug("Database cache building was interrupted after %0.2d seconds." % (time.time() - start_time))
+            logger.debug("Database cache building was interrupted after %0.2d seconds." % (time() - start_time))
 
     def songs(self, artists=None, albums=None, query=None, suggest=None):
         '''Returns a list of songs as dictionary objects.'''
