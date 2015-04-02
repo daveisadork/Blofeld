@@ -230,7 +230,7 @@ class Config(dict):
         self['CHERRYPY_OUTPUT'] = False
 
 cfg = Config()
-cfg.load_config()
+#cfg.load_config()
 
 if os.path.exists(cfg['PID_FILE']) and traceback.extract_stack()[0][0] != 'Blofeld.py':
     try:

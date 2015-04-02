@@ -151,9 +151,8 @@ if __name__ == "__main__":
             os.remove(cfg['PID_FILE'])
             del cfg
             from blofeld.config import cfg
-            if options.config_file:
-                cfg.__init__(program_dir=options.base_dir, path=options.config_file)
-                cfg.load_config()
+            cfg.__init__(program_dir=options.base_dir, path=options.config_file)
+            cfg.load_config()
     from blofeld.log import *
     if options.log_file:
         enable_single_file(options.log_file)
