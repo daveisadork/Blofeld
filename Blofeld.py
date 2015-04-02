@@ -37,6 +37,9 @@ def get_options():
     parser.add_option("-v", "--version",
                       action="store_true", dest="version",
                       help="Print the version number and exit.")
+    parser.add_option("-b", "--base_dir",
+                      action="store", type="string", dest="base_dir",
+                      help="Base directory for storing cache, logs, etc.")
     parser.add_option("-c", "--config",
                       action="store", type="string", dest="config_file",
                       help="Load a specific configuration file.")
@@ -78,32 +81,32 @@ def set_exit_handler(func):
 
 
 def daemonize(name):
-    # do the UNIX double-fork magic, see Stevens' "Advanced 
+    # do the UNIX double-fork magic, see Stevens' "Advanced
     # Programming in the UNIX Environment" for details (ISBN 0201563177)
-    try: 
-        pid = os.fork() 
+    try:
+        pid = os.fork()
         if pid > 0:
             # exit first parent
-            sys.exit(0) 
-    except OSError, e: 
-        print >>sys.stderr, "fork #1 failed: %d (%s)" % (e.errno, e.strerror) 
+            sys.exit(0)
+    except OSError, e:
+        print >>sys.stderr, "fork #1 failed: %d (%s)" % (e.errno, e.strerror)
         sys.exit(1)
 
     # decouple from parent environment
-    os.chdir(".") 
-    os.setsid() 
-    os.umask(0) 
+    os.chdir(".")
+    os.setsid()
+    os.umask(0)
 
     # do second fork
-    try: 
-        pid = os.fork() 
+    try:
+        pid = os.fork()
         if pid > 0:
             # exit from second parent, print eventual PID before
-            #print "Daemon PID %d" % pid 
-            sys.exit(0) 
-    except OSError, e: 
-        print >>sys.stderr, "fork #2 failed: %d (%s)" % (e.errno, e.strerror) 
-        sys.exit(1) 
+            #print "Daemon PID %d" % pid
+            sys.exit(0)
+    except OSError, e:
+        print >>sys.stderr, "fork #2 failed: %d (%s)" % (e.errno, e.strerror)
+        sys.exit(1)
 
     from ctypes import cdll, byref, create_string_buffer
     libc = cdll.LoadLibrary('libc.so.6')
@@ -136,9 +139,8 @@ if __name__ == "__main__":
             sys.exit()
         daemonize(sys.argv[0])
     from blofeld.config import cfg
-    if options.config_file:
-        cfg.__init__(path=options.config_file)
-        cfg.load_config()
+    cfg.__init__(program_dir=options.base_dir, path=options.config_file)
+    cfg.load_config()
     if os.path.exists(cfg['PID_FILE']):
         with open(cfg['PID_FILE'], "r") as pidfile:
             state = pickle.load(pidfile)
@@ -150,7 +152,7 @@ if __name__ == "__main__":
             del cfg
             from blofeld.config import cfg
             if options.config_file:
-                cfg.__init__(path=options.config_file)
+                cfg.__init__(program_dir=options.base_dir, path=options.config_file)
                 cfg.load_config()
     from blofeld.log import *
     if options.log_file:
