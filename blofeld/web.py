@@ -31,7 +31,10 @@ from operator import itemgetter
 from random import shuffle
 from threading import Event
 
-import httpagentparser
+try:
+    import httpagentparser
+except:
+    pass
 
 import cherrypy
 from cherrypy.lib.static import serve_file
