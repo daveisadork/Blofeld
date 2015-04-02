@@ -35,14 +35,15 @@ __all__ = ['cfg']
 
 class Config(dict):
 
-    def __init__(self, installed=False, system=False, program_dir=None,
+    def __init__(self, installed=False, system=False, base_dir=None,
                                                                     path=None):
         dict.__init__(self)
         # Get the user supplied config file path
         self.path = path
         # Program directory wasn't specified, we we'll try to determine it
-        if not program_dir:
-            program_dir = get_main_dir()
+        program_dir = get_main_dir()
+        if not base_dir:
+            base_dir = program_dir
         # Detect whether or not the app is being run in portable mode and
         # determine the appropriate place to store application data.
         if not installed:
@@ -80,7 +81,7 @@ class Config(dict):
         # Apparently we're being run from the source directory, so we'll store
         # all the program data in that directory so the app is portable.
         else:
-            self['CONFIG_DIR'] = self['PROGRAM_DIR']
+            self['CONFIG_DIR'] = base_dir
             self['LOG_DIR'] = os.path.join(self['PROGRAM_DIR'], 'log')
             self['CACHE_DIR'] = os.path.join(self['PROGRAM_DIR'], 'cache')
         # Create the directories we determined above if we need to.

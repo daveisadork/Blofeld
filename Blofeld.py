@@ -139,7 +139,7 @@ if __name__ == "__main__":
             sys.exit()
         daemonize(sys.argv[0])
     from blofeld.config import cfg
-    cfg.__init__(program_dir=options.base_dir, path=options.config_file)
+    cfg.__init__(base_dir=options.base_dir, path=options.config_file)
     cfg.load_config()
     if os.path.exists(cfg['PID_FILE']):
         with open(cfg['PID_FILE'], "r") as pidfile:
@@ -151,7 +151,7 @@ if __name__ == "__main__":
             os.remove(cfg['PID_FILE'])
             del cfg
             from blofeld.config import cfg
-            cfg.__init__(program_dir=options.base_dir, path=options.config_file)
+            cfg.__init__(base_dir=options.base_dir, path=options.config_file)
             cfg.load_config()
     from blofeld.log import *
     if options.log_file:
