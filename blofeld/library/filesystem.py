@@ -175,6 +175,8 @@ class Scanner:
             if self.stopping.is_set():
                 break
             for item in files:
+                if '.AppleDouble' in os.path.split(root):
+                    continue
                 # Get the file extension, e.g. 'mp3' or 'flac', and see if
                 # it's in the list of extensions we're supposed to look for.
                 extension = os.path.splitext(item)[1].lower()[1:]
