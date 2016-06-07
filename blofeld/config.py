@@ -22,7 +22,7 @@ import traceback
 import platform
 import ConfigParser
 
-import anyjson
+import simplejson as json
 
 from blofeld.utils import get_main_dir
 
@@ -105,9 +105,9 @@ class Config(dict):
     def save_config(self):
         self._cfg.set('server', 'host', str(self['HOSTNAME']))
         self._cfg.set('server', 'port', str(self['PORT']))
-        self._cfg.set('security', 'require_login', anyjson.serialize(self['REQUIRE_LOGIN']))
-        self._cfg.set('security', 'users', anyjson.serialize(self['USERS']))
-        self._cfg.set('security', 'groups', anyjson.serialize(self['GROUPS']))
+        self._cfg.set('security', 'require_login', json.dumps(self['REQUIRE_LOGIN']))
+        self._cfg.set('security', 'users', json.dumps(self['USERS']))
+        self._cfg.set('security', 'groups', json.dumps(self['GROUPS']))
         self._cfg.set('database', 'path', str(os.path.abspath(self['MUSIC_PATH'])))
         self._cfg.set('database', 'couchdb_url', str(self['COUCHDB_URL']))
         self._cfg.set('database', 'couchdb_user', str(self['COUCHDB_USER']))
@@ -136,11 +136,11 @@ class Config(dict):
             self._cfg.set('server', 'port', '8083')
             self._cfg.add_section('security')
             self._cfg.set('security', 'require_login', 'false')
-            self._cfg.set('security', 'users', anyjson.serialize({
+            self._cfg.set('security', 'users', json.dumps({
                 'admin': 'password',
                 'user': 'password'
                 }))
-            self._cfg.set('security', 'groups', anyjson.serialize({
+            self._cfg.set('security', 'groups', json.dumps({
                 'admin': ['admin'],
                 'download': ['admin', 'user']
             }))
@@ -171,9 +171,9 @@ class Config(dict):
 
         self['REQUIRE_LOGIN'] = self._cfg.getboolean('security',
                                                      'require_login')
-        self['USERS'] = anyjson.deserialize(self._cfg.get('security',
+        self['USERS'] = json.loads(self._cfg.get('security',
                                                           'users'))
-        self['GROUPS'] = anyjson.deserialize(self._cfg.get('security',
+        self['GROUPS'] = json.loads(self._cfg.get('security',
                                                            'groups'))
         self['COUCHDB_URL'] = self._cfg.get('database',
                                             'couchdb_url')

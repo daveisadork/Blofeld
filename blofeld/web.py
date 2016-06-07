@@ -16,11 +16,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
-import sys
-import json
-import anyjson
-import thread
-import hashlib
+import simplejson as json
 import mimetypes
 mimetypes.init()
 import shlex
@@ -76,7 +72,7 @@ class WebInterface:
         albums = self.library.albums(artists, query)
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
-            return anyjson.serialize({'albums': albums})
+            return json.dumps({'albums': albums})
         elif output == 'html':
             template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_albums.tmpl'))
             template.albums = albums
@@ -90,7 +86,7 @@ class WebInterface:
         artists = self.library.artists(query)
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
-            return anyjson.serialize({'artists': artists})
+            return json.dumps({'artists': artists})
         elif output == 'html':
             template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_artists.tmpl'))
             template.artists = artists
@@ -130,7 +126,7 @@ class WebInterface:
         songs.sort(key=itemgetter('albumartist', 'album', 'date', 'discnumber', 'tracknumber'))
         if output == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json'
-            return anyjson.serialize({'songs': songs})
+            return json.dumps({'songs': songs})
         elif output == 'html':
             template = Template(file=os.path.join(cfg['THEME_DIR'], 'list_songs.tmpl'))
             template.songs = songs
@@ -170,7 +166,7 @@ class WebInterface:
             del song['_rev']
             del song['type']
             cherrypy.response.headers['Content-Type'] = 'application/json'
-            return anyjson.serialize({"song": song})
+            return json.dumps({"song": song})
         else:
             raise cherrypy.HTTPError(404, "That song doesn't exist in the database.")
 
@@ -388,9 +384,9 @@ class WebInterface:
             raise cherrypy.HTTPError(401,'Not Authorized')
         cherrypy.response.headers['Content-Type'] = 'application/json'
         if not ticket:
-            return anyjson.serialize({"ticket": self.library.update()})
+            return json.dumps({"ticket": self.library.update()})
         else:
-            return anyjson.serialize(self.library.update(ticket=ticket))
+            return json.dumps(self.library.update(ticket=ticket))
 
     scan = update_library
     scan.exposed = True
@@ -417,13 +413,13 @@ class WebInterface:
         except:
             limit = len(song_list)
         cherrypy.response.headers['Content-Type'] = 'application/json'
-        return anyjson.serialize(song_list[:limit])
+        return json.dumps(song_list[:limit])
 
     @cherrypy.expose
     def suggest(self, term=None):
         logger.debug("%s (%s)\tsuggest(term=%s)\tHeaders: %s" % (utils.find_originating_host(cherrypy.request.headers), cherrypy.request.login, term, cherrypy.request.headers))
         result = self.library.songs(suggest=True, query=term)
-        return anyjson.serialize(result)
+        return json.dumps(result)
 
     @cherrypy.expose
     def config(self, set_option=None, get_option=None, value=None):
@@ -440,7 +436,7 @@ class WebInterface:
                 if type(cfg[set_option]) is types.ListType:
                     value = value.split(',')
                 if type(cfg[set_option]) is types.BooleanType:
-                    value = anyjson.deserialize(value)
+                    value = json.loads(value)
                 if type(cfg[set_option]) is types.StringType:
                     value = str(value)
             except:
@@ -449,16 +445,16 @@ class WebInterface:
                 cfg[set_option] = value
                 cfg.save_config()
                 cherrypy.response.headers['Content-Type'] = 'application/json'
-                return anyjson.serialize({'config': {set_option: cfg[set_option]}})
+                return json.dumps({'config': {set_option: cfg[set_option]}})
             except Exception as x:
                 logger.error("Could not save configuration. The error was: %s" % str(x))
         if get_option:
             if get_option not in cfg.keys():
                 raise cherrypy.HTTPError(501,'The requested option does not exist')
             cherrypy.response.headers['Content-Type'] = 'application/json'
-            return anyjson.serialize({'config': {get_option: cfg[get_option]}})
+            return json.dumps({'config': {get_option: cfg[get_option]}})
         cherrypy.response.headers['Content-Type'] = 'application/json'
-        return anyjson.serialize({'config': cfg})
+        return json.dumps({'config': cfg})
 
     @cherrypy.expose
     def shutdown(self):
@@ -471,7 +467,7 @@ class WebInterface:
             logger.info("Received shutdown request, complying.")
             self.transcoder.stop()
             self.library.scanner.stop()
-            return anyjson.serialize({'shutdown': True})
+            return json.dumps({'shutdown': True})
         except:
             pass
         finally:
@@ -488,7 +484,7 @@ class WebInterface:
         try:
             cherrypy.response.headers['Content-Type'] = 'application/json'
             logger.info("Received flush database request, complying.")
-            return anyjson.serialize({'flush_db': True})
+            return json.dumps({'flush_db': True})
         except:
             pass
         finally:
