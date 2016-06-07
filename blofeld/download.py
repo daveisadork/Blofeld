@@ -25,16 +25,26 @@ from blofeld.coverart import find_cover
 
 
 def create_archive(songs):
-    files = []
-    for song in songs:
-        files.append((song['location'], song['location'].replace(cfg['MUSIC_PATH'], '')))
-        cover = (find_cover(song), os.path.join(os.path.dirname(song['location']), 'Cover.jpg').replace(cfg['MUSIC_PATH'], ''))
-        if cover not in files:
-            files.append(cover)
-    path = os.path.join(cfg['CACHE_DIR'], '%s.zip') % hashlib.sha1(str(songs).encode('utf-8')).hexdigest()
-    logger.debug("Creating archive at %s" % path)
-    archive = zipfile.ZipFile(path, 'w', zipfile.ZIP_STORED)
-    for item in files:
-        archive.write(item[0], item[1])
-    archive.close()
-    return path
+    try:
+        files = []
+        for song in songs:
+            location = song['location'].encode('utf8')
+            print type(location)
+            zip_path = song['location'].replace(cfg['MUSIC_PATH'], '').encode('utf8')
+            files.append((location, zip_path))
+            zip_cover_path = os.path.join(os.path.dirname(zip_path), 'Cover.jpg')
+            cover = (find_cover(song), zip_cover_path)
+            if cover not in files:
+                files.append(cover)
+        path = os.path.join(cfg['CACHE_DIR'],
+                            '%s.zip') % hashlib.sha1(str(files)).hexdigest()
+        logger.debug("Creating archive at %s" % path)
+        logger.debug(files)
+        archive = zipfile.ZipFile(path, 'w', zipfile.ZIP_STORED)
+        for item in files:
+            logger.debug('Added "%s" to "%s"' % item)
+            archive.write(*item)
+        archive.close()
+        return path
+    except Exception as e:
+        logger.exception(e)
