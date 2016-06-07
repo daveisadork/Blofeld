@@ -19,7 +19,10 @@ import os
 import base64
 import struct
 import hashlib
-import Image
+try:
+    import Image
+except:
+    from PIL import Image
 import mutagen
 
 from blofeld.config import cfg
@@ -81,7 +84,7 @@ def find_cover(song):
             return img_path
 
     # Try to get embedded cover art
-    song_location = unicode(song['location'])
+    song_location = song['location'].encode('utf8')
     metadata = mutagen.File(song_location)
     pic = None
     if 'APIC:' in metadata.keys():
@@ -124,7 +127,7 @@ def find_cover(song):
     try:
         # Get the path to the folder containing the song for which we need a
         # cover image
-        path = os.path.split(song['location'])[0]
+        path = os.path.split(song['location'])[0].encode('utf8')
         # Look for any files in the path that are images and give them a score
         # based on their filename and append them to our results list.
         images = []
@@ -140,7 +143,8 @@ def find_cover(song):
         images.sort(reverse=True)
         logger.debug("Using cover image at %s" % images[0][1])
         return images[0][1]
-    except:
+    except Exception as e:
+        logger.exception(e)
         logger.debug("Couldn't find any suitable cover image.")
         return None
 
